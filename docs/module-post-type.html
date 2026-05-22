@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Post Type</title>
+</head>
+<body>
+    <h1>Module: Post Type</h1>
+    <p>Модуль <code>includes/class-post-type.php</code> регистрирует CPT <code>sign-docs</code>, который хранит запись о подписанном документе.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li>Хук WordPress <code>init</code>.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li>Публичный тип записи <code>sign-docs</code>.</li>
+        <li>Публичный rewrite CPT отключен; URL проверки формируется отдельным правилом <code>/signed/{post_id}/</code>.</li>
+        <li>Классический экран редактирования без Gutenberg-редактора.</li>
+        <li>Поддержка только системных полей <code>title</code> и <code>author</code>; остальные данные выводятся через meta boxes.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>CPT хранит данные документа, но не хранит файл внутри медиа-библиотеки WordPress.</li>
+        <li>Публичная страница записи является страницей проверки.</li>
+        <li>Произвольный контент Gutenberg не используется: запись является карточкой документа, а не редакционной страницей.</li>
+        <li>Удаление и версии будут ограничены отдельным модулем lifecycle при развитии проекта.</li>
+    </ul>
+</body>
+</html>

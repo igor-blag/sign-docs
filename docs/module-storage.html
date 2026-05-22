@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Storage</title>
+</head>
+<body>
+    <h1>Module: Storage</h1>
+    <p>Модуль описывает файловое хранилище в <code>wp-content/uploads/sign-docs</code>.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li>Путь к файлу исходного PDF.</li>
+        <li>Стандартная директория uploads WordPress.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li><code>uploads/sign-docs/year/month/post-id/original.pdf</code> - контрольная копия.</li>
+        <li><code>uploads/sign-docs/year/month/post-id/stamped.pdf</code> - публичная копия с отметкой.</li>
+        <li>Обе копии документа хранятся рядом в одной папке <code>year/month/post-id</code>.</li>
+        <li>SHA-256 для читаемого файла.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>Исходный файл не изменяется после расчета хеша.</li>
+        <li>Модуль не создает записи WordPress и не принимает HTTP-запросы.</li>
+        <li>Детальная структура <code>year/month/post-id</code> применяется сервисом создания документа.</li>
+    </ul>
+</body>
+</html>

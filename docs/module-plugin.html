@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Plugin</title>
+</head>
+<body>
+    <h1>Module: Plugin</h1>
+    <p>Класс <code>Sign_Docs_Plugin</code> является точкой сборки плагина.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li>WordPress hooks: <code>plugins_loaded</code>, activation, deactivation.</li>
+        <li>Константы путей, заданные в <code>sign-docs.php</code>.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li>Зарегистрированные callbacks для CPT, таксономий, meta, публичной страницы и админки.</li>
+        <li>Созданные директории хранилища при активации.</li>
+        <li>Обновленные rewrite rules при активации и деактивации.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>Модуль не содержит бизнес-логику подписи.</li>
+        <li>Модуль не работает напрямую с загружаемыми файлами, кроме вызова setup-функций при активации.</li>
+        <li>Повторный вызов <code>boot()</code> не должен дублировать регистрацию hooks.</li>
+    </ul>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: REST API</title>
+</head>
+<body>
+    <h1>Module: REST API</h1>
+    <p>Модуль <code>Sign_Docs_REST_Controller</code> реализует двухфазную подпись PDF с наложением штампа в браузере и предоставляет данные для Gutenberg-блока.</p>
+
+    <h2>documents</h2>
+    <p><code>GET /wp-json/sign-docs/v1/documents</code></p>
+    <ul>
+        <li>Возвращает опубликованные записи <code>sign-docs</code> для модалки выбора загруженного документа.</li>
+        <li>Поддерживает фильтры поиска, статуса, категории, типа документа, подразделения, страницы и размера страницы.</li>
+        <li>Возвращает title, full title, verification URL, stamped/original file URLs, SHA-256, статус, дату подписи и версию.</li>
+        <li>Возвращает списки фильтров по таксономиям для editor UI.</li>
+    </ul>
+
+    <h2>prepare</h2>
+    <p><code>POST /wp-json/sign-docs/v1/prepare</code></p>
+    <ul>
+        <li>Принимает исходный PDF, реквизиты документа, категорию, тип, институцию, дату, номер, тему и данные подписанта.</li>
+        <li>Сохраняет исходник как контрольную копию.</li>
+        <li>Считает серверный SHA-256.</li>
+        <li>Создает запись <code>sign-docs</code> со статусом <code>needs_public_copy</code>.</li>
+        <li>Возвращает данные для браузерного штампа: hash, URL проверки, дату, подписанта.</li>
+        <li>Возвращает параметры штампа, включая угол, цвет, прозрачность, размер шрифта, ширину, рамку и данные QR-кода.</li>
+    </ul>
+
+    <h2>complete</h2>
+    <p><code>POST /wp-json/sign-docs/v1/complete</code></p>
+    <ul>
+        <li>Принимает <code>post_id</code> и готовый <code>stamped.pdf</code>.</li>
+        <li>Сохраняет публичную копию рядом с исходником в <code>uploads/sign-docs/year/month/post-id/stamped.pdf</code>.</li>
+        <li>Переводит документ в статус <code>active</code> и публикует запись.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>Write-endpoints доступны только пользователям с правом <code>upload_files</code>.</li>
+        <li>Endpoint выбора документов доступен пользователям, которым разрешено редактировать записи в редакторе.</li>
+        <li>Юридически значимым остается hash исходной контрольной копии.</li>
+        <li>Stamped PDF является публичным визуальным артефактом и не используется как источник истины.</li>
+    </ul>
+</body>
+</html>

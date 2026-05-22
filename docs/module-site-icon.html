@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Site Icon</title>
+</head>
+<body>
+    <h1>Module: Site Icon</h1>
+    <p>Модуль <code>includes/class-site-icon.php</code> готовит PNG-копию favicon или логотипа сайта для вставки в центр QR-кода.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li>Attachment ID из опции WordPress <code>site_icon</code>.</li>
+        <li>Fallback attachment ID из theme mod <code>custom_logo</code>.</li>
+        <li>Исходный файл изображения из uploads.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li>Кэшированный PNG-файл <code>wp-content/uploads/sign-docs/assets/site-icon.png</code>.</li>
+        <li>URL PNG-файла с version query по времени изменения файла.</li>
+        <li>Опция <code>sign_docs_site_icon_cache</code> с ID источника и временем изменения исходного файла.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>PNG пересоздается только если изменился source attachment или mtime исходного файла.</li>
+        <li>Если сервер не смог подготовить PNG, модуль возвращает исходный URL изображения.</li>
+        <li>Браузерная WebP-конвертация в JS остается только fallback-слоем.</li>
+    </ul>
+</body>
+</html>

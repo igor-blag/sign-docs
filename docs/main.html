@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Sign Docs: структура проекта</title>
+</head>
+<body>
+    <h1>Sign Docs</h1>
+    <p>Плагин фиксирует подписанные PDF-документы организации в WordPress: хранит исходный файл как контрольную копию, рассчитывает серверный SHA-256, создает запись CPT <code>sign-docs</code> и показывает публичную страницу проверки.</p>
+
+    <h2>Ключевые инварианты</h2>
+    <ul>
+        <li>Исходный PDF после подписания не изменяется.</li>
+        <li>Серверный SHA-256 является главным источником истины.</li>
+        <li>Публичная PDF-копия может содержать визуальную отметку, QR-код и человекочитаемые данные.</li>
+        <li>QR-код ведет на страницу проверки, а не напрямую на PDF.</li>
+        <li>Повторная подпись должна создавать новую версию, не перезаписывая предыдущую.</li>
+    </ul>
+
+    <h2>Модули</h2>
+    <ul>
+        <li><a href="session-handoff.html">Session Handoff</a> - current state, recent changes, checks and next steps.</li>
+        <li><a href="module-plugin.html">Plugin</a> - координация загрузки модулей и lifecycle hooks.</li>
+        <li><a href="module-post-type.html">Post Type</a> - регистрация CPT <code>sign-docs</code>.</li>
+        <li><a href="module-meta.html">Meta</a> - контракт метаданных документа.</li>
+        <li><a href="module-taxonomies.html">Taxonomies</a> - типы документов и подразделения.</li>
+        <li><a href="module-storage.html">Storage</a> - структура файлового хранилища и SHA-256.</li>
+        <li><a href="module-pdf-certificate.html">PDF Certificate</a> - публичный PDF-сертификат проверки.</li>
+        <li><a href="module-document-service.html">Document Service</a> - создание записи документа из PDF.</li>
+        <li><a href="module-rest-api.html">REST API</a> - двухфазный workflow браузерного штампа.</li>
+        <li><a href="module-admin-upload-js.html">Admin Upload JS</a> - наложение штампа через pdf-lib.</li>
+        <li><a href="module-blocks.html">Gutenberg Blocks</a> - блок редактора для выбора, подписи и вывода документов.</li>
+        <li><a href="module-settings.html">Settings</a> - значения по умолчанию для подписи, штампа, QR-кода и кнопок блока.</li>
+        <li><a href="module-site-icon.html">Site Icon</a> - PNG-кэш favicon или логотипа для QR-кода.</li>
+        <li><a href="module-verification-page.html">Verification Page</a> - публичная страница проверки.</li>
+        <li><a href="module-admin.html">Admin</a> - административные колонки и экран добавления одного документа.</li>
+    </ul>
+
+    <h2>Следующие модули</h2>
+    <ul>
+        <li>Админский пакетный загрузчик.</li>
+        <li>Пакетная загрузка с очередью файлов и отчетом по результатам.</li>
+    </ul>
+</body>
+</html>
