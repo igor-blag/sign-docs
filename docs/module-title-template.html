@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Sign Docs: Title Template</title>
+</head>
+<body>
+    <h1>Title Template</h1>
+    <p>Модуль <code>Sign_Docs_Title_Template</code> хранит и применяет матрицу сборки названия документа.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li><code>document_category</code> - категория документа.</li>
+        <li><code>document_type_term_id</code> или <code>document_type_slug</code> - тип документа.</li>
+        <li><code>document_type_label</code>, <code>document_date</code>, <code>document_number</code>, <code>document_subject</code>, <code>academic_year</code>, <code>document_institution</code> - реквизиты для шаблона.</li>
+        <li><code>academic_year</code> хранит готовую фразу периода, например <code>на 2025/26 учебный год</code> или <code>за 2025 год</code>. Быстрые варианты рассчитываются от даты подписания.</li>
+    </ul>
+
+    <h2>Хранение</h2>
+    <p>Правила хранятся в option <code>sign_docs_title_rules</code>. Каждое правило содержит категорию, slug типа документа, список компонентов, разделитель, флаг кавычек для темы и флаг активности.</p>
+
+    <h2>Выходные данные</h2>
+    <p>Метод <code>compose()</code> возвращает нормализованное название. Если правило не найдено, используется совместимый fallback: поле <code>document_subject</code> с учетом флага <code>include_subject_quotes_in_title</code>.</p>
+
+    <h2>Админка</h2>
+    <p>Страница <code>Sign Docs -> Матрица названий</code> позволяет выбрать компоненты названия для каждого типа документа. Конфиг также передается в <code>assets/js/admin-upload.js</code> для клиентского предпросмотра.</p>
+    <p>Форма загрузки содержит одно поле <code>Название</code> и внутренний <code>Комментарий</code>. Комментарий сохраняется как служебное описание и не выводится на публичной странице проверки.</p>
+</body>
+</html>

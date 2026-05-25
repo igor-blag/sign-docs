@@ -17,6 +17,7 @@ require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-meta.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-storage.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-site-icon.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-pdf-certificate.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-title-template.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-document-service.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-ai-metadata.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-rest-controller.php';
@@ -82,6 +83,7 @@ final class Sign_Docs_Plugin
         add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'meta_boxes'));
         add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Usage_Index::class, 'add_meta_box'));
         add_action('admin_init', array(Sign_Docs_Settings::class, 'register'));
+        add_action('admin_init', array(Sign_Docs_Title_Template::class, 'register'));
         add_action('admin_init', array(Sign_Docs_Usage_Index::class, 'maybe_backfill'));
         add_action('admin_init', array(Sign_Docs_Admin::class, 'redirect_add_new'));
         add_action('admin_menu', array(Sign_Docs_Admin::class, 'menu'));

@@ -59,6 +59,7 @@ final class Sign_Docs_Admin
                         'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
                         'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
                     ) : null,
+                    'titleRules' => Sign_Docs_Title_Template::client_config(),
                 )
             );
 
@@ -92,12 +93,14 @@ final class Sign_Docs_Admin
                         'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
                         'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
                     ) : null,
+                    'titleRules' => Sign_Docs_Title_Template::client_config(),
                     'fonts' => array(
                         'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
                         'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
                 ),
             )
         );
+
     }
 
     public static function menu(): void
@@ -123,6 +126,15 @@ final class Sign_Docs_Admin
             'manage_options',
             'sign-docs-settings',
             array(Sign_Docs_Settings::class, 'render_page')
+        );
+
+        add_submenu_page(
+            'edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE,
+            'Матрица названий',
+            'Матрица названий',
+            'manage_options',
+            'sign-docs-title-rules',
+            array(Sign_Docs_Title_Template::class, 'render_page')
         );
     }
 
@@ -278,6 +290,21 @@ final class Sign_Docs_Admin
                     gap: 12px;
                     margin: 6px 0 0;
                 }
+                .sign-docs-year-actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    margin: 8px 0 0;
+                }
+                .sign-docs-year-actions__group {
+                    align-items: center;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                }
+                .sign-docs-year-actions__group strong {
+                    margin-right: 4px;
+                }
                 .sign-docs-case-actions button {
                     background: transparent;
                     border: 0;
@@ -369,6 +396,7 @@ final class Sign_Docs_Admin
                                                 <option
                                                     value="<?php echo esc_attr($term['name']); ?>"
                                                     data-term-id="<?php echo esc_attr((string) $term['term_id']); ?>"
+                                                    data-type-slug="<?php echo esc_attr((string) $term['slug']); ?>"
                                                     data-category="<?php echo esc_attr($term['category']); ?>"
                                                 >
                                                     <?php echo esc_html($term['name']); ?>
@@ -443,15 +471,27 @@ final class Sign_Docs_Admin
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-title">Краткое название</label>
+                                        <label for="sign-docs-title">Название</label>
                                     </th>
-                                    <td><input id="sign-docs-title" name="post_title" type="text" class="large-text" required></td>
+                                    <td><input id="sign-docs-title" name="post_title" type="text" class="large-text"></td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-full-title">Полное название</label>
+                                        <label for="sign-docs-document-comment">Комментарий</label>
                                     </th>
-                                    <td><textarea id="sign-docs-full-title" name="full_title" class="large-text" rows="3"></textarea></td>
+                                    <td>
+                                        <textarea id="sign-docs-document-comment" name="document_comment" class="large-text" rows="3"></textarea>
+                                        <p class="description">Внутреннее описание для администратора. На странице проверки и в блоке документа не отображается.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="sign-docs-academic-year">Год / период</label>
+                                    </th>
+                                    <td>
+                                        <input id="sign-docs-academic-year" name="academic_year" type="text" class="regular-text" placeholder="на 2025/26 учебный год">
+                                        <p class="sign-docs-year-actions" aria-label="Автозаполнение года"></p>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -543,14 +583,16 @@ final class Sign_Docs_Admin
             $tmp_name,
             array(
                 'post_title' => isset($_POST['post_title']) ? (string) wp_unslash($_POST['post_title']) : '',
-                'full_title' => isset($_POST['full_title']) ? (string) wp_unslash($_POST['full_title']) : '',
+                'full_title' => isset($_POST['post_title']) ? (string) wp_unslash($_POST['post_title']) : '',
                 'document_category' => $document_category,
                 'document_type_label' => isset($_POST['document_type_label']) ? (string) wp_unslash($_POST['document_type_label']) : '',
                 'document_type_term_id' => isset($_POST['document_type_term_id']) ? absint($_POST['document_type_term_id']) : 0,
                 'document_institution' => $document_institution,
+                'document_comment' => isset($_POST['document_comment']) ? (string) wp_unslash($_POST['document_comment']) : '',
                 'document_date' => isset($_POST['document_date']) ? (string) wp_unslash($_POST['document_date']) : '',
                 'document_number' => isset($_POST['document_number']) ? (string) wp_unslash($_POST['document_number']) : '',
                 'document_subject' => isset($_POST['document_subject']) ? (string) wp_unslash($_POST['document_subject']) : '',
+                'academic_year' => isset($_POST['academic_year']) ? (string) wp_unslash($_POST['academic_year']) : '',
                 'include_subject_quotes_in_title' => isset($_POST['include_subject_quotes_in_title']) ? '1' : '0',
                 'signer_name' => $save_unsigned ? '' : $settings['signer_name'],
                 'signer_position' => $save_unsigned ? '' : $settings['signer_position'],
@@ -717,13 +759,15 @@ final class Sign_Docs_Admin
 
         self::render_meta_table(
             array(
-                'Полное название' => Sign_Docs_Meta::get($post_id, 'full_title') ?: $post->post_content,
+                'Название' => Sign_Docs_Meta::get($post_id, 'full_title') ?: get_the_title($post_id),
+                'Комментарий' => Sign_Docs_Meta::get($post_id, 'document_comment') ?: $post->post_content,
                 'Категория' => self::term_names($post_id, 'sign_doc_category'),
                 'Вид документа' => Sign_Docs_Meta::get($post_id, 'document_type_label'),
                 'Институция' => Sign_Docs_Meta::get($post_id, 'document_institution'),
                 'Дата документа' => Sign_Docs_Meta::get($post_id, 'document_date'),
                 'Номер документа' => Sign_Docs_Meta::get($post_id, 'document_number'),
                 'О чем документ' => Sign_Docs_Meta::get($post_id, 'document_subject'),
+                'Год / период' => Sign_Docs_Meta::get($post_id, 'academic_year'),
                 'Статус документа' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'Версия документа' => Sign_Docs_Meta::get($post_id, 'document_version'),
                 'Дата и время подписи' => Sign_Docs_Meta::get($post_id, 'signed_at'),
@@ -894,7 +938,7 @@ final class Sign_Docs_Admin
     /**
      * @return array<string,string>|array<int,string>
      */
-    private static function document_type_terms_for_select(): array
+    public static function document_type_terms_for_select(): array
     {
         $terms = get_terms(
             array(
@@ -969,7 +1013,7 @@ final class Sign_Docs_Admin
     /**
      * @return array<string,string>|array<int,string>
      */
-    private static function terms_for_select(string $taxonomy): array
+    public static function terms_for_select(string $taxonomy): array
     {
         $terms = get_terms(
             array(

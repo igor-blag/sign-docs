@@ -35,6 +35,8 @@ final class Sign_Docs_Document_Service
         if ('' === $title) {
             $title = sanitize_file_name((string) wp_basename($source_path));
         }
+        $args['post_title'] = $title;
+        $args['full_title'] = $title;
 
         $signed_at = isset($args['signed_at']) && '' !== (string) $args['signed_at']
             ? sanitize_text_field((string) $args['signed_at'])
@@ -45,7 +47,7 @@ final class Sign_Docs_Document_Service
                 'post_type' => Sign_Docs_Post_Type::POST_TYPE,
                 'post_status' => 'publish',
                 'post_title' => $title,
-                'post_content' => isset($args['full_title']) && '' !== (string) $args['full_title'] ? sanitize_textarea_field((string) $args['full_title']) : $title,
+                'post_content' => isset($args['document_comment']) ? sanitize_textarea_field((string) $args['document_comment']) : '',
             ),
             true
         );
@@ -82,7 +84,8 @@ final class Sign_Docs_Document_Service
         $source_filename = isset($args['source_filename']) ? sanitize_file_name((string) $args['source_filename']) : (string) wp_basename($source_path);
 
         $meta = array(
-            'full_title' => isset($args['full_title']) && '' !== (string) $args['full_title'] ? sanitize_text_field((string) $args['full_title']) : $title,
+            'full_title' => $title,
+            'document_comment' => isset($args['document_comment']) ? sanitize_textarea_field((string) $args['document_comment']) : '',
             'original_file_path' => $paths['original_path'],
             'original_file_url' => $paths['original_url'],
             'stamped_file_path' => $defer_stamped ? '' : $paths['stamped_path'],
@@ -107,6 +110,7 @@ final class Sign_Docs_Document_Service
             'document_date' => isset($args['document_date']) ? sanitize_text_field((string) $args['document_date']) : '',
             'document_number' => isset($args['document_number']) ? sanitize_text_field((string) $args['document_number']) : '',
             'document_subject' => isset($args['document_subject']) ? sanitize_text_field((string) $args['document_subject']) : '',
+            'academic_year' => isset($args['academic_year']) ? sanitize_text_field((string) $args['academic_year']) : '',
             'stamp_position' => isset($args['stamp_position']) ? sanitize_key((string) $args['stamp_position']) : 'top',
             'stamp_corner' => isset($args['stamp_corner']) ? sanitize_key((string) $args['stamp_corner']) : 'top-left',
             'stamp_color' => isset($args['stamp_color']) ? (sanitize_hex_color((string) $args['stamp_color']) ?: '#2e7d32') : '#2e7d32',
@@ -199,7 +203,7 @@ final class Sign_Docs_Document_Service
         return Sign_Docs_Pdf_Certificate::generate(
             $target_path,
             array(
-                'title' => isset($args['full_title']) && '' !== (string) $args['full_title'] ? (string) $args['full_title'] : (string) ($args['post_title'] ?? ''),
+                'title' => (string) ($args['post_title'] ?? ''),
                 'signed_at' => $signed_at,
                 'signer' => trim((string) ($args['signer_position'] ?? '') . ' ' . (string) ($args['signer_name'] ?? '')),
                 'organization' => (string) ($args['signer_organization'] ?? ''),
@@ -236,15 +240,7 @@ final class Sign_Docs_Document_Service
      */
     private static function compose_title(array $args): string
     {
-        $subject = isset($args['document_subject']) ? sanitize_text_field((string) $args['document_subject']) : '';
-        $with_quotes = ! isset($args['include_subject_quotes_in_title']) || '0' !== (string) $args['include_subject_quotes_in_title'];
-        $normalized_subject = trim($subject, " \t\n\r\0\x0B\"'«»");
-        $title = '';
-        if ('' !== $normalized_subject) {
-            $title = $with_quotes ? '«' . $normalized_subject . '»' : $normalized_subject;
-        }
-
-        return trim((string) preg_replace('/\s+/', ' ', $title));
+        return Sign_Docs_Title_Template::compose($args);
     }
 
     /**

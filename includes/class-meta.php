@@ -15,6 +15,7 @@ final class Sign_Docs_Meta
 {
     public const META_KEYS = array(
         'full_title' => 'string',
+        'document_comment' => 'string',
         'original_file_path' => 'string',
         'original_file_url' => 'string',
         'stamped_file_path' => 'string',
@@ -39,6 +40,7 @@ final class Sign_Docs_Meta
         'document_date' => 'string',
         'document_number' => 'string',
         'document_subject' => 'string',
+        'academic_year' => 'string',
         'stamp_position' => 'string',
         'stamp_corner' => 'string',
         'stamp_color' => 'string',

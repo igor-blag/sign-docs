@@ -208,6 +208,7 @@ final class Sign_Docs_REST_Controller
             array(
                 'post_title' => (string) $request->get_param('post_title'),
                 'full_title' => (string) $request->get_param('full_title'),
+                'document_comment' => (string) $request->get_param('document_comment'),
                 'document_category' => (string) $request->get_param('document_category'),
                 'document_type_label' => (string) $request->get_param('document_type_label'),
                 'document_type_term_id' => absint($request->get_param('document_type_term_id')),
@@ -215,6 +216,7 @@ final class Sign_Docs_REST_Controller
                 'document_date' => (string) $request->get_param('document_date'),
                 'document_number' => (string) $request->get_param('document_number'),
                 'document_subject' => (string) $request->get_param('document_subject'),
+                'academic_year' => (string) $request->get_param('academic_year'),
                 'signer_name' => (string) ($request->get_param('signer_name') ?: $settings['signer_name']),
                 'signer_position' => (string) ($request->get_param('signer_position') ?: $settings['signer_position']),
                 'signer_organization' => (string) ($request->get_param('signer_organization') ?: $settings['signer_organization']),

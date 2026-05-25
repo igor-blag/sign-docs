@@ -218,8 +218,9 @@
             'document_date',
             'document_number',
             'document_subject',
+            'academic_year',
             'post_title',
-            'full_title'
+            'document_comment'
         ].forEach(function (name) {
             values[name] = field(name);
         });
@@ -294,13 +295,6 @@
 
         if (suggestion.post_title && !titleManuallyEdited) {
             setFieldIfUnchanged('post_title', suggestion.post_title, initialValues);
-        }
-
-        if (setFieldIfUnchanged('full_title', suggestion.full_title, initialValues)) {
-            const fullTitleInput = form.querySelector('[name="full_title"]');
-            if (fullTitleInput) {
-                fullTitleInput.dataset.signDocsAuto = '0';
-            }
         }
     }
 
@@ -393,7 +387,63 @@
         return String(value || '').trim().replace(/^[«"']+|[»"']+$/g, '').trim();
     }
 
+    function selectedDocumentTypeSlug() {
+        const typeSelect = form.querySelector('[name="document_type_label"]');
+        if (!typeSelect || !typeSelect.selectedOptions || !typeSelect.selectedOptions[0]) {
+            return '';
+        }
+
+        return String(typeSelect.selectedOptions[0].getAttribute('data-type-slug') || '').trim();
+    }
+
+    function matchingTitleRule() {
+        const config = window.SignDocsUpload && window.SignDocsUpload.titleRules ? window.SignDocsUpload.titleRules : null;
+        const rules = config && Array.isArray(config.rules) ? config.rules : [];
+        const category = inputValue('document_category');
+        const typeSlug = selectedDocumentTypeSlug();
+
+        for (let i = 0; i < rules.length; i += 1) {
+            const rule = rules[i] || {};
+            if (String(rule.enabled || '0') !== '1') {
+                continue;
+            }
+            if (String(rule.type_slug || '') !== typeSlug) {
+                continue;
+            }
+            if (String(rule.category || '') && String(rule.category || '') !== category) {
+                continue;
+            }
+
+            return rule;
+        }
+
+        return null;
+    }
+
+    function titleComponentValue(name, rule) {
+        if (name === 'document_subject') {
+            return String(rule && rule.subject_quotes === '1' ? quoteSubject(inputValue(name)) : plainSubject(inputValue(name))).trim();
+        }
+
+        return inputValue(name);
+    }
+
     function composeDocumentTitle() {
+        const rule = matchingTitleRule();
+        if (rule && Array.isArray(rule.parts)) {
+            const parts = [];
+            rule.parts.forEach(function (part) {
+                const value = titleComponentValue(String(part || ''), rule);
+                if (value) {
+                    parts.push(value);
+                }
+            });
+
+            if (parts.length) {
+                return parts.join(String(rule.separator || ' ')).replace(/\s+/g, ' ').trim();
+            }
+        }
+
         const useQuotes = !!(form.querySelector('[name="include_subject_quotes_in_title"]') && form.querySelector('[name="include_subject_quotes_in_title"]').checked);
         const subject = inputValue('document_subject');
 
@@ -402,7 +452,6 @@
 
     function syncDocumentTitle() {
         const titleInput = form.querySelector('[name="post_title"]');
-        const fullTitleInput = form.querySelector('[name="full_title"]');
         const title = composeDocumentTitle();
 
         if (!title) {
@@ -412,11 +461,77 @@
         if (titleInput && !titleManuallyEdited) {
             titleInput.value = title;
         }
+    }
 
-        if (fullTitleInput && (!fullTitleInput.value.trim() || fullTitleInput.dataset.signDocsAuto === '1')) {
-            fullTitleInput.value = title;
-            fullTitleInput.dataset.signDocsAuto = '1';
+    function signingBaseDate() {
+        // The signature date is fixed when the document is submitted, so presets use the current local date.
+        return new Date();
+    }
+
+    function shortAcademicYear(startYear) {
+        return String(startYear) + '/' + String((startYear + 1) % 100).padStart(2, '0');
+    }
+
+    function academicYearStart(date) {
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        return month >= 8 ? year : year - 1;
+    }
+
+    function yearPresetGroups() {
+        const base = signingBaseDate();
+        const academicStart = academicYearStart(base);
+        const calendarYear = base.getFullYear();
+
+        return [
+            {
+                label: 'Учебный',
+                items: [
+                    { label: shortAcademicYear(academicStart - 1), value: 'за ' + shortAcademicYear(academicStart - 1) + ' учебный год' },
+                    { label: shortAcademicYear(academicStart), value: 'на ' + shortAcademicYear(academicStart) + ' учебный год' },
+                    { label: shortAcademicYear(academicStart + 1), value: 'на ' + shortAcademicYear(academicStart + 1) + ' учебный год' }
+                ]
+            },
+            {
+                label: 'Календарный',
+                items: [
+                    { label: String(calendarYear - 1), value: 'за ' + String(calendarYear - 1) + ' год' },
+                    { label: String(calendarYear), value: 'на ' + String(calendarYear) + ' год' },
+                    { label: String(calendarYear + 1), value: 'на ' + String(calendarYear + 1) + ' год' }
+                ]
+            }
+        ];
+    }
+
+    function renderYearPresetButtons() {
+        const container = form.querySelector('.sign-docs-year-actions');
+        const input = form.querySelector('[name="academic_year"]');
+        if (!container || !input) {
+            return;
         }
+
+        container.innerHTML = '';
+        yearPresetGroups().forEach(function (group) {
+            const groupEl = document.createElement('span');
+            groupEl.className = 'sign-docs-year-actions__group';
+            const label = document.createElement('strong');
+            label.textContent = group.label + ':';
+            groupEl.appendChild(label);
+
+            group.items.forEach(function (item) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'button button-small';
+                button.textContent = item.label;
+                button.addEventListener('click', function () {
+                    input.value = item.value;
+                    syncDocumentTitle();
+                });
+                groupEl.appendChild(button);
+            });
+
+            container.appendChild(groupEl);
+        });
     }
 
     function applySubjectCase(mode) {
@@ -1271,7 +1386,8 @@
             const prepareData = new FormData();
             prepareData.append('original_pdf', file, file.name);
             prepareData.append('post_title', field('post_title'));
-            prepareData.append('full_title', field('full_title'));
+            prepareData.append('full_title', field('post_title'));
+            prepareData.append('document_comment', field('document_comment'));
             prepareData.append('document_category', field('document_category'));
             prepareData.append('document_type_label', field('document_type_label'));
             prepareData.append('document_type_term_id', field('document_type_term_id'));
@@ -1279,6 +1395,7 @@
             prepareData.append('document_date', field('document_date'));
             prepareData.append('document_number', field('document_number'));
             prepareData.append('document_subject', field('document_subject'));
+            prepareData.append('academic_year', field('academic_year'));
             prepareData.append('signer_name', field('signer_name'));
             prepareData.append('signer_position', field('signer_position'));
             prepareData.append('signer_organization', field('signer_organization'));
@@ -1366,14 +1483,21 @@
         });
     }
 
-    ['document_category', 'document_type_label', 'document_institution', 'document_date', 'document_number', 'document_subject'].forEach(function (name) {
+    ['document_category', 'document_type_label', 'document_institution', 'document_date', 'document_number', 'document_subject', 'academic_year'].forEach(function (name) {
         const input = form.querySelector('[name="' + name + '"]');
         if (!input) {
             return;
         }
 
-        input.addEventListener('input', name === 'document_category' || name === 'document_type_label' ? syncDocumentTypeOptions : syncDocumentTitle);
-        input.addEventListener('change', name === 'document_category' || name === 'document_type_label' ? syncDocumentTypeOptions : syncDocumentTitle);
+        const handler = function () {
+            if (name === 'document_date') {
+                renderYearPresetButtons();
+            }
+            (name === 'document_category' || name === 'document_type_label' ? syncDocumentTypeOptions : syncDocumentTitle)();
+        };
+
+        input.addEventListener('input', handler);
+        input.addEventListener('change', handler);
     });
 
     const includeInstitutionInput = form.querySelector('[name="include_institution_in_title"]');
@@ -1406,12 +1530,7 @@
         });
     }
 
-    const fullTitleInput = form.querySelector('[name="full_title"]');
-    if (fullTitleInput) {
-        fullTitleInput.addEventListener('input', function () {
-            fullTitleInput.dataset.signDocsAuto = '0';
-        });
-    }
+    renderYearPresetButtons();
 
     Array.prototype.forEach.call(form.querySelectorAll('[data-sign-docs-case]'), function (button) {
         button.addEventListener('click', function () {
