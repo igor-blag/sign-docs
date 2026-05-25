@@ -18,11 +18,13 @@ require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-storage.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-site-icon.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-pdf-certificate.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-document-service.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-ai-metadata.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-rest-controller.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-verification-page.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-settings.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-admin.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-blocks.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-usage-index.php';
 
 final class Sign_Docs_Plugin
 {
@@ -44,6 +46,7 @@ final class Sign_Docs_Plugin
         Sign_Docs_Post_Type::register();
         Sign_Docs_Taxonomies::register();
         Sign_Docs_Storage::ensure_directories();
+        Sign_Docs_Usage_Index::ensure_table();
         flush_rewrite_rules();
     }
 
@@ -71,9 +74,15 @@ final class Sign_Docs_Plugin
         add_action('wp_enqueue_scripts', array(Sign_Docs_Blocks::class, 'enqueue_public_assets'));
         add_filter('manage_sign-docs_posts_columns', array(Sign_Docs_Admin::class, 'columns'));
         add_action('manage_sign-docs_posts_custom_column', array(Sign_Docs_Admin::class, 'column_content'), 10, 2);
+        add_filter('manage_sign-docs_posts_columns', array(Sign_Docs_Usage_Index::class, 'columns'));
+        add_action('manage_sign-docs_posts_custom_column', array(Sign_Docs_Usage_Index::class, 'column_content'), 10, 2);
         add_action('restrict_manage_posts', array(Sign_Docs_Admin::class, 'taxonomy_filters'));
+        add_action('restrict_manage_posts', array(Sign_Docs_Usage_Index::class, 'render_filter'));
+        add_action('pre_get_posts', array(Sign_Docs_Usage_Index::class, 'apply_filter'));
         add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'meta_boxes'));
+        add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Usage_Index::class, 'add_meta_box'));
         add_action('admin_init', array(Sign_Docs_Settings::class, 'register'));
+        add_action('admin_init', array(Sign_Docs_Usage_Index::class, 'maybe_backfill'));
         add_action('admin_init', array(Sign_Docs_Admin::class, 'redirect_add_new'));
         add_action('admin_menu', array(Sign_Docs_Admin::class, 'menu'));
         add_action('admin_menu', array(Sign_Docs_Admin::class, 'remove_taxonomy_menus'), 999);
@@ -87,7 +96,13 @@ final class Sign_Docs_Plugin
         add_filter('pre_trash_post', array(Sign_Docs_Admin::class, 'archive_instead_of_trash'), 10, 2);
         add_filter('pre_delete_post', array(Sign_Docs_Admin::class, 'archive_instead_of_delete'), 10, 3);
         add_action('rest_api_init', array(Sign_Docs_REST_Controller::class, 'register_routes'));
+        add_action('wp_abilities_api_categories_init', array(Sign_Docs_AI_Metadata::class, 'register_ability_category'));
+        add_action('wp_abilities_api_init', array(Sign_Docs_AI_Metadata::class, 'register_abilities'));
         add_action('enqueue_block_editor_assets', array(Sign_Docs_Blocks::class, 'enqueue_editor_assets'));
+        add_action('init', array(Sign_Docs_Usage_Index::class, 'ensure_table'));
+        add_action('save_post', array(Sign_Docs_Usage_Index::class, 'sync_on_save'), 10, 2);
+        add_action('before_delete_post', array(Sign_Docs_Usage_Index::class, 'delete_host_links'));
+        add_action('transition_post_status', array(Sign_Docs_Usage_Index::class, 'sync_status_transition'), 10, 3);
     }
 
     private function __construct()

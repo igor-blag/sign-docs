@@ -35,6 +35,7 @@ final class Sign_Docs_Settings
             'button_primary_text_color' => '#ffffff',
             'button_outline_color' => '#32373c',
             'button_border_radius' => '9999',
+            'ai_autofill_enabled' => '0',
         );
     }
 
@@ -80,6 +81,7 @@ final class Sign_Docs_Settings
         $button_primary_text_color = isset($value['button_primary_text_color']) ? sanitize_hex_color((string) $value['button_primary_text_color']) : '';
         $button_outline_color = isset($value['button_outline_color']) ? sanitize_hex_color((string) $value['button_outline_color']) : '';
         $button_border_radius = isset($value['button_border_radius']) ? (int) $value['button_border_radius'] : 9999;
+        $ai_autofill_enabled = ! empty($value['ai_autofill_enabled']) ? '1' : '0';
 
         if (! in_array($corner, array('top-left', 'top-right', 'bottom-left', 'bottom-right'), true)) {
             $corner = 'top-left';
@@ -100,6 +102,7 @@ final class Sign_Docs_Settings
             'button_primary_text_color' => $button_primary_text_color ?: '#ffffff',
             'button_outline_color' => $button_outline_color ?: '#32373c',
             'button_border_radius' => (string) min(9999, max(0, $button_border_radius)),
+            'ai_autofill_enabled' => $ai_autofill_enabled,
         );
     }
 
@@ -130,6 +133,16 @@ final class Sign_Docs_Settings
                 <?php settings_fields('sign_docs_settings'); ?>
                 <table class="form-table" role="presentation">
                     <tbody>
+                        <tr>
+                            <th scope="row">AI-автозаполнение</th>
+                            <td>
+                                <label for="sign-docs-ai-autofill-enabled">
+                                    <input id="sign-docs-ai-autofill-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[ai_autofill_enabled]" type="checkbox" value="1" <?php checked($settings['ai_autofill_enabled'], '1'); ?>>
+                                    Автоматически предлагать реквизиты документа при выборе PDF
+                                </label>
+                                <p class="description">Используется настроенный AI connector WordPress. В модель отправляется только текст первой страницы PDF, а подпись и публикация остаются ручным действием администратора.</p>
+                            </td>
+                        </tr>
                         <tr>
                             <th scope="row"><label for="sign-docs-default-signer-name">ФИО подписанта</label></th>
                             <td><input id="sign-docs-default-signer-name" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_name]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_name']); ?>"></td>

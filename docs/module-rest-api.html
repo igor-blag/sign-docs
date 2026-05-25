@@ -36,10 +36,20 @@
         <li>Переводит документ в статус <code>active</code> и публикует запись.</li>
     </ul>
 
+    <h2>suggest-metadata</h2>
+    <p><code>POST /wp-json/sign-docs/v1/suggest-metadata</code></p>
+    <ul>
+        <li>Принимает <code>first_page_text</code> и необязательный <code>source_filename</code>.</li>
+        <li>Вызывает ability <code>sign-docs/suggest-document-metadata</code>.</li>
+        <li>Возвращает JSON-подсказки для категории, типа документа, даты, номера, темы, институции и названий.</li>
+        <li>Используется только админским JavaScript после локального извлечения текста из первой страницы PDF.</li>
+    </ul>
+
     <h2>Контракт</h2>
     <ul>
         <li>Write-endpoints доступны только пользователям с правом <code>upload_files</code>.</li>
         <li>Endpoint выбора документов доступен пользователям, которым разрешено редактировать записи в редакторе.</li>
+        <li>Endpoint AI-подсказок доступен пользователям с правом <code>upload_files</code>.</li>
         <li>Юридически значимым остается hash исходной контрольной копии.</li>
         <li>Stamped PDF является публичным визуальным артефактом и не используется как источник истины.</li>
     </ul>

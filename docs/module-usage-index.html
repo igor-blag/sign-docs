@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Sign Docs: Usage Index</title>
+</head>
+<body>
+    <h1>Module: Usage Index</h1>
+    <p>Модуль отслеживает, в каких записях и страницах используется Gutenberg-блок <code>sign-docs/document</code>, чтобы поддерживать фильтрацию и сборку мусора по документам CPT <code>sign-docs</code>.</p>
+
+    <h2>Задачи</h2>
+    <ul>
+        <li>Индексировать связи <code>document_id -> host_post_id</code> при сохранении контента.</li>
+        <li>Показывать в списке документов колонку использования.</li>
+        <li>Давать фильтр: используется, не используется, битые связи.</li>
+        <li>Показывать в карточке документа список страниц/записей, где документ вставлен.</li>
+        <li>Поддерживать одноразовый backfill индекса для уже опубликованного контента.</li>
+    </ul>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li><code>post_content</code> записей и страниц с Gutenberg-блоками.</li>
+        <li>Атрибут блока <code>postId</code> у блока <code>sign-docs/document</code>.</li>
+        <li>События WordPress: <code>save_post</code>, <code>before_delete_post</code>, <code>transition_post_status</code>.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li>Таблица БД <code>{prefix}sign_docs_usage</code> с актуальными связями использования.</li>
+        <li>Колонка <code>Used in</code> в списке CPT <code>sign-docs</code>.</li>
+        <li>Админ-фильтр <code>Usage</code> по состоянию использования документа.</li>
+        <li>Метабокс «Используется в записях» на карточке документа.</li>
+    </ul>
+
+    <h2>Инварианты</h2>
+    <ul>
+        <li>Индекс обновляется инкрементально: для сохраненного host-поста связи пересобираются полностью.</li>
+        <li>Индекс учитывает блоки внутри reusable-блоков <code>core/block</code>.</li>
+        <li>Фильтр <code>broken</code> строится по связям на удаленные или перемещенные в корзину host-посты.</li>
+    </ul>
+</body>
+</html>
+

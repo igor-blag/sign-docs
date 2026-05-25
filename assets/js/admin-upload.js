@@ -14,6 +14,8 @@
     let previewPageSize = null;
     let selectedStampPosition = null;
     let titleManuallyEdited = false;
+    let pdfJsModule = null;
+    let metadataSuggestionRun = 0;
 
     function setStatus(message, type) {
         statusBox.hidden = false;
@@ -114,12 +116,6 @@
         return inputValue('document_category') === 'local-act';
     }
 
-    function includeInstitutionInTitle() {
-        const checkbox = form.querySelector('[name="include_institution_in_title"]');
-
-        return !isLocalAct() || (checkbox && checkbox.checked);
-    }
-
     function currentFile() {
         const fileInput = form.querySelector('[name="sign_docs_pdf"]');
         return fileInput && fileInput.files ? fileInput.files[0] : null;
@@ -147,6 +143,212 @@
         syncFileDropzone(file);
         fillTitleFromFile(file);
         showPdfPreview(file);
+        suggestMetadataFromFile(file);
+    }
+
+    async function loadPdfJs() {
+        if (pdfJsModule) {
+            return pdfJsModule;
+        }
+
+        const config = window.SignDocsUpload.pdfJs || {};
+        if (!window.SignDocsUpload.hasPdfJs || !config.module || !config.worker) {
+            throw new Error('PDF.js не найден в assets/vendor.');
+        }
+
+        pdfJsModule = await import(config.module);
+        pdfJsModule.GlobalWorkerOptions.workerSrc = config.worker;
+
+        return pdfJsModule;
+    }
+
+    function compactExtractedText(text) {
+        return String(text || '')
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
+    async function extractFirstPageText(file) {
+        const pdfjs = await loadPdfJs();
+        const loadingTask = pdfjs.getDocument({
+            data: await file.arrayBuffer(),
+            useWorkerFetch: false,
+            isEvalSupported: false
+        });
+
+        const pdf = await loadingTask.promise;
+        try {
+            const page = await pdf.getPage(1);
+            const textContent = await page.getTextContent();
+            const parts = [];
+            let lastY = null;
+
+            textContent.items.forEach(function (item) {
+                const value = String(item.str || '').trim();
+                if (!value) {
+                    return;
+                }
+
+                const y = item.transform && item.transform.length > 5 ? Math.round(item.transform[5]) : null;
+                if (lastY !== null && y !== null && Math.abs(lastY - y) > 4) {
+                    parts.push('\n');
+                }
+                parts.push(value);
+                lastY = y;
+            });
+
+            return compactExtractedText(parts.join(' '));
+        } finally {
+            if (typeof pdf.destroy === 'function') {
+                await pdf.destroy();
+            }
+        }
+    }
+
+    function rememberFieldValues() {
+        const values = {};
+        [
+            'document_category',
+            'document_type_label',
+            'document_type_term_id',
+            'document_institution',
+            'document_date',
+            'document_number',
+            'document_subject',
+            'post_title',
+            'full_title'
+        ].forEach(function (name) {
+            values[name] = field(name);
+        });
+
+        return values;
+    }
+
+    function setFieldIfUnchanged(name, value, initialValues) {
+        const input = form.querySelector('[name="' + name + '"]');
+        const nextValue = String(value || '').trim();
+
+        if (!input || !nextValue) {
+            return false;
+        }
+
+        const initialValue = Object.prototype.hasOwnProperty.call(initialValues, name) ? initialValues[name] : '';
+        const currentValue = input.value.trim();
+        if (currentValue && currentValue !== initialValue) {
+            return false;
+        }
+
+        input.value = nextValue;
+        return true;
+    }
+
+    function applySuggestedType(suggestion, initialValues) {
+        const typeSelect = form.querySelector('[name="document_type_label"]');
+        const typeTermInput = form.querySelector('[name="document_type_term_id"]');
+        const termId = String(suggestion.document_type_term_id || '');
+        const label = String(suggestion.document_type_label || '').trim();
+
+        if (!typeSelect || (!termId && !label)) {
+            return;
+        }
+
+        const currentValue = typeSelect.value.trim();
+        const initialValue = initialValues.document_type_label || '';
+        if (currentValue && currentValue !== initialValue) {
+            return;
+        }
+
+        const matched = Array.prototype.find.call(typeSelect.options, function (option) {
+            return (termId && option.dataset.termId === termId) || (label && option.value === label);
+        });
+
+        if (!matched) {
+            return;
+        }
+
+        typeSelect.value = matched.value;
+        if (typeTermInput) {
+            typeTermInput.value = matched.dataset.termId || '';
+        }
+    }
+
+    function applyMetadataSuggestion(suggestion, initialValues) {
+        if (suggestion.document_category) {
+            setFieldIfUnchanged('document_category', suggestion.document_category, initialValues);
+            syncDocumentTypeOptions();
+        }
+
+        applySuggestedType(suggestion, initialValues);
+        syncDocumentTypeOptions();
+
+        setFieldIfUnchanged('document_institution', suggestion.document_institution, initialValues);
+        setFieldIfUnchanged('document_date', suggestion.document_date, initialValues);
+        setFieldIfUnchanged('document_number', suggestion.document_number, initialValues);
+        setFieldIfUnchanged('document_subject', suggestion.document_subject, initialValues);
+
+        syncInstitutionMode();
+        syncDocumentTitle();
+
+        if (suggestion.post_title && !titleManuallyEdited) {
+            setFieldIfUnchanged('post_title', suggestion.post_title, initialValues);
+        }
+
+        if (setFieldIfUnchanged('full_title', suggestion.full_title, initialValues)) {
+            const fullTitleInput = form.querySelector('[name="full_title"]');
+            if (fullTitleInput) {
+                fullTitleInput.dataset.signDocsAuto = '0';
+            }
+        }
+    }
+
+    async function suggestMetadataFromFile(file) {
+        const runId = metadataSuggestionRun + 1;
+        metadataSuggestionRun = runId;
+
+        if (!window.SignDocsUpload.aiAutofillEnabled || !file || (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || ''))) {
+            return;
+        }
+
+        const initialValues = rememberFieldValues();
+
+        try {
+            setStatus('Читаю текст первой страницы для автозаполнения...', 'info');
+            const firstPageText = await extractFirstPageText(file);
+            if (runId !== metadataSuggestionRun) {
+                return;
+            }
+
+            if (firstPageText.length < 40) {
+                setStatus('В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения.', 'warning');
+                return;
+            }
+
+            setStatus('Подбираю реквизиты документа через AI...', 'info');
+            const data = new FormData();
+            data.append('first_page_text', firstPageText.slice(0, 12000));
+            data.append('source_filename', file.name || '');
+
+            const suggestion = await postForm(window.SignDocsUpload.suggestMetadataUrl, data);
+            if (runId !== metadataSuggestionRun) {
+                return;
+            }
+
+            applyMetadataSuggestion(suggestion, initialValues);
+
+            const warnings = Array.isArray(suggestion.warnings) ? suggestion.warnings.filter(Boolean) : [];
+            const confidence = typeof suggestion.confidence === 'number' ? Math.round(suggestion.confidence * 100) : null;
+            const message = confidence !== null
+                ? 'AI предложил реквизиты документа. Уверенность: ' + confidence + '%.'
+                : 'AI предложил реквизиты документа.';
+            setStatus(warnings.length ? message + ' Проверьте: ' + warnings.join('; ') : message, warnings.length ? 'warning' : 'success');
+        } catch (error) {
+            if (runId === metadataSuggestionRun) {
+                setStatus(error.message || 'Не удалось выполнить AI-автозаполнение.', 'warning');
+            }
+        }
     }
 
     function defaultStampPosition() {
@@ -182,24 +384,20 @@
         updateManualStampControls(false);
     }
 
-    function normalizeNumber(value) {
-        const number = String(value || '').trim().replace(/^№\s*/, '');
-        return number ? '№ ' + number : '';
-    }
-
     function quoteSubject(value) {
         const subject = String(value || '').trim().replace(/^[«"']+|[»"']+$/g, '').trim();
         return subject ? '«' + subject + '»' : '';
     }
 
+    function plainSubject(value) {
+        return String(value || '').trim().replace(/^[«"']+|[»"']+$/g, '').trim();
+    }
+
     function composeDocumentTitle() {
-        return [
-            inputValue('document_type_label'),
-            includeInstitutionInTitle() ? inputValue('document_institution') : '',
-            inputValue('document_date'),
-            normalizeNumber(inputValue('document_number')),
-            quoteSubject(inputValue('document_subject'))
-        ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+        const useQuotes = !!(form.querySelector('[name="include_subject_quotes_in_title"]') && form.querySelector('[name="include_subject_quotes_in_title"]').checked);
+        const subject = inputValue('document_subject');
+
+        return useQuotes ? quoteSubject(subject) : plainSubject(subject);
     }
 
     function syncDocumentTitle() {
@@ -1181,6 +1379,11 @@
     const includeInstitutionInput = form.querySelector('[name="include_institution_in_title"]');
     if (includeInstitutionInput) {
         includeInstitutionInput.addEventListener('change', syncDocumentTitle);
+    }
+
+    const includeSubjectQuotesInput = form.querySelector('[name="include_subject_quotes_in_title"]');
+    if (includeSubjectQuotesInput) {
+        includeSubjectQuotesInput.addEventListener('change', syncDocumentTitle);
     }
 
     const institutionSelect = document.getElementById('sign-docs-institution-select');

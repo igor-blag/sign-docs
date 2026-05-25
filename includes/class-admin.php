@@ -24,11 +24,15 @@ final class Sign_Docs_Admin
         $golos_regular_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/GolosText-Regular.ttf';
         $golos_medium_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/GolosText-Medium.ttf';
         $qr_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/qrcode.min.js';
+        $pdfjs_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.min.mjs';
+        $pdfjs_worker_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.worker.min.mjs';
+        $settings = Sign_Docs_Settings::get();
         $has_vendor = file_exists($pdf_lib_path)
             && file_exists($fontkit_path)
             && file_exists($golos_regular_path)
             && file_exists($golos_medium_path)
             && file_exists($qr_path);
+        $has_pdfjs = file_exists($pdfjs_path) && file_exists($pdfjs_worker_path);
 
         if (! $has_vendor) {
             wp_enqueue_script(
@@ -45,9 +49,16 @@ final class Sign_Docs_Admin
                 array(
                     'prepareUrl' => rest_url('sign-docs/v1/prepare'),
                     'completeUrl' => rest_url('sign-docs/v1/complete'),
+                    'suggestMetadataUrl' => rest_url('sign-docs/v1/suggest-metadata'),
                     'nonce' => wp_create_nonce('wp_rest'),
                     'hasVendor' => false,
+                    'aiAutofillEnabled' => '1' === $settings['ai_autofill_enabled'],
+                    'hasPdfJs' => $has_pdfjs,
                     'siteIconUrl' => self::site_icon_url(),
+                    'pdfJs' => $has_pdfjs ? array(
+                        'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
+                        'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
+                    ) : null,
                 )
             );
 
@@ -68,15 +79,22 @@ final class Sign_Docs_Admin
         wp_localize_script(
             'sign-docs-admin-upload',
             'SignDocsUpload',
-            array(
-                'prepareUrl' => rest_url('sign-docs/v1/prepare'),
-                'completeUrl' => rest_url('sign-docs/v1/complete'),
-                'nonce' => wp_create_nonce('wp_rest'),
-                'hasVendor' => true,
-                'siteIconUrl' => self::site_icon_url(),
-                'fonts' => array(
-                    'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
-                    'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
+                array(
+                    'prepareUrl' => rest_url('sign-docs/v1/prepare'),
+                    'completeUrl' => rest_url('sign-docs/v1/complete'),
+                    'suggestMetadataUrl' => rest_url('sign-docs/v1/suggest-metadata'),
+                    'nonce' => wp_create_nonce('wp_rest'),
+                    'hasVendor' => true,
+                    'aiAutofillEnabled' => '1' === $settings['ai_autofill_enabled'],
+                    'hasPdfJs' => $has_pdfjs,
+                    'siteIconUrl' => self::site_icon_url(),
+                    'pdfJs' => $has_pdfjs ? array(
+                        'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
+                        'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
+                    ) : null,
+                    'fonts' => array(
+                        'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
+                        'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
                 ),
             )
         );
@@ -406,10 +424,16 @@ final class Sign_Docs_Admin
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-document-subject">Название в кавычках</label>
+                                        <label for="sign-docs-document-subject">О чем документ</label>
                                     </th>
                                     <td>
-                                        <textarea id="sign-docs-document-subject" name="document_subject" class="large-text" rows="2" placeholder="О проведении аттестации в 9-х классах"></textarea>
+                                        <textarea id="sign-docs-document-subject" name="document_subject" class="large-text" rows="2" placeholder="Например: О проведении аттестации в 9-х классах"></textarea>
+                                        <p style="margin: 8px 0 6px;">
+                                            <label for="sign-docs-include-subject-quotes">
+                                                <input id="sign-docs-include-subject-quotes" name="include_subject_quotes_in_title" type="checkbox" value="1" checked>
+                                                Добавлять кавычки в название
+                                            </label>
+                                        </p>
                                         <p class="sign-docs-case-actions">
                                             <button type="button" data-sign-docs-case="sentence">Как предложение</button>
                                             <button type="button" data-sign-docs-case="lower">нижний регистр</button>
@@ -527,6 +551,7 @@ final class Sign_Docs_Admin
                 'document_date' => isset($_POST['document_date']) ? (string) wp_unslash($_POST['document_date']) : '',
                 'document_number' => isset($_POST['document_number']) ? (string) wp_unslash($_POST['document_number']) : '',
                 'document_subject' => isset($_POST['document_subject']) ? (string) wp_unslash($_POST['document_subject']) : '',
+                'include_subject_quotes_in_title' => isset($_POST['include_subject_quotes_in_title']) ? '1' : '0',
                 'signer_name' => $save_unsigned ? '' : $settings['signer_name'],
                 'signer_position' => $save_unsigned ? '' : $settings['signer_position'],
                 'signer_organization' => $save_unsigned ? '' : $settings['signer_organization'],
@@ -698,7 +723,7 @@ final class Sign_Docs_Admin
                 'Институция' => Sign_Docs_Meta::get($post_id, 'document_institution'),
                 'Дата документа' => Sign_Docs_Meta::get($post_id, 'document_date'),
                 'Номер документа' => Sign_Docs_Meta::get($post_id, 'document_number'),
-                'Название в кавычках' => Sign_Docs_Meta::get($post_id, 'document_subject'),
+                'О чем документ' => Sign_Docs_Meta::get($post_id, 'document_subject'),
                 'Статус документа' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'Версия документа' => Sign_Docs_Meta::get($post_id, 'document_version'),
                 'Дата и время подписи' => Sign_Docs_Meta::get($post_id, 'signed_at'),

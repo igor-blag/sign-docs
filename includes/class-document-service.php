@@ -236,16 +236,12 @@ final class Sign_Docs_Document_Service
      */
     private static function compose_title(array $args): string
     {
-        $type = isset($args['document_type_label']) ? sanitize_text_field((string) $args['document_type_label']) : '';
-        $institution = isset($args['document_institution']) ? sanitize_text_field((string) $args['document_institution']) : '';
-        $date = isset($args['document_date']) ? sanitize_text_field((string) $args['document_date']) : '';
-        $number = isset($args['document_number']) ? sanitize_text_field((string) $args['document_number']) : '';
         $subject = isset($args['document_subject']) ? sanitize_text_field((string) $args['document_subject']) : '';
-        $parts = array_filter(array($type, $institution, $date, '' !== $number ? '№ ' . ltrim($number, "№ \t\n\r\0\x0B") : ''));
-        $title = trim(implode(' ', $parts));
-
-        if ('' !== $subject) {
-            $title .= ('' === $title ? '' : ' ') . '«' . trim($subject, " \t\n\r\0\x0B\"'«»") . '»';
+        $with_quotes = ! isset($args['include_subject_quotes_in_title']) || '0' !== (string) $args['include_subject_quotes_in_title'];
+        $normalized_subject = trim($subject, " \t\n\r\0\x0B\"'«»");
+        $title = '';
+        if ('' !== $normalized_subject) {
+            $title = $with_quotes ? '«' . $normalized_subject . '»' : $normalized_subject;
         }
 
         return trim((string) preg_replace('/\s+/', ' ', $title));

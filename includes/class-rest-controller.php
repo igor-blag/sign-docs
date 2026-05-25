@@ -39,6 +39,26 @@ final class Sign_Docs_REST_Controller
 
         register_rest_route(
             self::NAMESPACE,
+            '/suggest-metadata',
+            array(
+                'methods' => WP_REST_Server::CREATABLE,
+                'callback' => array(self::class, 'suggest_metadata'),
+                'permission_callback' => array(self::class, 'can_upload'),
+                'args' => array(
+                    'first_page_text' => array(
+                        'type' => 'string',
+                        'required' => true,
+                    ),
+                    'source_filename' => array(
+                        'type' => 'string',
+                        'required' => false,
+                    ),
+                ),
+            )
+        );
+
+        register_rest_route(
+            self::NAMESPACE,
             '/complete',
             array(
                 'methods' => WP_REST_Server::CREATABLE,
@@ -56,6 +76,22 @@ final class Sign_Docs_REST_Controller
     public static function can_upload(): bool
     {
         return current_user_can('upload_files');
+    }
+
+    public static function suggest_metadata(WP_REST_Request $request): WP_REST_Response|WP_Error
+    {
+        $suggestion = Sign_Docs_AI_Metadata::suggest(
+            array(
+                'first_page_text' => (string) $request->get_param('first_page_text'),
+                'source_filename' => (string) $request->get_param('source_filename'),
+            )
+        );
+
+        if (is_wp_error($suggestion)) {
+            return $suggestion;
+        }
+
+        return new WP_REST_Response($suggestion);
     }
 
     public static function documents(WP_REST_Request $request): WP_REST_Response

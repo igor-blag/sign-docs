@@ -6,14 +6,15 @@
 </head>
 <body>
     <h1>Sign Docs: session handoff</h1>
-    <p>Last updated: 2026-05-22.</p>
+    <p>Last updated: 2026-05-23.</p>
 
     <h2>Project paths</h2>
     <ul>
-        <li>Plugin: <code>D:\Projects\plugins\sign-docs</code>.</li>
-        <li>Studio site: <code>C:\Users\igorb\Studio\edu-site</code>.</li>
-        <li>Plugin is linked into the site as <code>wp-content/plugins/sign-docs</code>.</li>
-        <li>Studio site URL during this session: <code>http://localhost:8881/</code>.</li>
+        <li>Plugin repository: <code>/Users/igorblagovesenskij/projects/plugins/sign-docs</code>.</li>
+        <li>Studio site: <code>/Users/igorblagovesenskij/Studio/edu-site</code>.</li>
+        <li>Plugin symlink in the site: <code>/Users/igorblagovesenskij/Studio/edu-site/wp-content/plugins/sign-docs</code>.</li>
+        <li>Studio site URL: <code>http://localhost:8881/</code>.</li>
+        <li>Per <code>STUDIO.md</code>, use <code>studio wp</code> from the site root.</li>
     </ul>
 
     <h2>Current architecture</h2>
@@ -25,78 +26,77 @@
         <li>Meta contract: <code>includes/class-meta.php</code>.</li>
         <li>File storage and SHA-256: <code>includes/class-storage.php</code>.</li>
         <li>Document workflow: <code>includes/class-document-service.php</code>.</li>
-        <li>REST workflow: <code>includes/class-rest-controller.php</code>, routes <code>sign-docs/v1/prepare</code> and <code>sign-docs/v1/complete</code>.</li>
-        <li>Public verification page: <code>includes/class-verification-page.php</code>.</li>
+        <li>REST workflow: <code>includes/class-rest-controller.php</code>, routes <code>documents</code>, <code>prepare</code>, <code>complete</code> and <code>suggest-metadata</code>.</li>
+        <li>AI metadata suggestions: <code>includes/class-ai-metadata.php</code>, ability <code>sign-docs/suggest-document-metadata</code>.</li>
         <li>Admin upload/settings: <code>includes/class-admin.php</code>, <code>includes/class-settings.php</code> and <code>assets/js/admin-upload.js</code>.</li>
         <li>Gutenberg block: <code>includes/class-blocks.php</code> and <code>assets/js/document-block.js</code>.</li>
     </ul>
 
     <h2>Important behavior</h2>
     <ul>
-        <li>The original PDF is copied to <code>uploads/sign-docs/YYYY/MM/{post_id}/original.pdf</code> and must remain the control copy.</li>
+        <li>The original PDF is copied to <code>uploads/sign-docs/YYYY/MM/{post_id}/original.pdf</code> and remains the control copy.</li>
         <li>The server calculates SHA-256 from the original PDF. This hash is the source of truth.</li>
         <li>The public PDF copy is saved next to the original as <code>uploads/sign-docs/YYYY/MM/{post_id}/stamped.pdf</code>.</li>
         <li>The QR code points to the verification page, not to a PDF file.</li>
         <li>The REST flow is two-phase: <code>prepare</code> saves the original and creates the CPT record; browser JS stamps the PDF; <code>complete</code> saves the stamped PDF and marks the record active.</li>
+        <li>AI autofill is optional and only proposes form values. The administrator can edit all fields before saving.</li>
     </ul>
 
-    <h2>Recent changes in this session</h2>
+    <h2>Recent changes</h2>
     <ul>
-        <li>Added <code>includes/class-blocks.php</code>.</li>
-        <li>Loaded the block module from <code>includes/class-plugin.php</code>.</li>
-        <li>Added <code>assets/js/document-block.js</code> for block editor signing.</li>
-        <li>Added <code>docs/module-blocks.html</code> and linked it from <code>docs/main.html</code>.</li>
-        <li>Changed the block from <code>apiVersion: 2</code> to <code>apiVersion: 3</code> after WordPress 6.9 deprecation warnings.</li>
-        <li>Moved the selected browser <code>File</code> object from React state into <code>useRef</code>. Only the file name remains in state.</li>
-        <li>Removed <code>wp.components</code> usage from the block render path after a React minified error #310 stack pointed into <code>components.min.js</code> and <code>useInsertionEffect</code>.</li>
-        <li>Removed <code>wp-components</code> from the block script dependencies.</li>
-        <li>Fixed the Gutenberg block QR logo path: <code>makeQrCanvas()</code> now uses the existing canvas <code>context</code> variable instead of an undefined <code>ctx</code>.</li>
-        <li>Removed unused <code>wp-url</code> from the block script dependencies.</li>
-        <li>Updated the admin upload page: category <code>external-regulation</code> hides signing controls and leaves only "Save without signature"; the server also forces this category to unsigned mode.</li>
-        <li>Updated the PDF preview overlay so signed categories immediately show the stamp rectangle in the configured default corner; external normative documents keep the PDF preview but hide the stamp overlay.</li>
-        <li>Simplified new file storage: new documents use one folder per post, <code>uploads/sign-docs/YYYY/MM/{post_id}/</code>, with <code>original.pdf</code> and <code>stamped.pdf</code> side by side.</li>
-        <li>Changed <code>sign_doc_type</code> to an actively used hierarchical classifier: parent groups for local acts, external normative documents and other documents; the upload form stores the selected child term ID.</li>
-        <li>Moved taxonomy management out of the <code>Sign Docs</code> submenu: taxonomy screens are hidden from the menu and linked from the settings page under "Справочники".</li>
-        <li>Reworked the admin <code>Добавить документ</code> page into a two-column form/preview layout with a PDF dropzone, duplicated save buttons, local-act institution handling and external-document institution selection/input.</li>
-        <li>Reworked the Gutenberg <code>Document</code> block to use fullscreen add-document and choose-uploaded modals without leaving the editor.</li>
-        <li>Added document block display controls: editable caption, alignment, display mode, interaction mode, meta/icon toggles, stamped PDF download button and embedded PDF.</li>
-        <li>Changed frontend document interaction so clicks open a local details card or show native-looking <code>Скачать</code>/<code>Сведения</code> buttons instead of navigating away from the page.</li>
-        <li>Added button appearance settings for the block: primary color, primary text color, outline color and border radius.</li>
+        <li>Added setting <code>ai_autofill_enabled</code>, default off.</li>
+        <li>Added local PDF.js files: <code>assets/vendor/pdf.min.mjs</code> and <code>assets/vendor/pdf.worker.min.mjs</code>.</li>
+        <li>Added browser extraction of first-page text before AI requests.</li>
+        <li>Added ability <code>sign-docs/suggest-document-metadata</code> and REST endpoint <code>POST /wp-json/sign-docs/v1/suggest-metadata</code>.</li>
+        <li>Configured Sign Docs to use OpenRouter when available.</li>
+        <li>Restricted AI model preference to a single model: <code>openrouter / google/gemini-2.5-flash-lite</code>.</li>
+        <li>Added OpenRouter custom option <code>reasoning: {"exclude": true}</code>.</li>
+        <li>Added connector approvals locally for <code>ai/ai.php -> openrouter</code> and <code>sign-docs/sign-docs.php -> openrouter</code>.</li>
+        <li>Patched the local <code>ai-provider-for-openrouter</code> plugin to declare <code>outputMimeType</code> and <code>outputSchema</code> support.</li>
+        <li>Patched the local OpenRouter text model to wrap structured output as <code>json_schema.schema</code>.</li>
+    </ul>
+
+    <h2>Model experiments</h2>
+    <ul>
+        <li><code>google/gemini-2.5-flash-lite</code>: working default, fastest usable option observed in the plugin flow.</li>
+        <li><code>nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free</code>: free and multimodal, but too slow and prone to long reasoning output.</li>
+        <li><code>google/gemma-4-31b-it:free</code>: currently rate-limited upstream.</li>
+        <li><code>deepseek/deepseek-v4-flash:free</code>: returned upstream <code>402</code> out-of-credits.</li>
+        <li><code>openai/gpt-oss-20b:free</code>: worked but took about 28 seconds with the full prompt and gave weaker titles.</li>
     </ul>
 
     <h2>Verification already run</h2>
     <ul>
-        <li><code>node --check .\assets\js\document-block.js</code> passed after the latest block changes.</li>
-        <li><code>node --check .\assets\js\admin-upload.js</code> passed after the admin upload changes.</li>
-        <li><code>studio wp eval "echo class_exists('Sign_Docs_Blocks') ? 'ok' : 'missing';" --path C:\Users\igorb\Studio\edu-site</code> returned <code>ok</code>.</li>
-        <li><code>studio wp eval "echo class_exists('Sign_Docs_Admin') ? 'ok' : 'missing';" --path C:\Users\igorb\Studio\edu-site</code> returned <code>ok</code>.</li>
-        <li><code>studio wp eval</code> confirmed new storage URLs like <code>/wp-content/uploads/sign-docs/2026/05/123/original.pdf</code> and <code>/wp-content/uploads/sign-docs/2026/05/123/stamped.pdf</code>.</li>
-        <li>Studio screenshots confirmed the simplified <code>Sign Docs</code> menu, settings links for classifiers, and the hierarchical <code>Document types</code> taxonomy screen.</li>
-        <li><code>rg "\bctx\b|wp-url" assets\js includes</code> returned no matches after the QR fix.</li>
-        <li>Earlier Studio checks showed the plugin active and the block editor script enqueued.</li>
+        <li><code>php -l includes/class-ai-metadata.php</code> passed.</li>
+        <li><code>node --check assets/js/admin-upload.js</code> passed after AI extraction changes.</li>
+        <li><code>studio wp eval</code> confirmed the AI ability and REST route exist.</li>
+        <li><code>studio wp eval</code> confirmed <code>Sign_Docs_AI_Metadata::suggest()</code> returns structured data through OpenRouter.</li>
+        <li>Browser checks of admin upload/settings pages showed no console errors during implementation.</li>
+        <li>Connector approval pending queue was cleared after approving OpenRouter for the AI plugin and Sign Docs.</li>
     </ul>
 
     <h2>Known local environment notes</h2>
     <ul>
-        <li>The directory is not a Git repository.</li>
-        <li>There is no standalone <code>php</code> command in PATH. Use Studio CLI for WordPress/PHP checks.</li>
-        <li>Per <code>C:\Users\igorb\Studio\edu-site\STUDIO.md</code>, use <code>studio wp</code>, not bare <code>wp</code>.</li>
-        <li>Studio CLI sometimes needs elevated sandbox access because it writes under <code>C:\Users\igorb\.studio</code>.</li>
-        <li>PowerShell profile prints noise about missing <code>C:\Users\igorb\anaconda3\Scripts\conda.exe</code>. This is unrelated to the plugin.</li>
+        <li>The OpenRouter provider fixes are in <code>/Users/igorblagovesenskij/Studio/edu-site/wp-content/plugins/ai-provider-for-openrouter</code>, outside this repository.</li>
+        <li>An update of the OpenRouter provider plugin from WordPress.org may overwrite those local fixes.</li>
+        <li>The site uses WordPress Studio and SQLite; do not edit WordPress core unless explicitly investigating local runtime behavior.</li>
+        <li>Use <code>studio wp</code>, not bare <code>wp</code>.</li>
     </ul>
 
     <h2>Open issue to verify next</h2>
     <ul>
-        <li>Push to GitHub is still blocked locally because <code>D:\Projects\plugins\sign-docs</code> is not currently a Git repository.</li>
-        <li>If the user wants the first push from this directory, initialize git, review <code>.gitignore</code>, create a commit, add <code>https://github.com/igor-blag/sign-docs.git</code> as remote and push after confirming the repository exists and credentials are available.</li>
+        <li>AI autofill currently sends text only. Add an image fallback later for scanned PDFs or poor text extraction.</li>
+        <li>If speed remains above the user's tolerance, consider a hard UI timeout around the browser request and leave the form manual.</li>
+        <li>Provider fixes should eventually be contributed upstream or moved into a maintained local plugin patch.</li>
     </ul>
 
     <h2>Useful commands</h2>
     <ul>
-        <li><code>studio site status --path C:\Users\igorb\Studio\edu-site</code></li>
-        <li><code>studio wp plugin list --path C:\Users\igorb\Studio\edu-site --format=csv</code></li>
-        <li><code>studio wp eval "echo class_exists('Sign_Docs_Blocks') ? 'ok' : 'missing';" --path C:\Users\igorb\Studio\edu-site</code></li>
-        <li><code>node --check .\assets\js\document-block.js</code></li>
+        <li><code>studio wp plugin list --format=csv</code></li>
+        <li><code>studio wp eval 'echo class_exists("Sign_Docs_AI_Metadata") ? "ok" : "missing";'</code></li>
+        <li><code>studio wp eval '$result = Sign_Docs_AI_Metadata::suggest(array("first_page_text" => "...")); var_dump($result);'</code></li>
+        <li><code>node --check assets/js/admin-upload.js</code></li>
+        <li><code>php -l includes/class-ai-metadata.php</code></li>
     </ul>
 </body>
 </html>
