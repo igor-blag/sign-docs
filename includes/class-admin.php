@@ -109,7 +109,7 @@ final class Sign_Docs_Admin
             'edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE,
             'Добавить документ',
             'Добавить документ',
-            'upload_files',
+            Sign_Docs_Settings::UPLOAD_CAPABILITY,
             'sign-docs-upload',
             array(self::class, 'render_upload_page')
         );
@@ -154,7 +154,7 @@ final class Sign_Docs_Admin
 
     public static function render_upload_page(): void
     {
-        if (! current_user_can('upload_files')) {
+        if (! Sign_Docs_Settings::current_user_can_upload_documents()) {
             wp_die(esc_html__('You are not allowed to upload files.', 'sign-docs'));
         }
 
@@ -551,7 +551,7 @@ final class Sign_Docs_Admin
 
     public static function handle_upload(): void
     {
-        if (! current_user_can('upload_files')) {
+        if (! Sign_Docs_Settings::current_user_can_upload_documents()) {
             wp_die(esc_html__('You are not allowed to upload files.', 'sign-docs'));
         }
 
@@ -649,9 +649,9 @@ final class Sign_Docs_Admin
      */
     public static function columns(array $columns): array
     {
+        unset($columns['taxonomy-sign_doc_type']);
+
         $columns['sign_docs_status'] = __('Status', 'sign-docs');
-        $columns['sign_docs_signed_at'] = __('Signed at', 'sign-docs');
-        $columns['sign_docs_hash'] = __('SHA-256', 'sign-docs');
 
         return $columns;
     }
@@ -792,10 +792,13 @@ final class Sign_Docs_Admin
                 'Публичная PDF-копия' => self::link_value($stamped_url, 'Открыть PDF с отметкой'),
                 'Исходная контрольная копия' => self::link_value($original_url, 'Открыть исходный PDF'),
                 'SHA-256 исходного PDF' => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
+                'SHA-256 публичной PDF-копии' => Sign_Docs_Meta::get($post_id, 'stamped_file_hash'),
                 'QR-code data' => Sign_Docs_Meta::get($post_id, 'qr_code_data'),
                 'Имя исходного файла' => Sign_Docs_Meta::get($post_id, 'source_filename'),
                 'Размер файла' => self::file_size_label(Sign_Docs_Meta::get($post_id, 'file_size')),
                 'MIME type' => Sign_Docs_Meta::get($post_id, 'mime_type'),
+                'Публичная копия сохранена' => Sign_Docs_Meta::get($post_id, 'completed_at'),
+                'Кто сохранил публичную копию' => self::user_label(Sign_Docs_Meta::get($post_id, 'completed_by_user_id')),
             )
         );
     }

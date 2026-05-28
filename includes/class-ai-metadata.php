@@ -67,7 +67,7 @@ final class Sign_Docs_AI_Metadata
      */
     public static function can_suggest($input = null): bool
     {
-        return current_user_can('upload_files');
+        return Sign_Docs_Settings::current_user_can_upload_documents();
     }
 
     /**

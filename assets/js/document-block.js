@@ -484,6 +484,7 @@
         const [busy, setBusy] = useState(false);
         const [status, setStatus] = useState('');
         const [error, setError] = useState('');
+        const unsignedOnly = category === 'external-regulation';
 
         useEffect(function () {
             return function () {
@@ -536,6 +537,13 @@
                 setTypeId(available[0] ? String(available[0].id) : '');
             }
         }, [category]);
+
+        useEffect(function () {
+            if (unsignedOnly) {
+                setManualPicking(false);
+                setStampPosition(null);
+            }
+        }, [unsignedOnly]);
 
         async function readPreviewPageSize(file) {
             if (!window.PDFLib || !file) {
@@ -662,7 +670,8 @@
                 'div',
                 { style: { display: 'flex', gap: '8px', justifyContent: 'flex-start', margin: '0 0 16px' } },
                 el(components.Button, { variant: 'secondary', disabled: busy, onClick: onClose }, __('Cancel', 'sign-docs')),
-                el(components.Button, { variant: 'primary', isBusy: busy, disabled: busy || !fileName, onClick: signDocument }, busy ? __('Signing...', 'sign-docs') : __('Save and sign document', 'sign-docs'))
+                unsignedOnly ? null : el(components.Button, { variant: 'primary', isBusy: busy, disabled: busy || !fileName, onClick: function () { saveDocument(false); } }, busy ? __('Signing...', 'sign-docs') : __('Save and sign document', 'sign-docs')),
+                el(components.Button, { variant: unsignedOnly ? 'primary' : 'secondary', isBusy: busy && unsignedOnly, disabled: busy || !fileName, onClick: function () { saveDocument(true); } }, busy && unsignedOnly ? __('Saving...', 'sign-docs') : __('Save without signature', 'sign-docs'))
             );
         }
 
@@ -707,16 +716,17 @@
             };
         }
 
-        async function signDocument() {
+        async function saveDocument(saveUnsigned) {
             const file = fileRef.current;
             const type = selectedType();
+            const unsigned = saveUnsigned || unsignedOnly;
 
             if (!file) {
                 setError(__('Choose a PDF file.', 'sign-docs'));
                 return;
             }
 
-            if (!config.hasVendor || !window.PDFLib || !window.qrcode || !(window.fontkit || window.Fontkit)) {
+            if (!unsigned && (!config.hasVendor || !window.PDFLib || !window.qrcode || !(window.fontkit || window.Fontkit))) {
                 setError(__('Local PDF libraries or fonts are missing.', 'sign-docs'));
                 return;
             }
@@ -737,21 +747,38 @@
                 prepareData.append('document_date', documentDate);
                 prepareData.append('document_number', documentNumber);
                 prepareData.append('document_subject', documentSubject);
-                prepareData.append('signer_name', text(defaults.signer_name));
-                prepareData.append('signer_position', text(defaults.signer_position));
-                prepareData.append('signer_organization', text(defaults.signer_organization));
+                prepareData.append('save_mode', unsigned ? 'unsigned' : 'signed');
+                prepareData.append('signer_name', unsigned ? '' : text(defaults.signer_name));
+                prepareData.append('signer_position', unsigned ? '' : text(defaults.signer_position));
+                prepareData.append('signer_organization', unsigned ? '' : text(defaults.signer_organization));
                 prepareData.append('stamp_corner', text(defaults.stamp_corner) || 'top-left');
                 prepareData.append('stamp_color', text(defaults.stamp_color) || '#2e7d32');
                 prepareData.append('stamp_opacity', String(defaults.stamp_opacity || '1'));
                 prepareData.append('stamp_font_size', String(defaults.stamp_font_size || '8.4'));
                 prepareData.append('stamp_width_mm', String(defaults.stamp_width_mm || '100'));
                 prepareData.append('stamp_border_enabled', defaults.stamp_border_enabled === '0' ? '0' : '1');
-                prepareData.append('stamp_placement_mode', stampPosition ? 'manual' : 'corner');
-                prepareData.append('stamp_manual_x', stampPosition ? stampPosition.x.toFixed(6) : '');
-                prepareData.append('stamp_manual_y', stampPosition ? stampPosition.y.toFixed(6) : '');
+                prepareData.append('stamp_placement_mode', !unsigned && stampPosition ? 'manual' : 'corner');
+                prepareData.append('stamp_manual_x', !unsigned && stampPosition ? stampPosition.x.toFixed(6) : '');
+                prepareData.append('stamp_manual_y', !unsigned && stampPosition ? stampPosition.y.toFixed(6) : '');
                 prepareData.append('qr_logo_enabled', defaults.qr_logo_enabled === '0' ? '0' : '1');
 
                 const prepared = await postForm(config.prepareUrl, prepareData);
+                if (unsigned) {
+                    onComplete({
+                        id: prepared.post_id,
+                        title: prepared.title || text(postTitle) || file.name,
+                        fullTitle: prepared.title || text(fullTitle) || text(postTitle) || file.name,
+                        verificationUrl: prepared.verification_url || '',
+                        stampedFileUrl: '',
+                        originalFileUrl: prepared.original_file_url || '',
+                        sha256Hash: prepared.sha256_hash || '',
+                        statusLabel: prepared.statusLabel || __('Unsigned', 'sign-docs'),
+                        signedAt: prepared.signed_at || '',
+                        documentVersion: prepared.version || '1'
+                    });
+                    return;
+                }
+
                 prepared.stamp_placement_mode = stampPosition ? 'manual' : 'corner';
                 prepared.stamp_manual_x = stampPosition ? stampPosition.x.toFixed(6) : '';
                 prepared.stamp_manual_y = stampPosition ? stampPosition.y.toFixed(6) : '';
@@ -865,7 +892,7 @@
                             'div',
                             { style: { alignItems: 'center', display: 'flex', gap: '8px', justifyContent: 'space-between', marginBottom: '10px' } },
                             el('h2', { style: { margin: '0' } }, __('Preview', 'sign-docs')),
-                            el(
+                            unsignedOnly ? null : el(
                                 'div',
                                 { style: { display: 'flex', gap: '8px' } },
                                 el(components.Button, { variant: manualPicking ? 'primary' : 'secondary', disabled: !previewUrl || busy, onClick: function () { setManualPicking(!manualPicking); } }, manualPicking ? __('Cancel picking', 'sign-docs') : __('Pick stamp position', 'sign-docs')),
@@ -885,7 +912,7 @@
                                 el('div', { style: stampRectStyle() })
                             )
                         ),
-                        el(
+                        unsignedOnly ? null : el(
                             'div',
                             { style: { background: '#f6f7f7', border: '1px solid #dcdcde', borderRadius: '4px', marginTop: '12px', padding: '12px' } },
                             el('strong', null, __('Signing parameters', 'sign-docs')),

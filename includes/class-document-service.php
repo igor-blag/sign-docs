@@ -90,6 +90,7 @@ final class Sign_Docs_Document_Service
             'original_file_url' => $paths['original_url'],
             'stamped_file_path' => $defer_stamped ? '' : $paths['stamped_path'],
             'stamped_file_url' => $defer_stamped ? '' : $paths['stamped_url'],
+            'stamped_file_hash' => $defer_stamped ? '' : Sign_Docs_Storage::hash_file($paths['stamped_path']),
             'sha256_hash' => $hash,
             'signed_at' => $signed_at,
             'signer_name' => isset($args['signer_name']) ? sanitize_text_field((string) $args['signer_name']) : '',
@@ -98,6 +99,10 @@ final class Sign_Docs_Document_Service
             'signer_user_id' => get_current_user_id(),
             'verification_url' => is_string($verification_url) ? $verification_url : '',
             'qr_code_data' => is_string($verification_url) ? $verification_url : '',
+            'completed_at' => $defer_stamped ? '' : current_time('mysql'),
+            'completed_by_user_id' => $defer_stamped ? 0 : get_current_user_id(),
+            'completed_ip' => $defer_stamped ? '' : self::request_ip(),
+            'completed_user_agent' => $defer_stamped ? '' : self::request_user_agent(),
             'document_status' => $document_status,
             'document_version' => isset($args['document_version']) ? absint($args['document_version']) : 1,
             'source_filename' => $source_filename,
@@ -140,7 +145,9 @@ final class Sign_Docs_Document_Service
     public static function prepare_from_local_pdf(string $source_path, array $args)
     {
         $args['defer_stamped'] = true;
-        $args['document_status'] = 'needs_public_copy';
+        $args['document_status'] = isset($args['document_status'])
+            ? sanitize_key((string) $args['document_status'])
+            : 'needs_public_copy';
 
         return self::create_from_local_pdf($source_path, $args);
     }
@@ -162,7 +169,18 @@ final class Sign_Docs_Document_Service
             return new WP_Error('sign_docs_invalid_mime', __('Only PDF files can be signed.', 'sign-docs'));
         }
 
+        if ('needs_public_copy' !== Sign_Docs_Meta::get($post_id, 'document_status')) {
+            return new WP_Error(
+                'sign_docs_invalid_document_state',
+                __('This document is not waiting for a public PDF copy.', 'sign-docs'),
+                array('status' => 409)
+            );
+        }
+
         $original_path = Sign_Docs_Meta::get($post_id, 'original_file_path');
+        $stored_hash = Sign_Docs_Meta::get($post_id, 'sha256_hash');
+        $verification_url = Sign_Docs_Meta::get($post_id, 'verification_url');
+        $qr_code_data = Sign_Docs_Meta::get($post_id, 'qr_code_data');
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $timestamp = strtotime($signed_at) ?: time();
         $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp);
@@ -171,12 +189,39 @@ final class Sign_Docs_Document_Service
             return new WP_Error('sign_docs_original_missing', __('Original PDF is missing.', 'sign-docs'));
         }
 
+        $current_original_hash = Sign_Docs_Storage::hash_file($original_path);
+        if ('' === $stored_hash || '' === $current_original_hash || ! hash_equals($stored_hash, $current_original_hash)) {
+            return new WP_Error(
+                'sign_docs_original_hash_mismatch',
+                __('Original PDF hash does not match the stored document hash.', 'sign-docs'),
+                array('status' => 409)
+            );
+        }
+
+        if ('' === $signed_at || '' === $verification_url || '' === $qr_code_data) {
+            return new WP_Error(
+                'sign_docs_incomplete_document_data',
+                __('Document verification data is incomplete.', 'sign-docs'),
+                array('status' => 409)
+            );
+        }
+
         if (! copy($stamped_source_path, $paths['stamped_path'])) {
             return new WP_Error('sign_docs_stamped_copy_failed', __('Failed to save the public PDF copy.', 'sign-docs'));
         }
 
+        $stamped_hash = Sign_Docs_Storage::hash_file($paths['stamped_path']);
+        if ('' === $stamped_hash) {
+            return new WP_Error('sign_docs_stamped_hash_failed', __('Failed to calculate SHA-256 for the public PDF copy.', 'sign-docs'));
+        }
+
         update_post_meta($post_id, 'stamped_file_path', $paths['stamped_path']);
         update_post_meta($post_id, 'stamped_file_url', $paths['stamped_url']);
+        update_post_meta($post_id, 'stamped_file_hash', $stamped_hash);
+        update_post_meta($post_id, 'completed_at', current_time('mysql'));
+        update_post_meta($post_id, 'completed_by_user_id', get_current_user_id());
+        update_post_meta($post_id, 'completed_ip', self::request_ip());
+        update_post_meta($post_id, 'completed_user_agent', self::request_user_agent());
         update_post_meta($post_id, 'document_status', 'active');
         wp_update_post(
             array(
@@ -233,6 +278,20 @@ final class Sign_Docs_Document_Service
         $check = wp_check_filetype((string) wp_basename($source_path), array('pdf' => 'application/pdf'));
 
         return isset($check['type']) && is_string($check['type']) ? $check['type'] : '';
+    }
+
+    private static function request_ip(): string
+    {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field((string) wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+
+        return substr($ip, 0, 100);
+    }
+
+    private static function request_user_agent(): string
+    {
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field((string) wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
+
+        return substr($user_agent, 0, 500);
     }
 
     /**

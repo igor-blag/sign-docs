@@ -103,6 +103,15 @@
         }
     }
 
+    function setElementHidden(element, hidden) {
+        if (!element) {
+            return;
+        }
+
+        element.hidden = hidden;
+        element.style.display = hidden ? 'none' : '';
+    }
+
     function inputValue(name) {
         const input = form.querySelector('[name="' + name + '"]');
         return input ? input.value.trim() : '';
@@ -360,7 +369,7 @@
         const unsignedButtons = form.querySelectorAll('.sign-docs-save-unsigned');
 
         Array.prototype.forEach.call(signedButtons, function (button) {
-            button.hidden = unsignedOnly;
+            setElementHidden(button, unsignedOnly);
         });
 
         Array.prototype.forEach.call(unsignedButtons, function (button) {
@@ -749,11 +758,22 @@
         const pickButton = document.getElementById('sign-docs-stamp-pick');
         const resetButton = document.getElementById('sign-docs-stamp-reset');
         const status = document.getElementById('sign-docs-stamp-placement-status');
-        const isManual = field('stamp_placement_mode') === 'manual';
+        let isManual = field('stamp_placement_mode') === 'manual';
         const unsignedOnly = categoryRequiresUnsigned();
         const rect = document.getElementById('sign-docs-stamp-preview-rect');
 
         manualStampPicking = active;
+
+        if (unsignedOnly) {
+            manualStampPicking = false;
+            active = false;
+            selectedStampPosition = null;
+            setHiddenField('stamp_placement_mode', 'corner');
+            setHiddenField('stamp_manual_x', '');
+            setHiddenField('stamp_manual_y', '');
+            isManual = false;
+        }
+
         syncManualStampLayer();
 
         if (layer) {
@@ -782,16 +802,16 @@
         }
 
         if (pickButton) {
-            pickButton.hidden = unsignedOnly;
+            setElementHidden(pickButton, unsignedOnly);
             pickButton.textContent = active ? 'Отменить выбор места' : 'Выбрать место штампа';
         }
 
         if (resetButton) {
-            resetButton.hidden = unsignedOnly || !isManual;
+            setElementHidden(resetButton, unsignedOnly || !isManual);
         }
 
         if (status) {
-            status.hidden = unsignedOnly;
+            setElementHidden(status, unsignedOnly);
             status.textContent = isManual
                 ? 'Место выбрано вручную. Можно выбрать заново.'
                 : (active ? 'Наведите прямоугольник на нужное место и щелкните.' : 'Используется угол из настроек.');

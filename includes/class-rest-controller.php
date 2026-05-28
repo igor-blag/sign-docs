@@ -75,7 +75,7 @@ final class Sign_Docs_REST_Controller
 
     public static function can_upload(): bool
     {
-        return current_user_can('upload_files');
+        return Sign_Docs_Settings::current_user_can_upload_documents();
     }
 
     public static function suggest_metadata(WP_REST_Request $request): WP_REST_Response|WP_Error
@@ -193,6 +193,9 @@ final class Sign_Docs_REST_Controller
         $settings = Sign_Docs_Settings::get();
         $stamp_border_enabled = $request->get_param('stamp_border_enabled');
         $qr_logo_enabled = $request->get_param('qr_logo_enabled');
+        $document_category = sanitize_key((string) $request->get_param('document_category'));
+        $save_mode = sanitize_key((string) $request->get_param('save_mode'));
+        $save_unsigned = 'unsigned' === $save_mode || 'external-regulation' === $document_category;
 
         if (! isset($files['original_pdf']) || ! is_array($files['original_pdf'])) {
             return new WP_Error('sign_docs_missing_file', __('Choose a PDF file.', 'sign-docs'), array('status' => 400));
@@ -209,7 +212,7 @@ final class Sign_Docs_REST_Controller
                 'post_title' => (string) $request->get_param('post_title'),
                 'full_title' => (string) $request->get_param('full_title'),
                 'document_comment' => (string) $request->get_param('document_comment'),
-                'document_category' => (string) $request->get_param('document_category'),
+                'document_category' => $document_category,
                 'document_type_label' => (string) $request->get_param('document_type_label'),
                 'document_type_term_id' => absint($request->get_param('document_type_term_id')),
                 'document_institution' => (string) $request->get_param('document_institution'),
@@ -217,9 +220,10 @@ final class Sign_Docs_REST_Controller
                 'document_number' => (string) $request->get_param('document_number'),
                 'document_subject' => (string) $request->get_param('document_subject'),
                 'academic_year' => (string) $request->get_param('academic_year'),
-                'signer_name' => (string) ($request->get_param('signer_name') ?: $settings['signer_name']),
-                'signer_position' => (string) ($request->get_param('signer_position') ?: $settings['signer_position']),
-                'signer_organization' => (string) ($request->get_param('signer_organization') ?: $settings['signer_organization']),
+                'signer_name' => $save_unsigned ? '' : (string) ($request->get_param('signer_name') ?: $settings['signer_name']),
+                'signer_position' => $save_unsigned ? '' : (string) ($request->get_param('signer_position') ?: $settings['signer_position']),
+                'signer_organization' => $save_unsigned ? '' : (string) ($request->get_param('signer_organization') ?: $settings['signer_organization']),
+                'document_status' => $save_unsigned ? 'unsigned' : 'needs_public_copy',
                 'stamp_position' => (string) ($request->get_param('stamp_position') ?: 'top'),
                 'stamp_corner' => (string) ($request->get_param('stamp_corner') ?: $settings['stamp_corner']),
                 'stamp_color' => (string) ($request->get_param('stamp_color') ?: $settings['stamp_color']),
@@ -255,7 +259,8 @@ final class Sign_Docs_REST_Controller
                 'signer_name' => Sign_Docs_Meta::get($post_id, 'signer_name'),
                 'signer_position' => Sign_Docs_Meta::get($post_id, 'signer_position'),
                 'organization' => Sign_Docs_Meta::get($post_id, 'signer_organization'),
-                'status' => 'active',
+                'status' => Sign_Docs_Meta::get($post_id, 'document_status') ?: 'needs_public_copy',
+                'statusLabel' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'version' => Sign_Docs_Meta::get($post_id, 'document_version') ?: '1',
                 'stamp_position' => sanitize_key((string) ($request->get_param('stamp_position') ?: 'top')),
                 'stamp_corner' => Sign_Docs_Meta::get($post_id, 'stamp_corner') ?: 'top-left',
@@ -301,6 +306,7 @@ final class Sign_Docs_REST_Controller
                 'post_id' => $post_id,
                 'verification_url' => Sign_Docs_Verification_Page::url($post_id),
                 'stamped_file_url' => Sign_Docs_Meta::get($post_id, 'stamped_file_url'),
+                'stamped_file_hash' => Sign_Docs_Meta::get($post_id, 'stamped_file_hash'),
             )
         );
     }

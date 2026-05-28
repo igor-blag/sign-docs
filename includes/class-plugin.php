@@ -48,6 +48,7 @@ final class Sign_Docs_Plugin
         Sign_Docs_Taxonomies::register();
         Sign_Docs_Storage::ensure_directories();
         Sign_Docs_Usage_Index::ensure_table();
+        Sign_Docs_Settings::ensure_administrator_capability();
         flush_rewrite_rules();
     }
 
@@ -63,6 +64,7 @@ final class Sign_Docs_Plugin
         }
 
         $this->booted = true;
+        Sign_Docs_Settings::ensure_administrator_capability();
 
         add_action('init', array(Sign_Docs_Post_Type::class, 'register'));
         add_action('init', array(Sign_Docs_Taxonomies::class, 'register'));

@@ -14,6 +14,7 @@ if (! defined('ABSPATH')) {
 final class Sign_Docs_Settings
 {
     public const OPTION_NAME = 'sign_docs_settings';
+    public const UPLOAD_CAPABILITY = 'sign_docs_upload_documents';
 
     /**
      * @return array<string,string>
@@ -52,6 +53,8 @@ final class Sign_Docs_Settings
 
     public static function register(): void
     {
+        self::ensure_administrator_capability();
+
         register_setting(
             'sign_docs_settings',
             self::OPTION_NAME,
@@ -70,6 +73,8 @@ final class Sign_Docs_Settings
     public static function sanitize($value): array
     {
         $value = is_array($value) ? $value : array();
+        self::sync_upload_users(isset($value['upload_user_ids']) ? $value['upload_user_ids'] : array());
+
         $color = isset($value['stamp_color']) ? sanitize_hex_color((string) $value['stamp_color']) : '';
         $opacity = isset($value['stamp_opacity']) ? (float) $value['stamp_opacity'] : 1.0;
         $font_size = isset($value['stamp_font_size']) ? (float) $value['stamp_font_size'] : 8.4;
@@ -106,6 +111,19 @@ final class Sign_Docs_Settings
         );
     }
 
+    public static function current_user_can_upload_documents(): bool
+    {
+        return current_user_can(self::UPLOAD_CAPABILITY);
+    }
+
+    public static function ensure_administrator_capability(): void
+    {
+        $role = get_role('administrator');
+        if (null !== $role && ! $role->has_cap(self::UPLOAD_CAPABILITY)) {
+            $role->add_cap(self::UPLOAD_CAPABILITY);
+        }
+    }
+
     public static function render_page(): void
     {
         if (! current_user_can('manage_options')) {
@@ -113,6 +131,7 @@ final class Sign_Docs_Settings
         }
 
         $settings = self::get();
+        $upload_users = self::upload_users();
         ?>
         <div class="wrap">
             <h1>Настройки Sign Docs</h1>
@@ -141,6 +160,30 @@ final class Sign_Docs_Settings
                                     Автоматически предлагать реквизиты документа при выборе PDF
                                 </label>
                                 <p class="description">Используется настроенный AI connector WordPress. В модель отправляется только текст первой страницы PDF, а подпись и публикация остаются ручным действием администратора.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Права на загрузку документов</th>
+                            <td>
+                                <?php if (empty($upload_users)) : ?>
+                                    <p class="description">Пользователи с ролью редактора не найдены.</p>
+                                <?php else : ?>
+                                    <fieldset>
+                                        <legend class="screen-reader-text">Редакторы, которым разрешена загрузка документов Sign Docs</legend>
+                                        <?php foreach ($upload_users as $user) : ?>
+                                            <label style="display:block; margin:0 0 6px;">
+                                                <input
+                                                    name="<?php echo esc_attr(self::OPTION_NAME); ?>[upload_user_ids][]"
+                                                    type="checkbox"
+                                                    value="<?php echo esc_attr((string) $user->ID); ?>"
+                                                    <?php checked(user_can($user, self::UPLOAD_CAPABILITY)); ?>
+                                                >
+                                                <?php echo esc_html($user->display_name . ' (' . $user->user_login . ')'); ?>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </fieldset>
+                                    <p class="description">Администраторы имеют это право всегда. Отметьте редакторов, которым можно добавлять документы через Sign Docs.</p>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>
@@ -253,5 +296,56 @@ final class Sign_Docs_Settings
     private static function taxonomy_admin_url(string $taxonomy): string
     {
         return admin_url('edit-tags.php?taxonomy=' . $taxonomy . '&post_type=' . Sign_Docs_Post_Type::POST_TYPE);
+    }
+
+    /**
+     * @param mixed $selected_user_ids
+     */
+    private static function sync_upload_users($selected_user_ids): void
+    {
+        if (! current_user_can('manage_options')) {
+            return;
+        }
+
+        self::ensure_administrator_capability();
+
+        $selected = array();
+        if (is_array($selected_user_ids)) {
+            foreach ($selected_user_ids as $user_id) {
+                $user_id = absint($user_id);
+                if ($user_id > 0) {
+                    $selected[$user_id] = true;
+                }
+            }
+        }
+
+        foreach (self::upload_users() as $user) {
+            if (user_can($user, 'manage_options')) {
+                continue;
+            }
+
+            if (isset($selected[(int) $user->ID])) {
+                $user->add_cap(self::UPLOAD_CAPABILITY);
+            } else {
+                $user->remove_cap(self::UPLOAD_CAPABILITY);
+            }
+        }
+    }
+
+    /**
+     * @return WP_User[]
+     */
+    private static function upload_users(): array
+    {
+        $users = get_users(
+            array(
+                'role__in' => array('editor'),
+                'orderby' => 'display_name',
+                'order' => 'ASC',
+                'fields' => 'all',
+            )
+        );
+
+        return is_array($users) ? $users : array();
     }
 }
