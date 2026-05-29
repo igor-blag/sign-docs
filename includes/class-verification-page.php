@@ -48,6 +48,15 @@ final class Sign_Docs_Verification_Page
             array(),
             SIGN_DOCS_VERSION
         );
+
+        $script_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/public.js';
+        wp_enqueue_script(
+            'sign-docs-public',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/public.js',
+            array(),
+            file_exists($script_path) ? (string) filemtime($script_path) : SIGN_DOCS_VERSION,
+            true
+        );
     }
 
     public static function render_content(string $content): string
@@ -72,8 +81,17 @@ final class Sign_Docs_Verification_Page
         $status = self::status_label($document_status);
         $version = Sign_Docs_Meta::get($post_id, 'document_version');
         $stamped_file_url = Sign_Docs_Meta::get($post_id, 'stamped_file_url');
+        $stamped_file_hash = Sign_Docs_Meta::get($post_id, 'stamped_file_hash');
         $original_file_url = Sign_Docs_Meta::get($post_id, 'original_file_url');
         $verification_url = self::url($post_id);
+        $replaces_post_id = Sign_Docs_Document_Service::valid_replaces_post_id(absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id')));
+        $replaced_by_post_id = Sign_Docs_Document_Service::valid_replaces_post_id(absint(Sign_Docs_Meta::get($post_id, 'replaced_by_post_id')));
+
+        if ('needs_public_copy' === $document_status && ! current_user_can('edit_post', $post_id)) {
+            status_header(404);
+
+            return self::render_unavailable_notice();
+        }
 
         if (Sign_Docs_Meta::get($post_id, 'verification_url') !== $verification_url) {
             update_post_meta($post_id, 'verification_url', $verification_url);
@@ -87,6 +105,8 @@ final class Sign_Docs_Verification_Page
                 <p class="sign-docs-verification__eyebrow">Страница проверки документа</p>
                 <h2><?php echo esc_html($full_title ?: get_the_title($post_id)); ?></h2>
             </header>
+
+            <?php self::render_replacement_notices($replaces_post_id, $replaced_by_post_id); ?>
 
             <dl class="sign-docs-verification__details">
                 <?php self::render_row('Дата и время подписи', $signed_at); ?>
@@ -116,6 +136,68 @@ final class Sign_Docs_Verification_Page
                 <span class="sign-docs-verification__qr-data"><?php echo esc_html($verification_url); ?></span>
             </div>
             <p class="sign-docs-verification__note">Контрольная проверка выполняется по SHA-256 исходного PDF и записи на сайте.</p>
+            <?php self::render_file_checker($hash, $stamped_file_hash); ?>
+        </section>
+        <?php
+
+        return (string) ob_get_clean();
+    }
+
+    private static function render_file_checker(string $original_hash, string $stamped_hash): void
+    {
+        if ('' === $original_hash && '' === $stamped_hash) {
+            return;
+        }
+
+        ?>
+        <div
+            class="sign-docs-verification__checker"
+            data-sign-docs-checker
+            data-original-hash="<?php echo esc_attr(strtolower($original_hash)); ?>"
+            data-stamped-hash="<?php echo esc_attr(strtolower($stamped_hash)); ?>"
+        >
+            <h3>Проверить PDF-файл</h3>
+            <p>Файл проверяется в браузере. Он не загружается на сайт.</p>
+            <label class="sign-docs-verification__file">
+                <span>Выбрать PDF</span>
+                <input type="file" accept="application/pdf,.pdf" data-sign-docs-checker-input>
+            </label>
+            <p class="sign-docs-verification__checker-result" data-sign-docs-checker-result aria-live="polite"></p>
+        </div>
+        <?php
+    }
+
+    private static function render_replacement_notices(int $replaces_post_id, int $replaced_by_post_id): void
+    {
+        if ($replaced_by_post_id > 0) {
+            ?>
+            <p class="sign-docs-verification__replacement sign-docs-verification__replacement--warning">
+                Этот документ заменен новой редакцией:
+                <a href="<?php echo esc_url(self::url($replaced_by_post_id)); ?>"><?php echo esc_html(get_the_title($replaced_by_post_id)); ?></a>.
+            </p>
+            <?php
+        }
+
+        if ($replaces_post_id > 0) {
+            ?>
+            <p class="sign-docs-verification__replacement">
+                Этот документ заменяет предыдущую редакцию:
+                <a href="<?php echo esc_url(self::url($replaces_post_id)); ?>"><?php echo esc_html(get_the_title($replaces_post_id)); ?></a>.
+            </p>
+            <?php
+        }
+    }
+
+    private static function render_unavailable_notice(): string
+    {
+        ob_start();
+        ?>
+        <section class="sign-docs-verification" aria-label="Проверка документа">
+            <header class="sign-docs-verification__header">
+                <p class="sign-docs-verification__eyebrow">Страница проверки документа</p>
+                <h2>Документ еще не опубликован</h2>
+            </header>
+            <p class="sign-docs-verification__note">Публичная копия документа еще не сформирована.</p>
         </section>
         <?php
 

@@ -89,6 +89,56 @@
     margin: 18px 0 0;
 }
 
+.sign-docs-verification__replacement {
+    background: #f6f7f7;
+    border-left: 4px solid #646970;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+}
+
+.sign-docs-verification__replacement--warning {
+    border-left-color: #b32d2e;
+}
+
+.sign-docs-verification__checker {
+    border-top: 1px solid #dcdcde;
+    margin-top: 24px;
+    padding-top: 20px;
+}
+
+.sign-docs-verification__checker h3 {
+    font-size: 18px;
+    margin: 0 0 8px;
+}
+
+.sign-docs-verification__checker p {
+    margin: 0 0 12px;
+}
+
+.sign-docs-verification__file {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sign-docs-verification__checker-result {
+    font-weight: 600;
+    margin-top: 12px !important;
+}
+
+.sign-docs-verification__checker-result[data-status="success"] {
+    color: #0a7d33;
+}
+
+.sign-docs-verification__checker-result[data-status="error"] {
+    color: #b32d2e;
+}
+
+.sign-docs-verification__checker-result[data-status="pending"] {
+    color: #646970;
+}
+
 .sign-docs-document-link {
     margin: 1em 0;
     position: relative;
@@ -190,6 +240,17 @@
 .sign-docs-document-link__meta {
     color: #646970;
     font-size: 13px;
+}
+
+.sign-docs-document-link__notice {
+    color: #8a6d3b;
+    display: block;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.sign-docs-document-link--inactive .sign-docs-document-link__anchor {
+    color: #646970;
 }
 
 .sign-docs-document-link--button .sign-docs-document-link__anchor {

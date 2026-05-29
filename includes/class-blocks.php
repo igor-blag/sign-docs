@@ -239,11 +239,13 @@ final class Sign_Docs_Blocks
         $stamped_file_url = Sign_Docs_Meta::get($post_id, 'stamped_file_url');
         $original_file_url = Sign_Docs_Meta::get($post_id, 'original_file_url');
         $sha256_hash = Sign_Docs_Meta::get($post_id, 'sha256_hash');
-        $status = self::status_label(Sign_Docs_Meta::get($post_id, 'document_status'));
+        $document_status = Sign_Docs_Meta::get($post_id, 'document_status') ?: 'active';
+        $status = self::status_label($document_status);
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $version = Sign_Docs_Meta::get($post_id, 'document_version') ?: '1';
         $show_download_button = ! empty($attributes['showDownloadButton']);
         $show_embedded_pdf = ! empty($attributes['showEmbeddedPdf']);
+        $is_current_document = self::is_current_document_status($document_status);
 
         if ('' === trim($title) || '' === trim($verification_url)) {
             return '';
@@ -251,7 +253,7 @@ final class Sign_Docs_Blocks
 
         $wrapper_attributes = get_block_wrapper_attributes(
             array(
-                'class' => 'sign-docs-document-link sign-docs-document-link--' . $display_mode,
+                'class' => 'sign-docs-document-link sign-docs-document-link--' . $display_mode . ($is_current_document ? '' : ' sign-docs-document-link--inactive'),
             )
         );
         $target = $open_in_new_tab ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -264,11 +266,15 @@ final class Sign_Docs_Blocks
             $meta = '<span class="sign-docs-document-link__meta">' . esc_html(implode(' · ', $parts)) . '</span>';
         }
 
-        $download = '' !== $stamped_file_url ? sprintf(
+        $download = $is_current_document && '' !== $stamped_file_url ? sprintf(
             '<a class="sign-docs-document-link__download" href="%s" download>%s</a>',
             esc_url($stamped_file_url),
             esc_html__('Скачать', 'sign-docs')
         ) : '';
+        $notice = $is_current_document ? '' : sprintf(
+            '<span class="sign-docs-document-link__notice">%s</span>',
+            esc_html__('Документ не является действующим. Используйте страницу проверки для уточнения статуса.', 'sign-docs')
+        );
 
         $title_content = sprintf(
             '%s<span class="sign-docs-document-link__body"><span class="sign-docs-document-link__text">%s</span>%s</span>',
@@ -276,9 +282,9 @@ final class Sign_Docs_Blocks
             esc_html($label),
             $meta
         );
-        $details = self::details($title, $status, $signed_at, $version, $sha256_hash, $stamped_file_url, $original_file_url, $verification_url, 'title-details' === $interaction_mode ? $title_content : esc_html__('Сведения', 'sign-docs'), 'title-details' === $interaction_mode);
+        $details = self::details($title, $status, $signed_at, $version, $sha256_hash, $is_current_document ? $stamped_file_url : '', $is_current_document ? $original_file_url : '', $verification_url, 'title-details' === $interaction_mode ? $title_content : esc_html__('Сведения', 'sign-docs'), 'title-details' === $interaction_mode, $is_current_document);
         $embed = '';
-        if ($show_embedded_pdf && '' !== $stamped_file_url) {
+        if ($is_current_document && $show_embedded_pdf && '' !== $stamped_file_url) {
             $embed = sprintf(
                 '<div class="sign-docs-document-link__embed"><iframe title="%s" src="%s"></iframe></div>',
                 esc_attr($title),
@@ -288,24 +294,26 @@ final class Sign_Docs_Blocks
 
         if ('buttons' === $interaction_mode) {
             return sprintf(
-                '<div %s><div class="sign-docs-document-link__row"><span class="sign-docs-document-link__anchor sign-docs-document-link__anchor--static">%s</span>%s%s</div>%s</div>',
+                '<div %s><div class="sign-docs-document-link__row"><span class="sign-docs-document-link__anchor sign-docs-document-link__anchor--static">%s</span>%s%s</div>%s%s</div>',
                 $wrapper_attributes,
                 $title_content,
                 $download,
                 $details,
+                $notice,
                 $embed
             );
         }
 
         return sprintf(
-            '<div %s><div class="sign-docs-document-link__row">%s</div>%s</div>',
+            '<div %s><div class="sign-docs-document-link__row">%s</div>%s%s</div>',
             $wrapper_attributes,
             $details,
+            $notice,
             $embed
         );
     }
 
-    private static function details(string $title, string $status, string $signed_at, string $version, string $hash, string $stamped_url, string $original_url, string $verification_url, string $summary, bool $summary_is_html): string
+    private static function details(string $title, string $status, string $signed_at, string $version, string $hash, string $stamped_url, string $original_url, string $verification_url, string $summary, bool $summary_is_html, bool $is_current_document): string
     {
         $rows = array(
             __('Статус', 'sign-docs') => $status,
@@ -337,7 +345,7 @@ final class Sign_Docs_Blocks
         if ('' !== $stamped_url) {
             $html .= sprintf('<a class="sign-docs-document-link__download" href="%s" download>%s</a>', esc_url($stamped_url), esc_html__('Скачать', 'sign-docs'));
         }
-        if ('' !== $original_url) {
+        if ($is_current_document && '' !== $original_url) {
             $html .= sprintf('<a href="%s">%s</a>', esc_url($original_url), esc_html__('Оригинал', 'sign-docs'));
         }
         $html .= sprintf('<a href="%s">%s</a>', esc_url($verification_url), esc_html__('Проверка', 'sign-docs'));
@@ -360,6 +368,11 @@ final class Sign_Docs_Blocks
         );
 
         return $labels[$status] ?? ($status ?: __('Действующий', 'sign-docs'));
+    }
+
+    private static function is_current_document_status(string $status): bool
+    {
+        return in_array($status ?: 'active', array('active', 'unsigned'), true);
     }
 
     /**

@@ -460,6 +460,7 @@
     function UploadDocumentModal(props) {
         const onClose = props.onClose;
         const onComplete = props.onComplete;
+        const replacesDocument = props.replacesDocument || null;
         const fileRef = useRef(null);
         const previewFrameRef = useRef(null);
         const previewLayerRef = useRef(null);
@@ -761,6 +762,7 @@
                 prepareData.append('stamp_manual_x', !unsigned && stampPosition ? stampPosition.x.toFixed(6) : '');
                 prepareData.append('stamp_manual_y', !unsigned && stampPosition ? stampPosition.y.toFixed(6) : '');
                 prepareData.append('qr_logo_enabled', defaults.qr_logo_enabled === '0' ? '0' : '1');
+                prepareData.append('replaces_post_id', replacesDocument && replacesDocument.id ? String(replacesDocument.id) : '');
 
                 const prepared = await postForm(config.prepareUrl, prepareData);
                 if (unsigned) {
@@ -812,12 +814,13 @@
 
         return el(
             components.Modal,
-            { title: __('Add document', 'sign-docs'), onRequestClose: busy ? undefined : onClose, className: 'sign-docs-document-upload-modal', isFullScreen: true },
+            { title: replacesDocument ? __('Replace document', 'sign-docs') : __('Add document', 'sign-docs'), onRequestClose: busy ? undefined : onClose, className: 'sign-docs-document-upload-modal', isFullScreen: true },
             el(
                 'div',
                 { style: { maxWidth: '1180px', margin: '0 auto', padding: '24px' } },
                 error ? el(components.Notice, { status: 'error', isDismissible: false }, error) : null,
                 status ? el(components.Notice, { status: 'info', isDismissible: false }, status) : null,
+                replacesDocument ? el(components.Notice, { status: 'warning', isDismissible: false }, __('The new document will mark the selected document as replaced after signing completes.', 'sign-docs')) : null,
                 actionButtons(),
                 el(
                     'div',
@@ -962,6 +965,7 @@
             const setAttributes = props.setAttributes;
             const [pickerOpen, setPickerOpen] = useState(false);
             const [uploadOpen, setUploadOpen] = useState(false);
+            const [replacementUploadOpen, setReplacementUploadOpen] = useState(false);
             const [loadingSelected, setLoadingSelected] = useState(false);
             const [selectedError, setSelectedError] = useState('');
             const blockProps = useBlockProps({ className: 'sign-docs-document-block sign-docs-document-block--' + (attributes.displayMode || 'link') });
@@ -1041,6 +1045,7 @@
                             components.ToolbarGroup,
                             null,
                             el(components.ToolbarButton, { icon: 'edit', label: __('Replace document', 'sign-docs'), onClick: function () { setPickerOpen(true); } }),
+                            el(components.ToolbarButton, { icon: 'upload', label: __('Upload replacement PDF', 'sign-docs'), onClick: function () { setReplacementUploadOpen(true); } }),
                             el(components.ToolbarButton, { icon: 'no', label: __('Remove document', 'sign-docs'), onClick: clearDocument })
                         )
                     ),
@@ -1051,6 +1056,7 @@
                             components.PanelBody,
                             { title: __('Document', 'sign-docs') },
                             el(components.Button, { variant: 'secondary', onClick: function () { setPickerOpen(true); } }, __('Replace document', 'sign-docs')),
+                            el(components.Button, { variant: 'secondary', onClick: function () { setReplacementUploadOpen(true); } }, __('Upload replacement PDF', 'sign-docs')),
                             el(components.Button, { variant: 'tertiary', isDestructive: true, onClick: clearDocument }, __('Remove document', 'sign-docs'))
                         ),
                         el(
@@ -1139,7 +1145,15 @@
                     )
                 ),
                 pickerOpen ? el(DocumentPicker, { onClose: function () { setPickerOpen(false); }, onSelect: selectDocument }) : null,
-                uploadOpen ? el(UploadDocumentModal, { onClose: function () { setUploadOpen(false); }, onComplete: selectDocument }) : null
+                uploadOpen ? el(UploadDocumentModal, { onClose: function () { setUploadOpen(false); }, onComplete: selectDocument }) : null,
+                replacementUploadOpen ? el(UploadDocumentModal, {
+                    onClose: function () { setReplacementUploadOpen(false); },
+                    onComplete: function (document) {
+                        setReplacementUploadOpen(false);
+                        selectDocument(document);
+                    },
+                    replacesDocument: { id: attributes.postId, title: selectedTitle }
+                }) : null
             );
         },
         save: function () {

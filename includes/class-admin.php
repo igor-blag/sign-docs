@@ -165,6 +165,7 @@ final class Sign_Docs_Admin
         $type_terms = self::document_type_terms_for_select();
         $institution_terms = self::terms_for_select('sign_doc_institution');
         $return_to = isset($_GET['return_to']) ? esc_url_raw((string) wp_unslash($_GET['return_to'])) : '';
+        $replaces_post_id = Sign_Docs_Document_Service::valid_replaces_post_id(isset($_GET['replaces']) ? absint($_GET['replaces']) : 0);
         ?>
         <div class="wrap">
             <h1>Добавить документ</h1>
@@ -192,6 +193,18 @@ final class Sign_Docs_Admin
                     <a href="<?php echo esc_url(admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-settings')); ?>">настроек Sign Docs</a>.
                 </p>
             </div>
+
+            <?php if ($replaces_post_id > 0) : ?>
+                <div class="notice notice-warning">
+                    <p>
+                        Новый документ заменит:
+                        <a href="<?php echo esc_url(get_edit_post_link($replaces_post_id, '')); ?>">
+                            <?php echo esc_html(get_the_title($replaces_post_id)); ?>
+                        </a>
+                        После успешной подписи предыдущая запись получит статус «Заменен».
+                    </p>
+                </div>
+            <?php endif; ?>
 
             <div id="sign-docs-upload-status" class="notice notice-info" hidden>
                 <p></p>
@@ -349,6 +362,7 @@ final class Sign_Docs_Admin
                 <input type="hidden" name="stamp_manual_y" value="">
                 <input type="hidden" name="return_to" value="<?php echo esc_attr($return_to); ?>">
                 <input type="hidden" name="default_institution" value="<?php echo esc_attr($settings['signer_organization']); ?>">
+                <input type="hidden" name="replaces_post_id" value="<?php echo esc_attr((string) $replaces_post_id); ?>">
 
                 <div class="sign-docs-upload-actions sign-docs-upload-actions--top">
                     <button type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed">Сохранить и подписать документ</button>
@@ -473,7 +487,19 @@ final class Sign_Docs_Admin
                                     <th scope="row">
                                         <label for="sign-docs-title">Название</label>
                                     </th>
-                                    <td><input id="sign-docs-title" name="post_title" type="text" class="large-text"></td>
+                                    <td>
+                                        <input id="sign-docs-title" name="post_title" type="text" class="large-text">
+                                        <p class="description">Краткое название записи в WordPress.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="sign-docs-full-title">Полное название</label>
+                                    </th>
+                                    <td>
+                                        <textarea id="sign-docs-full-title" name="full_title" class="large-text" rows="3"></textarea>
+                                        <p class="description">Используется на странице проверки, в блоке документа и в публичной карточке. Если оставить пустым, будет использовано краткое название.</p>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
@@ -578,12 +604,13 @@ final class Sign_Docs_Admin
             $document_institution = $settings['signer_organization'];
         }
         $save_unsigned = 'unsigned' === $save_mode || 'external-regulation' === $document_category;
+        $replaces_post_id = Sign_Docs_Document_Service::valid_replaces_post_id(isset($_POST['replaces_post_id']) ? absint($_POST['replaces_post_id']) : 0);
 
         $post_id = Sign_Docs_Document_Service::create_from_local_pdf(
             $tmp_name,
             array(
                 'post_title' => isset($_POST['post_title']) ? (string) wp_unslash($_POST['post_title']) : '',
-                'full_title' => isset($_POST['post_title']) ? (string) wp_unslash($_POST['post_title']) : '',
+                'full_title' => isset($_POST['full_title']) ? (string) wp_unslash($_POST['full_title']) : '',
                 'document_category' => $document_category,
                 'document_type_label' => isset($_POST['document_type_label']) ? (string) wp_unslash($_POST['document_type_label']) : '',
                 'document_type_term_id' => isset($_POST['document_type_term_id']) ? absint($_POST['document_type_term_id']) : 0,
@@ -606,8 +633,9 @@ final class Sign_Docs_Admin
                 'qr_logo_enabled' => $settings['qr_logo_enabled'],
                 'source_filename' => $source_name,
                 'document_status' => $save_unsigned ? 'unsigned' : 'active',
-                'document_version' => 1,
+                'document_version' => $replaces_post_id > 0 ? 0 : 1,
                 'defer_stamped' => $save_unsigned,
+                'replaces_post_id' => $replaces_post_id,
             )
         );
 
@@ -770,6 +798,9 @@ final class Sign_Docs_Admin
                 'Год / период' => Sign_Docs_Meta::get($post_id, 'academic_year'),
                 'Статус документа' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'Версия документа' => Sign_Docs_Meta::get($post_id, 'document_version'),
+                'Заменяет документ' => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id'))),
+                'Заменен документом' => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaced_by_post_id'))),
+                'Комментарий к замене' => Sign_Docs_Meta::get($post_id, 'replacement_note'),
                 'Дата и время подписи' => Sign_Docs_Meta::get($post_id, 'signed_at'),
                 'Подписант' => Sign_Docs_Meta::get($post_id, 'signer_name'),
                 'Должность' => Sign_Docs_Meta::get($post_id, 'signer_position'),
@@ -834,7 +865,17 @@ final class Sign_Docs_Admin
 
         unset($actions['trash'], $actions['delete']);
 
-        if ('archived' !== Sign_Docs_Meta::get((int) $post->ID, 'document_status') && current_user_can('edit_post', (int) $post->ID)) {
+        $document_status = Sign_Docs_Meta::get((int) $post->ID, 'document_status');
+
+        if (self::can_replace_document($document_status) && current_user_can('edit_post', (int) $post->ID)) {
+            $actions['replace'] = sprintf(
+                '<a href="%s">%s</a>',
+                esc_url(self::replace_url((int) $post->ID)),
+                esc_html__('Заменить', 'sign-docs')
+            );
+        }
+
+        if ('archived' !== $document_status && current_user_can('edit_post', (int) $post->ID)) {
             $actions['archive'] = sprintf(
                 '<a href="%s">%s</a>',
                 esc_url(self::archive_url((int) $post->ID)),
@@ -864,11 +905,23 @@ final class Sign_Docs_Admin
             return;
         }
 
-        if ('archived' === Sign_Docs_Meta::get((int) $post->ID, 'document_status') || ! current_user_can('edit_post', (int) $post->ID)) {
+        $document_status = Sign_Docs_Meta::get((int) $post->ID, 'document_status');
+
+        if (! current_user_can('edit_post', (int) $post->ID)) {
             return;
         }
 
         ?>
+        <?php if (self::can_replace_document($document_status)) : ?>
+            <div class="misc-pub-section">
+                <a href="<?php echo esc_url(self::replace_url((int) $post->ID)); ?>">
+                    <?php echo esc_html__('Заменить новым PDF', 'sign-docs'); ?>
+                </a>
+            </div>
+        <?php endif; ?>
+        <?php if ('archived' === $document_status) : ?>
+            <?php return; ?>
+        <?php endif; ?>
         <div class="misc-pub-section">
             <a class="submitdelete" href="<?php echo esc_url(self::archive_url((int) $post->ID)); ?>">
                 <?php echo esc_html__('Архивировать документ', 'sign-docs'); ?>
@@ -918,6 +971,10 @@ final class Sign_Docs_Admin
             return $trash;
         }
 
+        if (Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
+            return $trash;
+        }
+
         self::archive_document((int) $post->ID);
 
         return false;
@@ -930,6 +987,10 @@ final class Sign_Docs_Admin
     public static function archive_instead_of_delete($delete, WP_Post $post, bool $force_delete)
     {
         if (Sign_Docs_Post_Type::POST_TYPE !== $post->post_type) {
+            return $delete;
+        }
+
+        if (Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
             return $delete;
         }
 
@@ -1121,6 +1182,19 @@ final class Sign_Docs_Admin
         );
     }
 
+    private static function document_link_value(int $post_id): string
+    {
+        if ($post_id <= 0 || Sign_Docs_Post_Type::POST_TYPE !== get_post_type($post_id)) {
+            return '';
+        }
+
+        return sprintf(
+            '<a href="%s">%s</a>',
+            esc_url(get_edit_post_link($post_id, '')),
+            esc_html(get_the_title($post_id))
+        );
+    }
+
     private static function file_size_label(string $bytes): string
     {
         $size = absint($bytes);
@@ -1179,6 +1253,19 @@ final class Sign_Docs_Admin
         );
     }
 
+    private static function replace_url(int $post_id): string
+    {
+        return add_query_arg(
+            array('replaces' => $post_id),
+            admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-upload')
+        );
+    }
+
+    private static function can_replace_document(string $status): bool
+    {
+        return ! in_array($status, array('archived', 'archive', 'deleted', 'replaced', 'needs_public_copy'), true);
+    }
+
     private static function archive_document(int $post_id): void
     {
         update_post_meta($post_id, 'document_status', 'archived');
@@ -1204,6 +1291,7 @@ final class Sign_Docs_Admin
             'sign_docs_invalid_mime' => __('Only PDF files can be signed.', 'sign-docs'),
             'sign_docs_original_copy_failed' => __('Failed to save the original PDF.', 'sign-docs'),
             'sign_docs_stamped_copy_failed' => __('Failed to save the public PDF copy.', 'sign-docs'),
+            'sign_docs_browser_signing_required' => __('Подписание PDF требует браузерной обработки. Включите JavaScript и проверьте bundled PDF-библиотеки в assets/vendor.', 'sign-docs'),
             'sign_docs_hash_failed' => __('Failed to calculate SHA-256 for the original PDF.', 'sign-docs'),
         );
 

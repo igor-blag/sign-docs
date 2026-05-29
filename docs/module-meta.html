@@ -21,6 +21,8 @@
         <li><code>stamped_file_path</code>, <code>stamped_file_url</code> - публичная копия.</li>
         <li><code>verification_url</code>, <code>qr_code_data</code> - данные проверки и QR.</li>
         <li>Данные подписанта, статус, версия, имя файла, размер и MIME-тип.</li>
+        <li><code>replaces_post_id</code>, <code>replaced_by_post_id</code>, <code>replacement_note</code> - необязательная связь замены между самостоятельными CPT-записями.</li>
+        <li><code>prepared_at</code>, <code>completed_at</code>, <code>completed_by_user_id</code>, <code>completed_ip</code>, <code>completed_user_agent</code> - audit-поля двухфазной подписи.</li>
         <li><code>document_category</code>, <code>document_type_label</code>, <code>document_institution</code>, <code>document_date</code>, <code>document_number</code>, <code>document_subject</code> - реквизиты для конструктора названия и классификации документа.</li>
         <li><code>stamp_position</code> - устаревшее поле положения основного штампа.</li>
         <li><code>stamp_corner</code> - выбранный угол основного штампа.</li>
@@ -31,8 +33,10 @@
     <h2>Контракт</h2>
     <ul>
         <li>Неизвестные meta keys не читаются helper-методами модуля.</li>
+        <li>Во встроенную схему WordPress REST выводятся только редакторские поля; внутренние поля <code>original_file_path</code>, <code>stamped_file_path</code>, hash исходника, QR payload, IP, user-agent и audit user IDs остаются доступны только серверному коду и кастомным endpoint-ответам.</li>
+        <li>REST-доступ к meta проверяется через <code>edit_post</code> конкретной записи, а не через общее право <code>edit_posts</code>.</li>
         <li>Целочисленные поля проходят через <code>absint()</code>.</li>
-        <li>Строковые поля проходят через <code>sanitize_text_field()</code>.</li>
+        <li>Многострочные текстовые поля проходят через <code>sanitize_textarea_field()</code>, остальные строковые поля - через <code>sanitize_text_field()</code>.</li>
     </ul>
 </body>
 </html>

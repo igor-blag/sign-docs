@@ -229,6 +229,7 @@
             'document_subject',
             'academic_year',
             'post_title',
+            'full_title',
             'document_comment'
         ].forEach(function (name) {
             values[name] = field(name);
@@ -305,6 +306,7 @@
         if (suggestion.post_title && !titleManuallyEdited) {
             setFieldIfUnchanged('post_title', suggestion.post_title, initialValues);
         }
+        setFieldIfUnchanged('full_title', suggestion.full_title, initialValues);
     }
 
     async function suggestMetadataFromFile(file) {
@@ -1406,7 +1408,7 @@
             const prepareData = new FormData();
             prepareData.append('original_pdf', file, file.name);
             prepareData.append('post_title', field('post_title'));
-            prepareData.append('full_title', field('post_title'));
+            prepareData.append('full_title', field('full_title') || field('post_title'));
             prepareData.append('document_comment', field('document_comment'));
             prepareData.append('document_category', field('document_category'));
             prepareData.append('document_type_label', field('document_type_label'));
@@ -1429,6 +1431,7 @@
             prepareData.append('stamp_manual_x', field('stamp_manual_x'));
             prepareData.append('stamp_manual_y', field('stamp_manual_y'));
             prepareData.append('qr_logo_enabled', field('qr_logo_enabled') === '0' ? '0' : '1');
+            prepareData.append('replaces_post_id', field('replaces_post_id'));
 
             const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
             prepared.local_signed_at = localSignedAt();

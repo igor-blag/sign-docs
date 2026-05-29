@@ -13,6 +13,13 @@ if (! defined('ABSPATH')) {
 
 final class Sign_Docs_Document_Service
 {
+    private static bool $rollback_delete_in_progress = false;
+
+    public static function is_rollback_delete_in_progress(): bool
+    {
+        return self::$rollback_delete_in_progress;
+    }
+
     /**
      * @param array<string,mixed> $args
      * @return int|WP_Error
@@ -35,19 +42,30 @@ final class Sign_Docs_Document_Service
         if ('' === $title) {
             $title = sanitize_file_name((string) wp_basename($source_path));
         }
+        $full_title = isset($args['full_title']) ? sanitize_textarea_field((string) $args['full_title']) : '';
+        if ('' === trim($full_title)) {
+            $full_title = $title;
+        }
         $args['post_title'] = $title;
-        $args['full_title'] = $title;
+        $args['full_title'] = $full_title;
+        $replaces_post_id = self::valid_replaces_post_id(isset($args['replaces_post_id']) ? absint($args['replaces_post_id']) : 0);
+        $replacement_note = isset($args['replacement_note']) ? sanitize_text_field((string) $args['replacement_note']) : '';
 
         $signed_at = isset($args['signed_at']) && '' !== (string) $args['signed_at']
             ? sanitize_text_field((string) $args['signed_at'])
             : current_time('mysql');
+        $post_status = isset($args['post_status']) ? sanitize_key((string) $args['post_status']) : 'publish';
+        if (! in_array($post_status, array('publish', 'private', 'draft'), true)) {
+            $post_status = 'publish';
+        }
 
         $post_id = wp_insert_post(
             array(
                 'post_type' => Sign_Docs_Post_Type::POST_TYPE,
-                'post_status' => 'publish',
+                'post_status' => $post_status,
                 'post_title' => $title,
                 'post_content' => isset($args['document_comment']) ? sanitize_textarea_field((string) $args['document_comment']) : '',
+                'post_author' => get_current_user_id(),
             ),
             true
         );
@@ -61,13 +79,13 @@ final class Sign_Docs_Document_Service
         $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp);
 
         if (! copy($source_path, $paths['original_path'])) {
-            wp_delete_post($post_id, true);
+            self::rollback_created_post($post_id);
             return new WP_Error('sign_docs_original_copy_failed', __('Failed to save the original PDF.', 'sign-docs'));
         }
 
         $hash = Sign_Docs_Storage::hash_file($paths['original_path']);
         if ('' === $hash) {
-            wp_delete_post($post_id, true);
+            self::rollback_created_post($post_id);
             return new WP_Error('sign_docs_hash_failed', __('Failed to calculate SHA-256 for the original PDF.', 'sign-docs'));
         }
 
@@ -75,16 +93,22 @@ final class Sign_Docs_Document_Service
         $document_status = isset($args['document_status'])
             ? sanitize_key((string) $args['document_status'])
             : ($defer_stamped ? 'needs_public_copy' : 'active');
-        if (! $defer_stamped && ! self::create_public_pdf($paths['stamped_path'], $paths['original_path'], $args, $post_id, $signed_at)) {
-            wp_delete_post($post_id, true);
-            return new WP_Error('sign_docs_stamped_copy_failed', __('Failed to save the public PDF copy.', 'sign-docs'));
+        if (! $defer_stamped && 'unsigned' !== $document_status) {
+            self::rollback_created_post($post_id);
+            return new WP_Error(
+                'sign_docs_browser_signing_required',
+                __('Signing requires browser PDF processing. Enable JavaScript and make sure the bundled PDF libraries are available.', 'sign-docs')
+            );
+        }
+        if (! $defer_stamped && 'unsigned' === $document_status) {
+            $defer_stamped = true;
         }
 
         $verification_url = Sign_Docs_Verification_Page::url($post_id);
         $source_filename = isset($args['source_filename']) ? sanitize_file_name((string) $args['source_filename']) : (string) wp_basename($source_path);
 
         $meta = array(
-            'full_title' => $title,
+            'full_title' => $full_title,
             'document_comment' => isset($args['document_comment']) ? sanitize_textarea_field((string) $args['document_comment']) : '',
             'original_file_path' => $paths['original_path'],
             'original_file_url' => $paths['original_url'],
@@ -99,12 +123,16 @@ final class Sign_Docs_Document_Service
             'signer_user_id' => get_current_user_id(),
             'verification_url' => is_string($verification_url) ? $verification_url : '',
             'qr_code_data' => is_string($verification_url) ? $verification_url : '',
+            'prepared_at' => $defer_stamped ? current_time('mysql') : '',
             'completed_at' => $defer_stamped ? '' : current_time('mysql'),
             'completed_by_user_id' => $defer_stamped ? 0 : get_current_user_id(),
             'completed_ip' => $defer_stamped ? '' : self::request_ip(),
             'completed_user_agent' => $defer_stamped ? '' : self::request_user_agent(),
             'document_status' => $document_status,
-            'document_version' => isset($args['document_version']) ? absint($args['document_version']) : 1,
+            'document_version' => self::document_version($args, $replaces_post_id),
+            'replaces_post_id' => $replaces_post_id,
+            'replaced_by_post_id' => 0,
+            'replacement_note' => $replacement_note,
             'source_filename' => $source_filename,
             'file_size' => filesize($paths['original_path']) ?: 0,
             'mime_type' => $mime_type,
@@ -135,7 +163,22 @@ final class Sign_Docs_Document_Service
 
         self::assign_document_terms($post_id, $args, $meta);
 
+        if (! $defer_stamped || 'needs_public_copy' !== $document_status) {
+            self::apply_replacement($post_id);
+        }
+
         return $post_id;
+    }
+
+    private static function rollback_created_post(int $post_id): void
+    {
+        self::$rollback_delete_in_progress = true;
+
+        try {
+            wp_delete_post($post_id, true);
+        } finally {
+            self::$rollback_delete_in_progress = false;
+        }
     }
 
     /**
@@ -148,6 +191,7 @@ final class Sign_Docs_Document_Service
         $args['document_status'] = isset($args['document_status'])
             ? sanitize_key((string) $args['document_status'])
             : 'needs_public_copy';
+        $args['post_status'] = 'needs_public_copy' === $args['document_status'] ? 'private' : 'publish';
 
         return self::create_from_local_pdf($source_path, $args);
     }
@@ -229,36 +273,47 @@ final class Sign_Docs_Document_Service
                 'post_status' => 'publish',
             )
         );
+        self::apply_replacement($post_id);
 
         return true;
+    }
+
+    public static function valid_replaces_post_id(int $post_id): int
+    {
+        if ($post_id <= 0 || Sign_Docs_Post_Type::POST_TYPE !== get_post_type($post_id)) {
+            return 0;
+        }
+
+        return $post_id;
+    }
+
+    public static function apply_replacement(int $post_id): void
+    {
+        $replaces_post_id = self::valid_replaces_post_id(absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id')));
+
+        if ($replaces_post_id <= 0 || $replaces_post_id === $post_id) {
+            return;
+        }
+
+        update_post_meta($replaces_post_id, 'document_status', 'replaced');
+        update_post_meta($replaces_post_id, 'replaced_by_post_id', $post_id);
+        update_post_meta($post_id, 'replaces_post_id', $replaces_post_id);
     }
 
     /**
      * @param array<string,mixed> $args
      */
-    private static function create_public_pdf(string $target_path, string $original_path, array $args, int $post_id, string $signed_at): bool
+    private static function document_version(array $args, int $replaces_post_id): int
     {
-        $verification_url = Sign_Docs_Verification_Page::url($post_id);
-        $hash = Sign_Docs_Storage::hash_file($original_path);
-
-        if ('' === $hash || ! is_string($verification_url)) {
-            return false;
+        if (isset($args['document_version']) && absint($args['document_version']) > 0) {
+            return absint($args['document_version']);
         }
 
-        return Sign_Docs_Pdf_Certificate::generate(
-            $target_path,
-            array(
-                'title' => (string) ($args['post_title'] ?? ''),
-                'signed_at' => $signed_at,
-                'signer' => trim((string) ($args['signer_position'] ?? '') . ' ' . (string) ($args['signer_name'] ?? '')),
-                'organization' => (string) ($args['signer_organization'] ?? ''),
-                'status' => (string) ($args['document_status'] ?? 'active'),
-                'version' => (int) ($args['document_version'] ?? 1),
-                'sha256_hash' => $hash,
-                'verification_url' => $verification_url,
-                'source_filename' => (string) ($args['source_filename'] ?? wp_basename($original_path)),
-            )
-        );
+        if ($replaces_post_id > 0) {
+            return max(1, absint(Sign_Docs_Meta::get($replaces_post_id, 'document_version'))) + 1;
+        }
+
+        return 1;
     }
 
     private static function detect_mime_type(string $source_path): string

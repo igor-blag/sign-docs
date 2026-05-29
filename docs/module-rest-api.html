@@ -20,10 +20,10 @@
     <h2>prepare</h2>
     <p><code>POST /wp-json/sign-docs/v1/prepare</code></p>
     <ul>
-        <li>Принимает исходный PDF, реквизиты документа, категорию, тип, институцию, дату, номер, тему и данные подписанта.</li>
+        <li>Принимает исходный PDF, реквизиты документа, категорию, тип, институцию, дату, номер, тему, данные подписанта и необязательный <code>replaces_post_id</code>.</li>
         <li>Сохраняет исходник как контрольную копию.</li>
         <li>Считает серверный SHA-256.</li>
-        <li>Создает запись <code>sign-docs</code> со статусом <code>needs_public_copy</code>.</li>
+        <li>Для подписываемого документа создает приватную запись <code>sign-docs</code> со статусом <code>needs_public_copy</code> и meta <code>prepared_at</code>.</li>
         <li>Возвращает данные для браузерного штампа: hash, URL проверки, дату, подписанта.</li>
         <li>Возвращает параметры штампа, включая угол, цвет, прозрачность, размер шрифта, ширину, рамку и данные QR-кода.</li>
     </ul>
@@ -33,7 +33,7 @@
     <ul>
         <li>Принимает <code>post_id</code> и готовый <code>stamped.pdf</code>.</li>
         <li>Сохраняет публичную копию рядом с исходником в <code>uploads/sign-docs/year/month/post-id/stamped.pdf</code>.</li>
-        <li>Переводит документ в статус <code>active</code> и публикует запись.</li>
+        <li>Переводит документ в статус <code>active</code>, публикует запись и при наличии <code>replaces_post_id</code> помечает предыдущий документ как <code>replaced</code>.</li>
     </ul>
 
     <h2>suggest-metadata</h2>

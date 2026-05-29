@@ -169,6 +169,8 @@ final class Sign_Docs_REST_Controller
                 'statusLabel' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'signedAt' => Sign_Docs_Meta::get($post_id, 'signed_at'),
                 'documentVersion' => Sign_Docs_Meta::get($post_id, 'document_version') ?: '1',
+                'replacesPostId' => absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id')),
+                'replacedByPostId' => absint(Sign_Docs_Meta::get($post_id, 'replaced_by_post_id')),
                 'sha256Hash' => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
                 'type' => self::term_names($post_id, 'sign_doc_type'),
                 'department' => self::term_names($post_id, 'sign_doc_department'),
@@ -236,6 +238,8 @@ final class Sign_Docs_REST_Controller
                 'stamp_manual_y' => (string) $request->get_param('stamp_manual_y'),
                 'qr_logo_enabled' => null === $qr_logo_enabled ? $settings['qr_logo_enabled'] : (string) $qr_logo_enabled,
                 'source_filename' => (string) ($file['name'] ?? 'document.pdf'),
+                'replaces_post_id' => absint($request->get_param('replaces_post_id')),
+                'replacement_note' => (string) $request->get_param('replacement_note'),
             )
         );
 
@@ -262,6 +266,7 @@ final class Sign_Docs_REST_Controller
                 'status' => Sign_Docs_Meta::get($post_id, 'document_status') ?: 'needs_public_copy',
                 'statusLabel' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
                 'version' => Sign_Docs_Meta::get($post_id, 'document_version') ?: '1',
+                'replacesPostId' => absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id')),
                 'stamp_position' => sanitize_key((string) ($request->get_param('stamp_position') ?: 'top')),
                 'stamp_corner' => Sign_Docs_Meta::get($post_id, 'stamp_corner') ?: 'top-left',
                 'stamp_color' => Sign_Docs_Meta::get($post_id, 'stamp_color') ?: '#2e7d32',

@@ -29,12 +29,16 @@ final class Sign_Docs_Meta
         'signer_user_id' => 'integer',
         'verification_url' => 'string',
         'qr_code_data' => 'string',
+        'prepared_at' => 'string',
         'completed_at' => 'string',
         'completed_by_user_id' => 'integer',
         'completed_ip' => 'string',
         'completed_user_agent' => 'string',
         'document_status' => 'string',
         'document_version' => 'integer',
+        'replaces_post_id' => 'integer',
+        'replaced_by_post_id' => 'integer',
+        'replacement_note' => 'string',
         'source_filename' => 'string',
         'file_size' => 'integer',
         'mime_type' => 'string',
@@ -59,6 +63,43 @@ final class Sign_Docs_Meta
         'qr_logo_enabled' => 'string',
     );
 
+    private const REST_META_KEYS = array(
+        'full_title',
+        'document_comment',
+        'signed_at',
+        'signer_name',
+        'signer_position',
+        'signer_organization',
+        'verification_url',
+        'document_status',
+        'document_version',
+        'replaces_post_id',
+        'replaced_by_post_id',
+        'replacement_note',
+        'source_filename',
+        'file_size',
+        'mime_type',
+        'document_category',
+        'document_type_label',
+        'document_type_term_id',
+        'document_institution',
+        'document_date',
+        'document_number',
+        'document_subject',
+        'academic_year',
+        'stamp_position',
+        'stamp_corner',
+        'stamp_color',
+        'stamp_opacity',
+        'stamp_font_size',
+        'stamp_width_mm',
+        'stamp_border_enabled',
+        'stamp_placement_mode',
+        'stamp_manual_x',
+        'stamp_manual_y',
+        'qr_logo_enabled',
+    );
+
     public static function register(): void
     {
         foreach (self::META_KEYS as $key => $type) {
@@ -68,20 +109,24 @@ final class Sign_Docs_Meta
                 array(
                     'type' => $type,
                     'single' => true,
-                    'show_in_rest' => true,
-                    'auth_callback' => static function (): bool {
-                        return current_user_can('edit_posts');
+                    'show_in_rest' => in_array($key, self::REST_META_KEYS, true),
+                    'auth_callback' => static function ($allowed, string $meta_key, int $post_id): bool {
+                        return $post_id > 0 && current_user_can('edit_post', $post_id);
                     },
-                    'sanitize_callback' => self::sanitize_callback($type),
+                    'sanitize_callback' => self::sanitize_callback($key, $type),
                 )
             );
         }
     }
 
-    private static function sanitize_callback(string $type): callable
+    private static function sanitize_callback(string $key, string $type): callable
     {
         if ('integer' === $type) {
             return 'absint';
+        }
+
+        if (in_array($key, array('full_title', 'document_comment', 'replacement_note'), true)) {
+            return 'sanitize_textarea_field';
         }
 
         return 'sanitize_text_field';
