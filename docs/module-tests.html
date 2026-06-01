@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Tests</title>
+</head>
+<body>
+    <h1>Module: Tests</h1>
+    <p>Модуль автоматизированных проверок фиксирует критичные инварианты Sign Docs без внешних зависимостей. Тесты запускаются обычным PHP CLI и используют минимальные WordPress test doubles.</p>
+
+    <h2>Запуск</h2>
+    <pre><code>php tests/run.php</code></pre>
+
+    <h2>Покрываемые контракты</h2>
+    <ul>
+        <li>Серверный SHA-256 считается по сохраненной контрольной копии <code>original.pdf</code>.</li>
+        <li><code>prepare</code> создает приватную запись <code>needs_public_copy</code> и не публикует промежуточный документ.</li>
+        <li><code>complete</code> сохраняет <code>stamped.pdf</code>, audit-поля и публикует только корректный документ.</li>
+        <li><code>complete</code> отклоняет измененный исходник и записи вне статуса <code>needs_public_copy</code>.</li>
+        <li>Замена документа помечает предыдущую запись как <code>replaced</code> только после успешного завершения новой версии.</li>
+        <li>Удаление CPT через админские фильтры превращается в архивирование, а внутренний rollback сервиса проходит без архивирования.</li>
+        <li>REST write-endpoints требуют capability <code>sign_docs_upload_documents</code>, а <code>complete</code> дополнительно требует <code>edit_post</code>.</li>
+        <li>REST meta schema не раскрывает внутренние пути файлов, хеш исходника, QR payload, IP, user-agent и audit user IDs.</li>
+    </ul>
+
+    <h2>Границы</h2>
+    <ul>
+        <li>Тесты не поднимают полноценный WordPress и не заменяют будущие integration tests на реальном WordPress test suite.</li>
+        <li>Тесты проверяют серверные контракты PHP-модулей. Браузерный <code>pdf-lib</code> workflow должен проверяться отдельно в UI/integration-сценариях.</li>
+    </ul>
+</body>
+</html>

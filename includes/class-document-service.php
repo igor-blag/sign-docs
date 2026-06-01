@@ -322,7 +322,6 @@ final class Sign_Docs_Document_Service
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             if (false !== $finfo) {
                 $mime_type = finfo_file($finfo, $source_path);
-                finfo_close($finfo);
 
                 if (is_string($mime_type)) {
                     return $mime_type;

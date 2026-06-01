@@ -47,9 +47,10 @@
 
     <h2>Контракт</h2>
     <ul>
-        <li>Write-endpoints доступны только пользователям с правом <code>upload_files</code>.</li>
+        <li>Write-endpoints доступны только пользователям с отдельным правом <code>sign_docs_upload_documents</code>.</li>
+        <li><code>complete</code> дополнительно требует права <code>edit_post</code> для конкретной записи документа.</li>
         <li>Endpoint выбора документов доступен пользователям, которым разрешено редактировать записи в редакторе.</li>
-        <li>Endpoint AI-подсказок доступен пользователям с правом <code>upload_files</code>.</li>
+        <li>Endpoint AI-подсказок доступен пользователям с правом <code>sign_docs_upload_documents</code>.</li>
         <li>Юридически значимым остается hash исходной контрольной копии.</li>
         <li>Stamped PDF является публичным визуальным артефактом и не используется как источник истины.</li>
     </ul>
