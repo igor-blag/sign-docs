@@ -3,6 +3,13 @@
 
     const form = document.getElementById('sign-docs-upload-form');
     const statusBox = document.getElementById('sign-docs-upload-status');
+    const __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function (text) { return text; };
+    const sprintf = window.wp && window.wp.i18n && window.wp.i18n.sprintf ? window.wp.i18n.sprintf : function (text) {
+        const args = Array.prototype.slice.call(arguments, 1);
+        return text.replace(/%([0-9]+\$)?s/g, function () {
+            return String(args.shift() || '');
+        });
+    };
 
     if (!form || !statusBox || !window.SignDocsUpload) {
         return;
@@ -139,13 +146,13 @@
         }
 
         if (!file) {
-            title.textContent = 'Перетащите PDF сюда';
-            text.textContent = 'или щелкните, чтобы выбрать файл';
+            title.textContent = __('Перетащите PDF сюда', 'sign-docs');
+            text.textContent = __('или щелкните, чтобы выбрать файл', 'sign-docs');
             return;
         }
 
-        title.textContent = file.name || 'PDF выбран';
-        text.textContent = 'Файл будет загружен после отправки формы';
+        title.textContent = file.name || __('PDF выбран', 'sign-docs');
+        text.textContent = __('Файл будет загружен после отправки формы', 'sign-docs');
     }
 
     function handleSelectedFile(file) {
@@ -162,7 +169,7 @@
 
         const config = window.SignDocsUpload.pdfJs || {};
         if (!window.SignDocsUpload.hasPdfJs || !config.module || !config.worker) {
-            throw new Error('PDF.js не найден в assets/vendor.');
+            throw new Error(__('PDF.js не найден в assets/vendor.', 'sign-docs'));
         }
 
         pdfJsModule = await import(config.module);
@@ -320,18 +327,18 @@
         const initialValues = rememberFieldValues();
 
         try {
-            setStatus('Читаю текст первой страницы для автозаполнения...', 'info');
+            setStatus(__('Читаю текст первой страницы для автозаполнения...', 'sign-docs'), 'info');
             const firstPageText = await extractFirstPageText(file);
             if (runId !== metadataSuggestionRun) {
                 return;
             }
 
             if (firstPageText.length < 40) {
-                setStatus('В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения.', 'warning');
+                setStatus(__('В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения.', 'sign-docs'), 'warning');
                 return;
             }
 
-            setStatus('Подбираю реквизиты документа через AI...', 'info');
+            setStatus(__('Подбираю реквизиты документа через AI...', 'sign-docs'), 'info');
             const data = new FormData();
             data.append('first_page_text', firstPageText.slice(0, 12000));
             data.append('source_filename', file.name || '');
@@ -346,12 +353,12 @@
             const warnings = Array.isArray(suggestion.warnings) ? suggestion.warnings.filter(Boolean) : [];
             const confidence = typeof suggestion.confidence === 'number' ? Math.round(suggestion.confidence * 100) : null;
             const message = confidence !== null
-                ? 'AI предложил реквизиты документа. Уверенность: ' + confidence + '%.'
-                : 'AI предложил реквизиты документа.';
-            setStatus(warnings.length ? message + ' Проверьте: ' + warnings.join('; ') : message, warnings.length ? 'warning' : 'success');
+                ? sprintf(__('AI предложил реквизиты документа. Уверенность: %s%%.', 'sign-docs'), String(confidence))
+                : __('AI предложил реквизиты документа.', 'sign-docs');
+            setStatus(warnings.length ? message + ' ' + __('Проверьте:', 'sign-docs') + ' ' + warnings.join('; ') : message, warnings.length ? 'warning' : 'success');
         } catch (error) {
             if (runId === metadataSuggestionRun) {
-                setStatus(error.message || 'Не удалось выполнить AI-автозаполнение.', 'warning');
+                setStatus(error.message || __('Не удалось выполнить автозаполнение реквизитов.', 'sign-docs'), 'warning');
             }
         }
     }
@@ -496,19 +503,19 @@
 
         return [
             {
-                label: 'Учебный',
+                label: __('Учебный', 'sign-docs'),
                 items: [
-                    { label: shortAcademicYear(academicStart - 1), value: 'за ' + shortAcademicYear(academicStart - 1) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart), value: 'на ' + shortAcademicYear(academicStart) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart + 1), value: 'на ' + shortAcademicYear(academicStart + 1) + ' учебный год' }
+                    { label: shortAcademicYear(academicStart - 1), value: sprintf(__('за %s учебный год', 'sign-docs'), shortAcademicYear(academicStart - 1)) },
+                    { label: shortAcademicYear(academicStart), value: sprintf(__('на %s учебный год', 'sign-docs'), shortAcademicYear(academicStart)) },
+                    { label: shortAcademicYear(academicStart + 1), value: sprintf(__('на %s учебный год', 'sign-docs'), shortAcademicYear(academicStart + 1)) }
                 ]
             },
             {
-                label: 'Календарный',
+                label: __('Календарный', 'sign-docs'),
                 items: [
-                    { label: String(calendarYear - 1), value: 'за ' + String(calendarYear - 1) + ' год' },
-                    { label: String(calendarYear), value: 'на ' + String(calendarYear) + ' год' },
-                    { label: String(calendarYear + 1), value: 'на ' + String(calendarYear + 1) + ' год' }
+                    { label: String(calendarYear - 1), value: sprintf(__('за %s год', 'sign-docs'), String(calendarYear - 1)) },
+                    { label: String(calendarYear), value: sprintf(__('на %s год', 'sign-docs'), String(calendarYear)) },
+                    { label: String(calendarYear + 1), value: sprintf(__('на %s год', 'sign-docs'), String(calendarYear + 1)) }
                 ]
             }
         ];
@@ -805,7 +812,7 @@
 
         if (pickButton) {
             setElementHidden(pickButton, unsignedOnly);
-            pickButton.textContent = active ? 'Отменить выбор места' : 'Выбрать место штампа';
+            pickButton.textContent = active ? __('Отменить выбор места', 'sign-docs') : __('Выбрать место штампа', 'sign-docs');
         }
 
         if (resetButton) {
@@ -815,8 +822,8 @@
         if (status) {
             setElementHidden(status, unsignedOnly);
             status.textContent = isManual
-                ? 'Место выбрано вручную. Можно выбрать заново.'
-                : (active ? 'Наведите прямоугольник на нужное место и щелкните.' : 'Используется угол из настроек.');
+                ? __('Место выбрано вручную. Можно выбрать заново.', 'sign-docs')
+                : (active ? __('Наведите прямоугольник на нужное место и щелкните.', 'sign-docs') : __('Используется угол из настроек.', 'sign-docs'));
         }
     }
 
@@ -896,7 +903,7 @@
     async function fetchBytes(url) {
         const response = await fetch(url, { credentials: 'same-origin' });
         if (!response.ok) {
-            throw new Error('Не удалось загрузить файл шрифта.');
+            throw new Error(__('Не удалось загрузить файл шрифта.', 'sign-docs'));
         }
 
         return await response.arrayBuffer();
@@ -1131,7 +1138,7 @@
     }
 
     function stampTextRows(data, fonts, fontSize, textWidth) {
-        const signedText = 'Документ подписан: ' + compactSignedAt(data.local_signed_at || data.signed_at);
+        const signedText = __('Документ подписан:', 'sign-docs') + ' ' + compactSignedAt(data.local_signed_at || data.signed_at);
         const signedFontSize = fittedFontSize(fonts.regular, signedText, fontSize * 0.83, textWidth, 5.6);
         const rows = [];
 
@@ -1171,7 +1178,7 @@
     async function embedGolosFonts(pdfDoc) {
         const fontkit = window.fontkit || window.Fontkit;
         if (!fontkit) {
-            throw new Error('Не загружен fontkit для встраивания шрифта.');
+            throw new Error(__('Не загружен fontkit для встраивания шрифта.', 'sign-docs'));
         }
 
         pdfDoc.registerFontkit(fontkit);
@@ -1323,7 +1330,7 @@
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const opacity = stampOpacity(data);
-        const text = 'SHA-256 исходного PDF: ' + data.sha256_hash + '  Проверка: ' + data.verification_url;
+        const text = __('SHA-256 исходного PDF:', 'sign-docs') + ' ' + data.sha256_hash + '  ' + __('Проверка:', 'sign-docs') + ' ' + data.verification_url;
 
         page.drawRectangle({
             x: margin,
@@ -1391,7 +1398,7 @@
 
         if (!window.SignDocsUpload.hasVendor || !window.PDFLib || !window.qrcode || !(window.fontkit || window.Fontkit)) {
             event.preventDefault();
-            setStatus('Не загружены локальные JS-библиотеки или шрифт Golos Text. Проверьте assets/vendor.', 'error');
+            setStatus(__('Не загружены локальные JS-библиотеки или шрифт Golos Text. Проверьте assets/vendor.', 'sign-docs'), 'error');
             return;
         }
 
@@ -1403,7 +1410,7 @@
                 submitButton.disabled = true;
             }
 
-            setStatus('Загружаю исходный PDF и считаю серверный SHA-256...', 'info');
+            setStatus(__('Загружаю исходный PDF и считаю серверный SHA-256...', 'sign-docs'), 'info');
 
             const prepareData = new FormData();
             prepareData.append('original_pdf', file, file.name);
@@ -1436,11 +1443,11 @@
             const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
             prepared.local_signed_at = localSignedAt();
 
-            setStatus('Встраиваю Golos Text, накладываю штамп и QR-код...', 'info');
+            setStatus(__('Встраиваю Golos Text, накладываю штамп и QR-код...', 'sign-docs'), 'info');
             const stampedBytes = await stampPdf(file, prepared);
             const stampedBlob = new Blob([stampedBytes], { type: 'application/pdf' });
 
-            setStatus('Сохраняю публичную PDF-копию с отметкой...', 'info');
+            setStatus(__('Сохраняю публичную PDF-копию с отметкой...', 'sign-docs'), 'info');
             const completeData = new FormData();
             completeData.append('post_id', prepared.post_id);
             completeData.append('stamped_pdf', stampedBlob, 'stamped.pdf');
@@ -1451,7 +1458,7 @@
                 window.location.assign(returnUrl);
                 return;
             }
-            setStatusLink('Документ подписан и зарегистрирован.', completed.verification_url, 'Открыть страницу проверки', 'success');
+            setStatusLink(__('Документ подписан и зарегистрирован.', 'sign-docs'), completed.verification_url, __('Открыть страницу проверки', 'sign-docs'), 'success');
             form.reset();
             titleManuallyEdited = false;
             clearPdfPreview();
@@ -1459,7 +1466,7 @@
                 submitButton.disabled = false;
             }
         } catch (error) {
-            setStatus(error.message || 'Не удалось подписать документ.', 'error');
+            setStatus(error.message || __('Не удалось подписать документ.', 'sign-docs'), 'error');
             const submitButton = form.querySelector('[type="submit"]');
             if (submitButton) {
                 submitButton.disabled = false;

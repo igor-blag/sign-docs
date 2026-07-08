@@ -848,7 +848,7 @@
                             'div',
                             { style: fieldStyle() },
                             el(components.CheckboxControl, {
-                                label: __('Add institution name to the generated title', 'sign-docs'),
+                                label: __('Add issuing authority name to the generated title', 'sign-docs'),
                                 checked: includeInstitution,
                                 onChange: setIncludeInstitution
                             })
@@ -856,18 +856,18 @@
                             'div',
                             { style: fieldStyle() },
                             el(components.SelectControl, {
-                                label: __('Institution directory', 'sign-docs'),
+                                label: __('Issuing authority directory', 'sign-docs'),
                                 value: '',
                                 options: optionList(__('Choose from directory', 'sign-docs'), filters.institutions || []),
                                 onChange: selectInstitution,
                                 __next40pxDefaultSize: true
                             }),
-                            el('label', { style: { display: 'block', margin: '12px 0 4px' } }, __('Or enter a new short authority name', 'sign-docs')),
+                            el('label', { style: { display: 'block', margin: '12px 0 4px' } }, __('Or enter a new short issuing authority name', 'sign-docs')),
                             el('input', {
                                 type: 'text',
                                 value: institution,
                                 onChange: function (event) { setInstitution(event.target.value); },
-                                placeholder: 'Вводите в родительном падеже',
+                                placeholder: __('Вводите в родительном падеже', 'sign-docs'),
                                 style: inputStyle()
                             })
                         ),
@@ -875,9 +875,9 @@
                             'div',
                             { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' } },
                             el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document date', 'sign-docs')), el('input', { type: 'text', value: documentDate, onChange: function (event) { setDocumentDate(event.target.value); }, placeholder: '20.05.2026', style: inputStyle() })),
-                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document number', 'sign-docs')), el('input', { type: 'text', value: documentNumber, onChange: function (event) { setDocumentNumber(event.target.value); }, placeholder: '183-р', style: inputStyle() }))
+                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document number', 'sign-docs')), el('input', { type: 'text', value: documentNumber, onChange: function (event) { setDocumentNumber(event.target.value); }, placeholder: __('183-р', 'sign-docs'), style: inputStyle() }))
                         ),
-                        el('div', { style: fieldStyle() }, el(components.TextareaControl, { label: __('Subject in quotes', 'sign-docs'), value: documentSubject, onChange: setDocumentSubject, rows: 2, __next40pxDefaultSize: true })),
+                        el('div', { style: fieldStyle() }, el(components.TextareaControl, { label: __('Document subject', 'sign-docs'), value: documentSubject, onChange: setDocumentSubject, rows: 2, __next40pxDefaultSize: true })),
                         el(
                             'div',
                             { style: { display: 'flex', flexWrap: 'wrap', gap: '12px', margin: '-8px 0 16px' } },

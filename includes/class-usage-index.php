@@ -171,7 +171,7 @@ final class Sign_Docs_Usage_Index
     {
         add_meta_box(
             'sign-docs-usage-data',
-            'Используется в записях',
+            __('Используется в записях', 'sign-docs'),
             array(self::class, 'render_meta_box'),
             Sign_Docs_Post_Type::POST_TYPE,
             'side',
@@ -267,7 +267,7 @@ final class Sign_Docs_Usage_Index
             static function (array $row): array {
                 $title = (string) ($row['post_title'] ?? '');
                 if ('' === trim($title)) {
-                    $title = '(без названия)';
+                    $title = __('(без названия)', 'sign-docs');
                 }
 
                 return array(

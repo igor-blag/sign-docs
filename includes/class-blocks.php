@@ -162,6 +162,7 @@ final class Sign_Docs_Blocks
                 ),
             )
         );
+        wp_set_script_translations('sign-docs-document-block', 'sign-docs', SIGN_DOCS_PLUGIN_DIR . 'languages');
     }
 
     public static function enqueue_public_assets(): void
@@ -173,10 +174,11 @@ final class Sign_Docs_Blocks
         wp_enqueue_script(
             'sign-docs-public',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/public.js',
-            array(),
+            array('wp-i18n'),
             file_exists($script_path) ? (string) filemtime($script_path) : SIGN_DOCS_VERSION,
             true
         );
+        wp_set_script_translations('sign-docs-public', 'sign-docs', SIGN_DOCS_PLUGIN_DIR . 'languages');
     }
 
     private static function site_icon_url(): string
