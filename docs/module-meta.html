@@ -6,37 +6,47 @@
 </head>
 <body>
     <h1>Module: Meta</h1>
-    <p>Модуль задает контракт метаданных документа через <code>register_post_meta()</code>.</p>
+    <p>Модуль <code>Sign_Docs_Meta</code> задаёт контракт метаданных документа через <code>register_post_meta()</code> для CPT <code>sign-docs</code>.</p>
 
-    <h2>Входные данные</h2>
+    <h2>Регистрируемые поля</h2>
     <ul>
-        <li>ID записи <code>sign-docs</code>.</li>
-        <li>Скалярные значения meta: строки и целые числа.</li>
+        <li><code>full_title</code> (string) — полное название документа.</li>
+        <li><code>document_comment</code> (string) — внутренний комментарий администратора.</li>
+        <li><code>original_file_path</code>, <code>original_file_url</code> (string) — контрольная копия.</li>
+        <li><code>stamped_file_path</code>, <code>stamped_file_url</code> (string) — публичная копия с отметкой.</li>
+        <li><code>stamped_file_hash</code> (string) — SHA-256 публичной копии.</li>
+        <li><code>sha256_hash</code> (string) — серверный SHA-256 исходного файла.</li>
+        <li><code>signed_at</code> (string) — дата и время подписи.</li>
+        <li><code>signer_name</code>, <code>signer_position</code>, <code>signer_organization</code> (string) — подписант.</li>
+        <li><code>signer_user_id</code> (integer) — ID пользователя, создавшего запись.</li>
+        <li><code>verification_url</code>, <code>qr_code_data</code> (string) — данные проверки и QR.</li>
+        <li><code>prepared_at</code> (string) — дата подготовительной фазы.</li>
+        <li><code>completed_at</code> (string), <code>completed_by_user_id</code> (integer), <code>completed_ip</code> (string), <code>completed_user_agent</code> (string) — audit-поля завершения.</li>
+        <li><code>document_status</code> (string) — <code>active</code>, <code>unsigned</code>, <code>needs_public_copy</code>, <code>archived</code>, <code>replaced</code>, <code>draft</code>.</li>
+        <li><code>document_version</code> (integer) — номер версии.</li>
+        <li><code>replaces_post_id</code>, <code>replaced_by_post_id</code> (integer), <code>replacement_note</code> (string) — связь замены.</li>
+        <li><code>source_filename</code> (string) — имя исходного загруженного файла.</li>
+        <li><code>file_size</code> (integer) — размер исходного файла.</li>
+        <li><code>mime_type</code> (string) — MIME-тип.</li>
+        <li><code>file_basename</code> (string) — транслитерированное имя файла для файловой системы.</li>
+        <li><code>document_category</code>, <code>document_type_label</code>, <code>document_type_term_id</code>, <code>document_institution</code> (string/integer) — реквизиты классификации.</li>
+        <li><code>document_date</code>, <code>document_number</code>, <code>document_subject</code>, <code>academic_year</code> (string) — реквизиты документа.</li>
+        <li><code>stamp_position</code> (string) — устаревшее поле (не используется).</li>
+        <li><code>stamp_corner</code>, <code>stamp_color</code>, <code>stamp_opacity</code>, <code>stamp_font_size</code>, <code>stamp_width_mm</code>, <code>stamp_border_enabled</code> (string/integer) — параметры штампа.</li>
+        <li><code>stamp_placement_mode</code> (string) — <code>corner</code> или <code>manual</code>.</li>
+        <li><code>stamp_manual_x</code>, <code>stamp_manual_y</code> (string) — ручные координаты штампа (0..1).</li>
+        <li><code>qr_logo_enabled</code> (string) — флаг наложения логотипа на QR.</li>
     </ul>
 
-    <h2>Выходные данные</h2>
-    <ul>
-        <li><code>sha256_hash</code> - серверный SHA-256 исходного файла.</li>
-        <li><code>original_file_path</code>, <code>original_file_url</code> - контрольная копия.</li>
-        <li><code>stamped_file_path</code>, <code>stamped_file_url</code> - публичная копия.</li>
-        <li><code>verification_url</code>, <code>qr_code_data</code> - данные проверки и QR.</li>
-        <li>Данные подписанта, статус, версия, имя файла, размер и MIME-тип.</li>
-        <li><code>replaces_post_id</code>, <code>replaced_by_post_id</code>, <code>replacement_note</code> - необязательная связь замены между самостоятельными CPT-записями.</li>
-        <li><code>prepared_at</code>, <code>completed_at</code>, <code>completed_by_user_id</code>, <code>completed_ip</code>, <code>completed_user_agent</code> - audit-поля двухфазной подписи.</li>
-        <li><code>document_category</code>, <code>document_type_label</code>, <code>document_institution</code>, <code>document_date</code>, <code>document_number</code>, <code>document_subject</code> - реквизиты для конструктора названия и классификации документа.</li>
-        <li><code>stamp_position</code> - устаревшее поле положения основного штампа.</li>
-        <li><code>stamp_corner</code> - выбранный угол основного штампа.</li>
-        <li><code>stamp_color</code> - выбранный цвет штампа.</li>
-        <li><code>stamp_opacity</code> - прозрачность рамки и текста штампа.</li>
-    </ul>
+    <h2>REST-схема</h2>
+    <p>Поля <code>original_file_path</code>, <code>stamped_file_path</code>, <code>sha256_hash</code>, <code>qr_code_data</code>, <code>completed_ip</code>, <code>completed_user_agent</code>, <code>signer_user_id</code>, <code>completed_by_user_id</code> исключены из <code>show_in_rest</code> и доступны только серверному коду.</p>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Неизвестные meta keys не читаются helper-методами модуля.</li>
-        <li>Во встроенную схему WordPress REST выводятся только редакторские поля; внутренние поля <code>original_file_path</code>, <code>stamped_file_path</code>, hash исходника, QR payload, IP, user-agent и audit user IDs остаются доступны только серверному коду и кастомным endpoint-ответам.</li>
-        <li>REST-доступ к meta проверяется через <code>edit_post</code> конкретной записи, а не через общее право <code>edit_posts</code>.</li>
+        <li>Неизвестные meta keys не читаются helper-методом <code>get()</code>.</li>
+        <li>REST-доступ к meta проверяется через <code>edit_post</code> конкретной записи.</li>
         <li>Целочисленные поля проходят через <code>absint()</code>.</li>
-        <li>Многострочные текстовые поля проходят через <code>sanitize_textarea_field()</code>, остальные строковые поля - через <code>sanitize_text_field()</code>.</li>
+        <li>Многострочные текстовые поля (<code>full_title</code>, <code>document_comment</code>, <code>replacement_note</code>) — через <code>sanitize_textarea_field()</code>, остальные строковые — через <code>sanitize_text_field()</code>.</li>
     </ul>
 </body>
 </html>

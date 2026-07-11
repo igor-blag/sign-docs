@@ -15,6 +15,14 @@ final class Sign_Docs_Blocks
 {
     public static function register(): void
     {
+        $css_path = SIGN_DOCS_PLUGIN_DIR . 'assets/css/public.css';
+        wp_register_style(
+            'sign-docs-public',
+            SIGN_DOCS_PLUGIN_URL . 'assets/css/public.css',
+            array(),
+            file_exists($css_path) ? (string) filemtime($css_path) : SIGN_DOCS_VERSION
+        );
+
         register_block_type(
             'sign-docs/document',
             array(
@@ -65,10 +73,6 @@ final class Sign_Docs_Blocks
                         'type' => 'string',
                         'default' => 'link',
                     ),
-                    'interactionMode' => array(
-                        'type' => 'string',
-                        'default' => 'title-details',
-                    ),
                     'statusLabel' => array(
                         'type' => 'string',
                         'default' => '',
@@ -89,11 +93,16 @@ final class Sign_Docs_Blocks
                         'type' => 'boolean',
                         'default' => false,
                     ),
+                    'showSignatureButton' => array(
+                        'type' => 'boolean',
+                        'default' => true,
+                    ),
                 ),
                 'supports' => array(
                     'align' => array('left', 'center', 'right', 'wide', 'full'),
                     'className' => true,
                 ),
+                'editor_style' => array('sign-docs-public'),
                 'render_callback' => array(self::class, 'render_document'),
             )
         );
@@ -186,31 +195,7 @@ final class Sign_Docs_Blocks
 
     private static function enqueue_public_style(): void
     {
-        static $inline_added = false;
-
-        wp_enqueue_style(
-            'sign-docs-public',
-            SIGN_DOCS_PLUGIN_URL . 'assets/css/public.css',
-            array(),
-            SIGN_DOCS_VERSION
-        );
-
-        if ($inline_added) {
-            return;
-        }
-
-        $settings = Sign_Docs_Settings::get();
-        $radius = (int) ($settings['button_border_radius'] ?? 9999);
-        $css = sprintf(
-            ':root{--sign-docs-document-button-bg:%s;--sign-docs-document-button-color:%s;--sign-docs-document-button-outline:%s;--sign-docs-document-button-radius:%dpx;}',
-            esc_html($settings['button_primary_color'] ?? '#32373c'),
-            esc_html($settings['button_primary_text_color'] ?? '#ffffff'),
-            esc_html($settings['button_outline_color'] ?? '#32373c'),
-            min(9999, max(0, $radius))
-        );
-
-        wp_add_inline_style('sign-docs-public', $css);
-        $inline_added = true;
+        wp_enqueue_style('sign-docs-public');
     }
 
     /**
@@ -226,12 +211,10 @@ final class Sign_Docs_Blocks
 
         self::enqueue_public_style();
 
-        $title = Sign_Docs_Meta::get($post_id, 'full_title') ?: get_the_title($post_id);
+        $title = get_the_title($post_id);
         $link_text = isset($attributes['linkText']) ? sanitize_text_field((string) $attributes['linkText']) : '';
         $display_mode = isset($attributes['displayMode']) ? sanitize_key((string) $attributes['displayMode']) : 'link';
         $display_mode = in_array($display_mode, array('link', 'button', 'card'), true) ? $display_mode : 'link';
-        $interaction_mode = isset($attributes['interactionMode']) ? sanitize_key((string) $attributes['interactionMode']) : 'title-details';
-        $interaction_mode = in_array($interaction_mode, array('title-details', 'buttons'), true) ? $interaction_mode : 'title-details';
         $show_icon = ! array_key_exists('showIcon', $attributes) || (bool) $attributes['showIcon'];
         $show_meta = ! empty($attributes['showMeta']);
         $open_in_new_tab = ! empty($attributes['openInNewTab']);
@@ -243,7 +226,10 @@ final class Sign_Docs_Blocks
         $status = self::status_label($document_status);
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $version = Sign_Docs_Meta::get($post_id, 'document_version') ?: '1';
+        $signer_name = Sign_Docs_Meta::get($post_id, 'signer_name') ?: '';
+        $signer_position = Sign_Docs_Meta::get($post_id, 'signer_position') ?: '';
         $show_download_button = ! empty($attributes['showDownloadButton']);
+        $show_signature_button = ! array_key_exists('showSignatureButton', $attributes) || (bool) $attributes['showSignatureButton'];
         $show_embedded_pdf = ! empty($attributes['showEmbeddedPdf']);
         $is_current_document = self::is_current_document_status($document_status);
 
@@ -267,7 +253,7 @@ final class Sign_Docs_Blocks
         }
 
         $download = $is_current_document && '' !== $stamped_file_url ? sprintf(
-            '<a class="sign-docs-document-link__download" href="%s" download>%s</a>',
+            '<a class="sign-docs-document-link__download wp-element-button" href="%s" download>%s</a>',
             esc_url($stamped_file_url),
             esc_html__('Скачать', 'sign-docs')
         ) : '';
@@ -282,7 +268,7 @@ final class Sign_Docs_Blocks
             esc_html($label),
             $meta
         );
-        $details = self::details($title, $status, $signed_at, $version, $sha256_hash, $is_current_document ? $stamped_file_url : '', $is_current_document ? $original_file_url : '', $verification_url, 'title-details' === $interaction_mode ? $title_content : esc_html__('Сведения', 'sign-docs'), 'title-details' === $interaction_mode, $is_current_document);
+        $details = self::details($post_id, $signed_at, $sha256_hash, $signer_name, $signer_position, $is_current_document ? $stamped_file_url : '', $is_current_document ? $original_file_url : '', $verification_url, esc_html__('Подпись', 'sign-docs'), false, $is_current_document);
         $embed = '';
         if ($is_current_document && $show_embedded_pdf && '' !== $stamped_file_url) {
             $embed = sprintf(
@@ -292,66 +278,127 @@ final class Sign_Docs_Blocks
             );
         }
 
-        if ('buttons' === $interaction_mode) {
-            return sprintf(
-                '<div %s><div class="sign-docs-document-link__row"><span class="sign-docs-document-link__anchor sign-docs-document-link__anchor--static">%s</span>%s%s</div>%s%s</div>',
-                $wrapper_attributes,
-                $title_content,
-                $download,
-                $details,
-                $notice,
-                $embed
+        $title_link = $is_current_document && '' !== $stamped_file_url
+            ? sprintf(
+                '<a class="sign-docs-document-link__anchor sign-docs-document-link__anchor--open" href="%s"%s>%s</a>',
+                esc_url($stamped_file_url),
+                $target,
+                $title_content
+            )
+            : sprintf(
+                '<span class="sign-docs-document-link__anchor">%s</span>',
+                $title_content
             );
+
+        $buttons = '';
+        if ($show_download_button && $is_current_document && '' !== $stamped_file_url) {
+            $buttons .= $download;
+        }
+        if ($show_signature_button) {
+            $buttons .= $details;
         }
 
         return sprintf(
-            '<div %s><div class="sign-docs-document-link__row">%s</div>%s%s</div>',
+            '<div %s><div class="sign-docs-document-link__row">%s%s</div>%s%s</div>',
             $wrapper_attributes,
-            $details,
+            $title_link,
+            $buttons,
             $notice,
             $embed
         );
     }
 
-    private static function details(string $title, string $status, string $signed_at, string $version, string $hash, string $stamped_url, string $original_url, string $verification_url, string $summary, bool $summary_is_html, bool $is_current_document): string
+    private static function details(int $post_id, string $signed_at, string $hash, string $signer_name, string $signer_position, string $stamped_url, string $original_url, string $verification_url, string $summary, bool $summary_is_html, bool $is_current_document): string
     {
-        $rows = array(
-            __('Статус', 'sign-docs') => $status,
-            __('Дата подписи', 'sign-docs') => $signed_at,
-            __('Версия', 'sign-docs') => $version,
-            __('SHA-256', 'sign-docs') => $hash,
-        );
         $html = sprintf(
-            '<details class="sign-docs-document-link__details%s"><summary class="%s">%s</summary><span class="sign-docs-document-link__popover"><strong>%s</strong><span class="sign-docs-document-link__popover-rows">',
+            '<details class="sign-docs-document-link__details%s"><summary class="%s">%s</summary><span class="sign-docs-document-link__popover">',
             $summary_is_html ? ' sign-docs-document-link__details--title' : '',
-            $summary_is_html ? 'sign-docs-document-link__anchor' : 'sign-docs-document-link__summary-button',
-            $summary_is_html ? $summary : esc_html($summary),
-            esc_html($title)
+            $summary_is_html ? 'sign-docs-document-link__anchor' : 'sign-docs-document-link__summary-button wp-element-button',
+            $summary_is_html ? $summary : esc_html($summary)
         );
 
-        foreach ($rows as $label => $value) {
-            if ('' === trim($value)) {
-                continue;
-            }
+        $html .= sprintf(
+            '<strong class="sign-docs-document-link__popover-heading">%s</strong>',
+            esc_html__('Документ подписан простой электронной подписью', 'sign-docs')
+        );
 
+        $html .= '<span class="sign-docs-document-link__popover-rows sign-docs-document-link__popover-rows--info">';
+        $html .= sprintf(
+            '<span class="sign-docs-document-link__popover-row-inline"><b>%s</b> %s</span>',
+            esc_html__('ID записи:', 'sign-docs'),
+            esc_html((string) $post_id)
+        );
+        if ('' !== $signed_at) {
+            $formatted = self::format_date_msk($signed_at);
             $html .= sprintf(
-                '<span><b>%s</b><em>%s</em></span>',
-                esc_html($label),
-                esc_html($value)
+                '<span class="sign-docs-document-link__popover-row-inline"><b>%s</b> %s</span>',
+                esc_html__('Дата подписи:', 'sign-docs'),
+                esc_html($formatted)
             );
         }
+        $html .= '</span>';
 
-        $html .= '</span><span class="sign-docs-document-link__popover-actions">';
-        if ('' !== $stamped_url) {
-            $html .= sprintf('<a class="sign-docs-document-link__download" href="%s" download>%s</a>', esc_url($stamped_url), esc_html__('Скачать', 'sign-docs'));
+        $has_signer = '' !== trim($signer_name) || '' !== trim($signer_position);
+        if ($has_signer) {
+            $section_label = __('Подписал', 'sign-docs');
+            if ('' !== trim($signer_position)) {
+                $section_label .= ': ' . $signer_position;
+            }
+            $html .= sprintf(
+                '<b class="sign-docs-document-link__popover-section-title">%s</b>',
+                esc_html($section_label)
+            );
+            if ('' !== trim($signer_name)) {
+                $html .= '<span class="sign-docs-document-link__popover-rows sign-docs-document-link__popover-rows--signer">';
+                $html .= sprintf('<span class="sign-docs-document-link__popover-row-value">%s</span>', esc_html($signer_name));
+                $html .= '</span>';
+            }
         }
-        if ($is_current_document && '' !== $original_url) {
-            $html .= sprintf('<a href="%s">%s</a>', esc_url($original_url), esc_html__('Оригинал', 'sign-docs'));
+
+        if ('' !== $hash) {
+            $html .= '<span class="sign-docs-document-link__popover-rows sign-docs-document-link__popover-rows--hash">';
+            $html .= sprintf(
+                '<span><b>%s</b><em>%s</em></span>',
+                esc_html__('SHA-256', 'sign-docs'),
+                esc_html($hash)
+            );
+            $html .= '</span>';
+        }
+
+        $html .= '<span class="sign-docs-document-link__popover-actions">';
+        $has_left_actions = '' !== $stamped_url || ($is_current_document && '' !== $original_url);
+        if ($has_left_actions) {
+            $html .= '<span class="sign-docs-document-link__popover-actions--left">';
+            if ('' !== $stamped_url) {
+                $html .= sprintf('<a class="sign-docs-document-link__download wp-element-button" href="%s" download>%s</a>', esc_url($stamped_url), esc_html__('Скачать', 'sign-docs'));
+            }
+            if ($is_current_document && '' !== $original_url) {
+                $html .= sprintf('<a href="%s">%s</a>', esc_url($original_url), esc_html__('Оригинал', 'sign-docs'));
+            }
+            $html .= '</span>';
         }
         $html .= sprintf('<a href="%s">%s</a>', esc_url($verification_url), esc_html__('Проверка', 'sign-docs'));
         $html .= '</span></span></details>';
 
         return $html;
+    }
+
+    private static function format_date_msk(string $date): string
+    {
+        $timestamp = strtotime($date);
+        if (false === $timestamp) {
+            return $date;
+        }
+
+        try {
+            $site_tz = wp_timezone();
+            $msk_tz = new DateTimeZone('Europe/Moscow');
+            $dt = new DateTime($date, $site_tz);
+            $dt->setTimezone($msk_tz);
+            return $dt->format('d.m.Y H:i') . ' MSK';
+        } catch (Exception $e) {
+            return $date;
+        }
     }
 
     private static function status_label(string $status): string

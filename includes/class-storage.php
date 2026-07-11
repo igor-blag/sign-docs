@@ -49,7 +49,7 @@ final class Sign_Docs_Storage
     /**
      * @return array{document_dir:string,original_path:string,stamped_path:string,original_url:string,stamped_url:string}
      */
-    public static function document_paths(int $post_id, ?int $timestamp = null): array
+    public static function document_paths(int $post_id, ?int $timestamp = null, ?string $filename = null): array
     {
         $timestamp = $timestamp ?: time();
         $paths = self::paths();
@@ -59,18 +59,21 @@ final class Sign_Docs_Storage
         $document_dir = $paths['base_dir'] . '/' . $relative;
         $document_url = $paths['base_url'] . '/' . $relative;
 
+        $original_name = null !== $filename ? $filename . '.pdf' : 'original.pdf';
+        $stamped_name  = null !== $filename ? $filename . '-stamped.pdf' : 'stamped.pdf';
+
         return array(
             'document_dir' => $document_dir,
-            'original_path' => $document_dir . '/original.pdf',
-            'stamped_path' => $document_dir . '/stamped.pdf',
-            'original_url' => $document_url . '/original.pdf',
-            'stamped_url' => $document_url . '/stamped.pdf',
+            'original_path' => $document_dir . '/' . $original_name,
+            'stamped_path' => $document_dir . '/' . $stamped_name,
+            'original_url' => $document_url . '/' . $original_name,
+            'stamped_url'  => $document_url . '/' . $stamped_name,
         );
     }
 
-    public static function ensure_document_directories(int $post_id, ?int $timestamp = null): array
+    public static function ensure_document_directories(int $post_id, ?int $timestamp = null, ?string $filename = null): array
     {
-        $paths = self::document_paths($post_id, $timestamp);
+        $paths = self::document_paths($post_id, $timestamp, $filename);
 
         if (! is_dir($paths['document_dir'])) {
             wp_mkdir_p($paths['document_dir']);

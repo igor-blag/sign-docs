@@ -207,7 +207,6 @@ final class Sign_Docs_AI_Metadata
                 'document_number' => array('type' => 'string'),
                 'document_subject' => array('type' => 'string'),
                 'post_title' => array('type' => 'string'),
-                'full_title' => array('type' => 'string'),
                 'confidence' => array('type' => 'number'),
                 'warnings' => array(
                     'type' => 'array',
@@ -233,7 +232,6 @@ final class Sign_Docs_AI_Metadata
             'document_number',
             'document_subject',
             'post_title',
-            'full_title',
             'confidence',
             'warnings',
         );
@@ -325,7 +323,6 @@ final class Sign_Docs_AI_Metadata
             'document_number' => ltrim(sanitize_text_field((string) ($decoded['document_number'] ?? '')), "№ \t\n\r\0\x0B"),
             'document_subject' => trim(sanitize_text_field((string) ($decoded['document_subject'] ?? '')), " \t\n\r\0\x0B\"'«»"),
             'post_title' => sanitize_text_field((string) ($decoded['post_title'] ?? '')),
-            'full_title' => sanitize_textarea_field((string) ($decoded['full_title'] ?? '')),
             'confidence' => max(0, min(1, $confidence)),
             'warnings' => $warnings,
         );

@@ -6,14 +6,14 @@
 </head>
 <body>
     <h1>Sign Docs: session handoff</h1>
-    <p>Last updated: 2026-05-23.</p>
+    <p>Last updated: 2026-07-11.</p>
 
     <h2>Project paths</h2>
     <ul>
         <li>Plugin repository: <code>/Users/igorblagovesenskij/projects/plugins/sign-docs</code>.</li>
-        <li>Studio site: <code>/Users/igorblagovesenskij/Studio/edu-site</code>.</li>
-        <li>Plugin symlink in the site: <code>/Users/igorblagovesenskij/Studio/edu-site/wp-content/plugins/sign-docs</code>.</li>
-        <li>Studio site URL: <code>http://localhost:8881/</code>.</li>
+        <li>Studio site: <code>/Users/igorblagovesenskij/Studio/edu-site</code> (port 8881).</li>
+        <li>Plugin symlink: <code>/Users/igorblagovesenskij/Studio/edu-site/wp-content/plugins/sign-docs</code> → <code>sign-docs/sign-docs/</code>.</li>
+        <li>Build script: <code>bash tools/build-dist.sh</code>.</li>
         <li>Per <code>STUDIO.md</code>, use <code>studio wp</code> from the site root.</li>
     </ul>
 
@@ -22,81 +22,83 @@
         <li>Main plugin file: <code>sign-docs.php</code>.</li>
         <li>Coordinator: <code>includes/class-plugin.php</code>.</li>
         <li>CPT: <code>includes/class-post-type.php</code>, post type <code>sign-docs</code>.</li>
-        <li>Taxonomies: <code>includes/class-taxonomies.php</code>.</li>
+        <li>Taxonomies: <code>includes/class-taxonomies.php</code> (category, type, department, institution).</li>
         <li>Meta contract: <code>includes/class-meta.php</code>.</li>
         <li>File storage and SHA-256: <code>includes/class-storage.php</code>.</li>
-        <li>Document workflow: <code>includes/class-document-service.php</code>.</li>
-        <li>REST workflow: <code>includes/class-rest-controller.php</code>, routes <code>documents</code>, <code>prepare</code>, <code>complete</code> and <code>suggest-metadata</code>.</li>
+        <li>Transliteration for filenames: <code>includes/class-translit.php</code>.</li>
+        <li>Document workflow: <code>includes/class-document-service.php</code> (create, prepare, complete, replace, rollback).</li>
+        <li>REST API: <code>includes/class-rest-controller.php</code>, routes <code>documents</code>, <code>prepare</code>, <code>complete</code>, <code>suggest-metadata</code>.</li>
         <li>AI metadata suggestions: <code>includes/class-ai-metadata.php</code>, ability <code>sign-docs/suggest-document-metadata</code>.</li>
-        <li>Admin upload/settings: <code>includes/class-admin.php</code>, <code>includes/class-settings.php</code> and <code>assets/js/admin-upload.js</code>.</li>
+        <li>Title template: <code>includes/class-title-template.php</code> (configurable matrix).</li>
+        <li>Site icon cache: <code>includes/class-site-icon.php</code>.</li>
+        <li>Admin: <code>includes/class-admin.php</code>, <code>includes/class-settings.php</code>, <code>assets/js/admin-upload.js</code>.</li>
         <li>Gutenberg block: <code>includes/class-blocks.php</code> and <code>assets/js/document-block.js</code>.</li>
+        <li>Verification page: <code>includes/class-verification-page.php</code>.</li>
+        <li>Usage index: <code>includes/class-usage-index.php</code> (custom DB table).</li>
     </ul>
 
-    <h2>Important behavior</h2>
+    <h2>Important behaviors</h2>
     <ul>
-        <li>The original PDF is copied to <code>uploads/sign-docs/YYYY/MM/{post_id}/original.pdf</code> and remains the control copy.</li>
-        <li>The server calculates SHA-256 from the original PDF. This hash is the source of truth.</li>
-        <li>The public PDF copy is saved next to the original as <code>uploads/sign-docs/YYYY/MM/{post_id}/stamped.pdf</code>.</li>
-        <li>The QR code points to the verification page, not to a PDF file.</li>
-        <li>The REST flow is two-phase: <code>prepare</code> saves the original and creates the CPT record; browser JS stamps the PDF; <code>complete</code> saves the stamped PDF and marks the record active.</li>
-        <li>AI autofill is optional and only proposes form values. The administrator can edit all fields before saving.</li>
+        <li>Original PDF → <code>uploads/sign-docs/YYYY/MM/{post_id}/{file_basename}.pdf</code>.</li>
+        <li>Server calculates SHA-256 from the original — this is the source of truth.</li>
+        <li>Stamped PDF → <code>uploads/sign-docs/YYYY/MM/{post_id}/{file_basename}-stamped.pdf</code>.</li>
+        <li>QR code points to <code>/signed/{post_id}/</code> (verification page), never directly to a PDF.</li>
+        <li>REST flow is two-phase: <code>prepare</code> → browser stamps → <code>complete</code>.</li>
+        <li>Admin form always saves documents as <code>unsigned</code> via POST; the signed path must go through JS + REST.</li>
+        <li>AI autofill is optional and off by default.</li>
+        <li>Replacement workflow: new CPT links to old via <code>replaces_post_id</code>; on success, old gets <code>replaced</code> status.</li>
+        <li>Delete prevention: all user-facing delete/trash actions convert to <code>archived</code> status. Internal service rollback uses a flag to bypass this.</li>
+        <li>Server-side PDF generation is explicitly forbidden. Stamped PDF is never generated or substituted by PHP.</li>
     </ul>
 
-    <h2>Recent changes</h2>
+    <h2>Vendor assets</h2>
     <ul>
-        <li>Added setting <code>ai_autofill_enabled</code>, default off.</li>
-        <li>Added local PDF.js files: <code>assets/vendor/pdf.min.mjs</code> and <code>assets/vendor/pdf.worker.min.mjs</code>.</li>
-        <li>Added browser extraction of first-page text before AI requests.</li>
-        <li>Added ability <code>sign-docs/suggest-document-metadata</code> and REST endpoint <code>POST /wp-json/sign-docs/v1/suggest-metadata</code>.</li>
-        <li>Configured Sign Docs to use OpenRouter when available.</li>
-        <li>Restricted AI model preference to a single model: <code>openrouter / google/gemini-2.5-flash-lite</code>.</li>
-        <li>Added OpenRouter custom option <code>reasoning: {"exclude": true}</code>.</li>
-        <li>Added connector approvals locally for <code>ai/ai.php -> openrouter</code> and <code>sign-docs/sign-docs.php -> openrouter</code>.</li>
-        <li>Patched the local <code>ai-provider-for-openrouter</code> plugin to declare <code>outputMimeType</code> and <code>outputSchema</code> support.</li>
-        <li>Patched the local OpenRouter text model to wrap structured output as <code>json_schema.schema</code>.</li>
+        <li><code>assets/vendor/pdf-lib.min.js</code> (pdf-lib 1.17.1).</li>
+        <li><code>assets/vendor/pdf.min.mjs</code> + <code>pdf.worker.min.mjs</code> (PDF.js 5.4.394).</li>
+        <li><code>assets/vendor/fontkit.umd.min.js</code> (@pdf-lib/fontkit 1.1.1).</li>
+        <li><code>assets/vendor/qrcode.min.js</code> (qrcode-generator 1.4.4).</li>
+        <li><code>assets/vendor/GolosText-Regular.ttf</code> and <code>GolosText-Medium.ttf</code>.</li>
     </ul>
 
-    <h2>Model experiments</h2>
+    <h2>Recent changes (since last handoff)</h2>
     <ul>
-        <li><code>google/gemini-2.5-flash-lite</code>: working default, fastest usable option observed in the plugin flow.</li>
-        <li><code>nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free</code>: free and multimodal, but too slow and prone to long reasoning output.</li>
-        <li><code>google/gemma-4-31b-it:free</code>: currently rate-limited upstream.</li>
-        <li><code>deepseek/deepseek-v4-flash:free</code>: returned upstream <code>402</code> out-of-credits.</li>
-        <li><code>openai/gpt-oss-20b:free</code>: worked but took about 28 seconds with the full prompt and gave weaker titles.</li>
+        <li><code>SIGN_DOCS_PLUGIN_URL</code> changed from <code>content_url('plugins/sign-docs/')</code> to <code>plugin_dir_url(__FILE__)</code> to support any plugin directory name or symlink.</li>
+        <li>Admin <code>handle_upload()</code> fixed: both "signed" and "unsigned" buttons now always save as <code>unsigned</code> with <code>defer_stamped=true</code>. The server-side POST handler cannot generate stamped PDFs; browser JS + REST is required for signing.</li>
+        <li>Added <code>includes/class-translit.php</code> — Cyrillic-to-Latin filename transformation for filesystem-safe names.</li>
     </ul>
 
-    <h2>Verification already run</h2>
+    <h2>Documentation updated (2026-07-11)</h2>
     <ul>
-        <li><code>php -l includes/class-ai-metadata.php</code> passed.</li>
-        <li><code>node --check assets/js/admin-upload.js</code> passed after AI extraction changes.</li>
-        <li><code>studio wp eval</code> confirmed the AI ability and REST route exist.</li>
-        <li><code>studio wp eval</code> confirmed <code>Sign_Docs_AI_Metadata::suggest()</code> returns structured data through OpenRouter.</li>
-        <li>Browser checks of admin upload/settings pages showed no console errors during implementation.</li>
-        <li>Connector approval pending queue was cleared after approving OpenRouter for the AI plugin and Sign Docs.</li>
+        <li><code>main.html</code> — added Translit module, updated invariants and next-steps (added uninstall.php).</li>
+        <li><code>module-document-service.html</code> — documented prepare/complete/replacement/rollback, translit, stamp params, audit fields.</li>
+        <li><code>module-meta.html</code> — added all missing fields (file_basename, stamped_file_hash, stamp_placement, manual_x/y, qr_logo, academic_year, etc.).</li>
+        <li><code>module-storage.html</code> — documented file_basename naming, assets directory, index.php guard.</li>
+        <li><code>module-admin.html</code> — documented always-unsigned POST flow, stamp picker, replacement notice, archive vs delete protection.</li>
+        <li><code>module-rest-api.html</code> — documented save_mode, hash verification in complete, manual stamp params.</li>
+        <li><code>module-verification-page.html</code> — documented rewrite rules, replacement notices, 404 for needs_public_copy.</li>
+        <li><code>module-blocks.html</code> — documented all block attributes (showDownloadButton, showEmbeddedPdf, displayMode, etc.).</li>
+        <li><code>module-settings.html</code> — documented ai_autofill_enabled, upload_user_ids capability sync.</li>
+        <li><code>module-taxonomies.html</code> — documented sign_doc_institution, hierarchy, cleanup of legacy terms.</li>
+        <li><code>module-ai-metadata.html</code> — documented ability registration, compact_text, model config.</li>
+        <li><code>module-admin-upload-js.html</code> — documented stamp picker, title composition, year buttons, REST interception.</li>
+        <li><code>module-plugin.html</code> — documented all hooks, activation/upgrade/deactivation lifecycle.</li>
+        <li><code>module-translit.html</code> — new file.</li>
     </ul>
 
-    <h2>Known local environment notes</h2>
+    <h2>Still needed before production</h2>
     <ul>
-        <li>The OpenRouter provider fixes are in <code>/Users/igorblagovesenskij/Studio/edu-site/wp-content/plugins/ai-provider-for-openrouter</code>, outside this repository.</li>
-        <li>An update of the OpenRouter provider plugin from WordPress.org may overwrite those local fixes.</li>
-        <li>The site uses WordPress Studio and SQLite; do not edit WordPress core unless explicitly investigating local runtime behavior.</li>
-        <li>Use <code>studio wp</code>, not bare <code>wp</code>.</li>
-    </ul>
-
-    <h2>Open issue to verify next</h2>
-    <ul>
-        <li>AI autofill currently sends text only. Add an image fallback later for scanned PDFs or poor text extraction.</li>
-        <li>If speed remains above the user's tolerance, consider a hard UI timeout around the browser request and leave the form manual.</li>
-        <li>Provider fixes should eventually be contributed upstream or moved into a maintained local plugin patch.</li>
+        <li><code>uninstall.php</code> — cleanup of custom table, options, upload dirs, capabilities.</li>
+        <li>Consider adding background file cleanup for archived documents.</li>
+        <li>Contract tests were added but only cover server-side PHP; browser stamping needs UI/integration tests.</li>
     </ul>
 
     <h2>Useful commands</h2>
     <ul>
         <li><code>studio wp plugin list --format=csv</code></li>
-        <li><code>studio wp eval 'echo class_exists("Sign_Docs_AI_Metadata") ? "ok" : "missing";'</code></li>
-        <li><code>studio wp eval '$result = Sign_Docs_AI_Metadata::suggest(array("first_page_text" => "...")); var_dump($result);'</code></li>
+        <li><code>php -l includes/class-admin.php</code></li>
         <li><code>node --check assets/js/admin-upload.js</code></li>
-        <li><code>php -l includes/class-ai-metadata.php</code></li>
+        <li><code>php tests/run.php</code></li>
+        <li><code>bash tools/build-dist.sh</code></li>
     </ul>
 </body>
 </html>

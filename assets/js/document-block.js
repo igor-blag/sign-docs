@@ -29,11 +29,6 @@
         { label: __('Card', 'sign-docs'), value: 'card' }
     ];
 
-    const interactionModeOptions = [
-        { label: __('Title opens document details', 'sign-docs'), value: 'title-details' },
-        { label: __('Title with download and details buttons', 'sign-docs'), value: 'buttons' }
-    ];
-
     function text(value) {
         return String(value || '').trim();
     }
@@ -172,11 +167,57 @@
         return lower ? lower.charAt(0).toLocaleUpperCase('ru-RU') + lower.slice(1) : '';
     }
 
+    function shortAcademicYear(startYear) {
+        return String(startYear) + '/' + String((startYear + 1) % 100).padStart(2, '0');
+    }
+
+    function yearPresetGroups() {
+        var base = new Date();
+        var month = base.getMonth();
+        var year = base.getFullYear();
+        var academicStart = month >= 8 ? year : year - 1;
+
+        return [
+            {
+                label: __('Academic', 'sign-docs'),
+                items: [
+                    { label: shortAcademicYear(academicStart - 1), value: 'за ' + shortAcademicYear(academicStart - 1) + ' учебный год' },
+                    { label: shortAcademicYear(academicStart), value: 'на ' + shortAcademicYear(academicStart) + ' учебный год' },
+                    { label: shortAcademicYear(academicStart + 1), value: 'на ' + shortAcademicYear(academicStart + 1) + ' учебный год' }
+                ]
+            },
+            {
+                label: __('Calendar', 'sign-docs'),
+                items: [
+                    { label: String(year - 1), value: 'за ' + String(year - 1) + ' год' },
+                    { label: String(year), value: 'на ' + String(year) + ' год' },
+                    { label: String(year + 1), value: 'на ' + String(year + 1) + ' год' }
+                ]
+            }
+        ];
+    }
+
+    function formatDateInput(value) {
+        var digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return '';
+        var formatted = digits.substring(0, 2);
+        if (digits.length > 2) formatted += '.' + digits.substring(2, 4);
+        if (digits.length > 4) formatted += '.' + digits.substring(4, 8);
+        return formatted;
+    }
+
     function compactSignedAt(value) {
         const source = String(value || '').trim();
-        const match = source.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-
-        return match ? match[3] + '.' + match[2] + '.' + match[1] + ', ' + match[4] + ':' + match[5] : source;
+        if (!source) return '';
+        const d = new Date(source.replace(' ', 'T'));
+        if (isNaN(d.getTime())) return source;
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        return dd + '.' + mm + '.' + yyyy + ' ' + hh + ':' + mi + ':' + ss;
     }
 
     function wrapText(font, source, size, maxWidth, maxLines) {
@@ -282,20 +323,29 @@
         const qrSize = 54;
         const padding = 8;
         const textWidth = stampWidth - qrSize - padding * 3;
+        const fullWidth = stampWidth - padding * 2;
         const rows = [];
+        const hash = data.sha256_hash || '';
+        const shortHash = hash.length > 8 ? hash.slice(0, 4) + '...' + hash.slice(-4) : hash;
 
-        wrapText(fonts.medium, data.signer_name || data.signer || '', fontSize, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.medium });
+        wrapText(fonts.regular, 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ', fontSize, fullWidth, 2).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
         });
-        wrapText(fonts.regular, data.signer_position || '', fontSize * 0.93, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize * 0.93, font: fonts.regular });
+        const line1 = compactSignedAt(data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash;
+        wrapText(fonts.regular, line1, fontSize, textWidth, 2).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
         });
-        wrapText(fonts.regular, data.organization || '', fontSize * 0.89, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize * 0.89, font: fonts.regular });
+        wrapText(fonts.regular, data.signer_name || data.signer || '', fontSize, textWidth, 1).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
         });
-        rows.push({ text: 'Signed: ' + compactSignedAt(data.signed_at), size: fontSize * 0.83, font: fonts.regular });
+        wrapText(fonts.regular, data.signer_position || '', fontSize, textWidth, 1).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
+        });
+        wrapText(fonts.regular, data.organization || '', fontSize, fullWidth, 3).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
+        });
 
-        const stampHeight = Math.max(82, padding * 2 + rows.length * lineHeight + 4);
+        const stampHeight = Math.max(padding * 2 + qrSize + 4, padding * 2 + rows.length * lineHeight + 4);
         const corner = data.stamp_corner || 'top-left';
         const right = corner === 'top-right' || corner === 'bottom-right';
         const bottom = corner === 'bottom-left' || corner === 'bottom-right';
@@ -308,7 +358,7 @@
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const alpha = stampOpacity(data.stamp_opacity);
         const qrX = x + stampWidth - qrSize - padding;
-        const qrY = y + 24;
+        const qrY = y + (stampHeight - qrSize) / 2;
         let textY = y + stampHeight - padding - fontSize;
 
         if (stampBorderEnabled(data)) {
@@ -324,7 +374,7 @@
         }
 
         rows.forEach(function (row) {
-            page.drawText(row.text, { x: x + padding, y: textY, size: row.size, font: row.font, color: mainColor, opacity: alpha, maxWidth: textWidth });
+            page.drawText(row.text, { x: x + padding, y: textY, size: row.size, font: row.font, color: mainColor, opacity: alpha, maxWidth: row.maxWidth });
             textY -= lineHeight;
         });
 
@@ -337,14 +387,15 @@
         const pageSize = page.getSize();
         const margin = Math.min(30, Math.max(16, pageSize.width * 0.04));
         const width = pageSize.width - margin * 2;
+        const y = pageSize.height - margin - 28;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const alpha = stampOpacity(data.stamp_opacity);
         const line = 'SHA-256: ' + data.sha256_hash + '  URL: ' + data.verification_url;
 
-        page.drawRectangle({ x: margin, y: 18, width: width, height: 28, borderColor: mainColor, borderWidth: 0.5, borderOpacity: alpha });
-        page.drawText(line, { x: margin + 10, y: 28, size: 6.4, font: fonts.regular, color: mainColor, opacity: alpha, maxWidth: width - 20 });
-        addUriLink(pdfDoc, page, [margin, 18, margin + width, 46], data.verification_url);
+        page.drawRectangle({ x: margin, y: y, width: width, height: 28, borderColor: mainColor, borderWidth: 0.5, borderOpacity: alpha });
+        page.drawText(line, { x: margin + 10, y: y + 10, size: 6.4, font: fonts.regular, color: mainColor, opacity: alpha, maxWidth: width - 20 });
+        addUriLink(pdfDoc, page, [margin, y, margin + width, y + 28], data.verification_url);
     }
 
     async function stampPdf(file, data) {
@@ -467,17 +518,21 @@
         const fileInputRef = useRef(null);
         const [fileName, setFileName] = useState('');
         const [postTitle, setPostTitle] = useState('');
-        const [fullTitle, setFullTitle] = useState('');
         const [titleManual, setTitleManual] = useState(false);
-        const [fullTitleManual, setFullTitleManual] = useState(false);
-        const [category, setCategory] = useState((filters.categories && filters.categories[0] && filters.categories[0].slug) || '');
+        const [category, setCategory] = useState((function () {
+            var saved;
+            try { saved = window.localStorage.getItem('sign_docs_last_category'); } catch (e) {}
+            if (saved && filters.categories && filters.categories.some(function (c) { return c.slug === saved; })) {
+                return saved;
+            }
+            return filters.categories && filters.categories[0] && filters.categories[0].slug || '';
+        })());
         const [typeId, setTypeId] = useState('');
         const [institution, setInstitution] = useState('');
-        const [includeInstitution, setIncludeInstitution] = useState(false);
         const [dragOver, setDragOver] = useState(false);
         const [documentDate, setDocumentDate] = useState('');
         const [documentNumber, setDocumentNumber] = useState('');
-        const [documentSubject, setDocumentSubject] = useState('');
+        const [documentComment, setDocumentComment] = useState('');
         const [previewUrl, setPreviewUrl] = useState('');
         const [previewPageSize, setPreviewPageSize] = useState(null);
         const [manualPicking, setManualPicking] = useState(false);
@@ -496,13 +551,11 @@
         }, [previewUrl]);
 
         useEffect(function () {
-            const useInstitution = category !== 'local-act' || includeInstitution;
+            var formattedNumber = documentNumber ? normalizeNumber(documentNumber) : '';
             const title = [
                 selectedType() ? selectedType().name : '',
-                useInstitution ? institution : '',
                 documentDate,
-                normalizeNumber(documentNumber),
-                quoteSubject(documentSubject)
+                formattedNumber
             ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 
             if (!title) {
@@ -512,10 +565,7 @@
             if (!titleManual) {
                 setPostTitle(title);
             }
-            if (!fullTitleManual) {
-                setFullTitle(title);
-            }
-        }, [typeId, institution, includeInstitution, category, documentDate, documentNumber, documentSubject]);
+        }, [typeId, category, documentDate, documentNumber]);
 
         useEffect(function () {
             if (category === 'local-act') {
@@ -572,10 +622,9 @@
                 setPreviewUrl('');
             }
 
-            if (file && !postTitle) {
+            if (file) {
                 const title = String(file.name || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
                 setPostTitle(title);
-                setFullTitle(title);
             }
 
             if (!file || (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || ''))) {
@@ -740,14 +789,13 @@
                 const prepareData = new FormData();
                 prepareData.append('original_pdf', file, file.name);
                 prepareData.append('post_title', text(postTitle) || file.name);
-                prepareData.append('full_title', text(fullTitle) || text(postTitle) || file.name);
                 prepareData.append('document_category', category);
                 prepareData.append('document_type_label', type ? type.name : '');
                 prepareData.append('document_type_term_id', type ? type.id : '');
                 prepareData.append('document_institution', category === 'local-act' && !institution ? text(defaults.signer_organization) : institution);
                 prepareData.append('document_date', documentDate);
                 prepareData.append('document_number', documentNumber);
-                prepareData.append('document_subject', documentSubject);
+                prepareData.append('document_comment', documentComment);
                 prepareData.append('save_mode', unsigned ? 'unsigned' : 'signed');
                 prepareData.append('signer_name', unsigned ? '' : text(defaults.signer_name));
                 prepareData.append('signer_position', unsigned ? '' : text(defaults.signer_position));
@@ -842,15 +890,18 @@
                                 el('span', { style: { color: '#646970', display: 'block' } }, fileName ? __('The file will be uploaded after submitting the form.', 'sign-docs') : __('or click to choose a file', 'sign-docs'))
                             )
                         ),
-                        el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Category', 'sign-docs'), value: category, options: optionList(__('Choose category', 'sign-docs'), filters.categories, 'slug'), onChange: setCategory, __next40pxDefaultSize: true })),
+                        el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Category', 'sign-docs'), value: category, options: optionList(__('Choose category', 'sign-docs'), filters.categories, 'slug'), onChange: function (value) { try { window.localStorage.setItem('sign_docs_last_category', value); } catch (e) {} setCategory(value); }, __next40pxDefaultSize: true })),
                         el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Document type', 'sign-docs'), value: typeId, options: optionList(__('Choose type', 'sign-docs'), documentTypesForCategory(category)), onChange: setTypeId, __next40pxDefaultSize: true })),
                         category === 'local-act' ? el(
                             'div',
                             { style: fieldStyle() },
-                            el(components.CheckboxControl, {
-                                label: __('Add institution name to the generated title', 'sign-docs'),
-                                checked: includeInstitution,
-                                onChange: setIncludeInstitution
+                            el('label', { style: { display: 'block', marginBottom: '4px', color: '#646970', fontSize: '11px', textTransform: 'uppercase' } }, __('Institution', 'sign-docs')),
+                            el('input', {
+                                type: 'text',
+                                value: institution,
+                                disabled: true,
+                                placeholder: __('Auto-filled from settings', 'sign-docs'),
+                                style: Object.assign({}, inputStyle(), { background: '#f0f0f1', cursor: 'not-allowed' })
                             })
                         ) : el(
                             'div',
@@ -874,19 +925,46 @@
                         el(
                             'div',
                             { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' } },
-                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document date', 'sign-docs')), el('input', { type: 'text', value: documentDate, onChange: function (event) { setDocumentDate(event.target.value); }, placeholder: '20.05.2026', style: inputStyle() })),
+                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document date', 'sign-docs')), el('input', { type: 'text', value: documentDate, onChange: function (event) { setDocumentDate(formatDateInput(event.target.value)); }, placeholder: '20.05.2026', style: inputStyle() })),
                             el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document number', 'sign-docs')), el('input', { type: 'text', value: documentNumber, onChange: function (event) { setDocumentNumber(event.target.value); }, placeholder: '183-р', style: inputStyle() }))
                         ),
-                        el('div', { style: fieldStyle() }, el(components.TextareaControl, { label: __('Subject in quotes', 'sign-docs'), value: documentSubject, onChange: setDocumentSubject, rows: 2, __next40pxDefaultSize: true })),
-                        el(
-                            'div',
-                            { style: { display: 'flex', flexWrap: 'wrap', gap: '12px', margin: '-8px 0 16px' } },
-                            el('button', { type: 'button', style: textLinkStyle(), onClick: function () { setDocumentSubject(subjectCase(documentSubject, 'sentence')); } }, __('Sentence case', 'sign-docs')),
-                            el('button', { type: 'button', style: textLinkStyle(), onClick: function () { setDocumentSubject(subjectCase(documentSubject, 'lower')); } }, __('Lowercase', 'sign-docs')),
-                            el('button', { type: 'button', style: textLinkStyle(), onClick: function () { setDocumentSubject(subjectCase(documentSubject, 'upper')); } }, __('Uppercase', 'sign-docs'))
+                        el('div', { style: fieldStyle() },
+                            el(components.TextareaControl, { label: __('Title', 'sign-docs'), value: postTitle, onChange: function (value) { setTitleManual(true); setPostTitle(value); }, rows: 3, __next40pxDefaultSize: true }),
+                            institution ? el('p', { style: { margin: '-8px 0 0' } },
+                                el('button', {
+                                    type: 'button',
+                                    style: textLinkStyle(),
+                                    onClick: function () {
+                                        setTitleManual(true);
+                                        setPostTitle((postTitle ? postTitle + ' ' : '') + institution);
+                                    }
+                                }, __('+ Add institution to title', 'sign-docs'))
+                            ) : null,
+                            el('p', { style: { margin: '4px 0 0' } },
+                                el('button', { type: 'button', style: textLinkStyle(), onClick: function () { setTitleManual(true); setPostTitle(subjectCase(postTitle, 'sentence')); } }, __('Sentence case', 'sign-docs'))
+                            )
                         ),
-                        el('div', { style: fieldStyle() }, el(components.TextControl, { label: __('Short title', 'sign-docs'), value: postTitle, onChange: function (value) { setTitleManual(true); setPostTitle(value); }, __next40pxDefaultSize: true })),
-                        el(components.TextareaControl, { label: __('Full title', 'sign-docs'), value: fullTitle, onChange: function (value) { setFullTitleManual(true); setFullTitle(value); }, rows: 4, __next40pxDefaultSize: true })
+                        el('div', { style: { margin: '-8px 0 16px' } },
+                            el('p', { style: { fontWeight: '600', marginBottom: '8px', marginTop: '16px' } }, __('Year / Period', 'sign-docs')),
+                            yearPresetGroups().reduce(function (acc, group) {
+                                acc.push(
+                                    el('span', { style: { display: 'inline-block', marginRight: '16px', marginBottom: '8px' } },
+                                        el('strong', null, group.label + ': '),
+                                        group.items.map(function (item) {
+                                            return el('button', {
+                                                type: 'button',
+                                                style: Object.assign({}, textLinkStyle(), { marginRight: '8px' }),
+                                                onClick: function () {
+                                                    setTitleManual(true);
+                                                    setPostTitle((postTitle ? postTitle + ' ' : '') + item.value);
+                                                }
+                                            }, item.label);
+                                        })
+                                    )
+                                );
+                                return acc;
+                            }, [])
+                        ),
                     ),
                     el(
                         'div',
@@ -926,6 +1004,16 @@
                         )
                     )
                 ),
+                el('div', { style: { margin: '12px 0 0' } },
+                    el(components.TextareaControl, {
+                        label: __('Comment', 'sign-docs'),
+                        value: documentComment,
+                        onChange: setDocumentComment,
+                        rows: 1,
+                        __next40pxDefaultSize: true,
+                        help: __('Internal admin note. Not shown on the verification page or in the document block.', 'sign-docs')
+                    })
+                ),
                 el('div', { style: { marginTop: '24px' } }, actionButtons())
             )
         );
@@ -933,9 +1021,15 @@
 
     blocks.registerBlockType('sign-docs/document', {
         apiVersion: 3,
-        title: __('Document', 'sign-docs'),
+        title: __('Sign Docs – Document', 'sign-docs'),
         icon: 'media-document',
         category: 'media',
+        keywords: [
+            __('sign', 'sign-docs'),
+            __('document', 'sign-docs'),
+            __('PDF', 'sign-docs'),
+            __('signed document', 'sign-docs'),
+        ],
         attributes: {
             postId: { type: 'number' },
             title: { type: 'string', default: '' },
@@ -949,9 +1043,9 @@
             showIcon: { type: 'boolean', default: true },
             showMeta: { type: 'boolean', default: false },
             showDownloadButton: { type: 'boolean', default: false },
+            showSignatureButton: { type: 'boolean', default: true },
             showEmbeddedPdf: { type: 'boolean', default: false },
             displayMode: { type: 'string', default: 'link' },
-            interactionMode: { type: 'string', default: 'title-details' },
             statusLabel: { type: 'string', default: '' },
             signedAt: { type: 'string', default: '' },
             documentVersion: { type: 'string', default: '' }
@@ -1069,13 +1163,6 @@
                                 onChange: function (value) { setAttributes({ displayMode: value }); },
                                 __next40pxDefaultSize: true
                             }),
-                            el(components.SelectControl, {
-                                label: __('Click behavior', 'sign-docs'),
-                                value: attributes.interactionMode || 'title-details',
-                                options: interactionModeOptions,
-                                onChange: function (value) { setAttributes({ interactionMode: value }); },
-                                __next40pxDefaultSize: true
-                            }),
                             el(components.ToggleControl, {
                                 label: __('Show document icon', 'sign-docs'),
                                 checked: attributes.showIcon !== false,
@@ -1090,6 +1177,11 @@
                                 label: __('Show download button', 'sign-docs'),
                                 checked: !!attributes.showDownloadButton,
                                 onChange: function (value) { setAttributes({ showDownloadButton: value }); }
+                            }),
+                            el(components.ToggleControl, {
+                                label: __('Show signature details button', 'sign-docs'),
+                                checked: attributes.showSignatureButton !== false,
+                                onChange: function (value) { setAttributes({ showSignatureButton: value }); }
                             }),
                             el(components.ToggleControl, {
                                 label: __('Embed stamped PDF', 'sign-docs'),
@@ -1109,10 +1201,8 @@
                     el(
                         'p',
                         { className: 'sign-docs-document-link sign-docs-document-link--' + (attributes.displayMode || 'link') },
-                        el('span', { className: 'sign-docs-document-link__row' },
-                            el(
-                                'span',
-                                { className: 'sign-docs-document-link__anchor' + ((attributes.interactionMode || 'title-details') === 'buttons' ? ' sign-docs-document-link__anchor--static' : '') },
+                        el('span', { className: 'sign-docs-document-link__row', style: { alignItems: 'center', display: 'inline-flex', flexWrap: 'wrap', gap: '10px', margin: 0 } },
+                            el('span', { className: 'sign-docs-document-link__anchor' },
                                 attributes.showIcon !== false ? el('span', { className: 'sign-docs-document-link__icon', 'aria-hidden': true }) : null,
                                 el(
                                     'span',
@@ -1128,14 +1218,27 @@
                                     attributes.showMeta && metaText ? el('span', { className: 'sign-docs-document-link__meta' }, metaText) : null
                                 )
                             ),
-                            (attributes.interactionMode || 'title-details') === 'buttons' && attributes.stampedFileUrl ? el('span', { className: 'sign-docs-document-link__download' }, __('Download', 'sign-docs')) : null,
-                            (attributes.interactionMode || 'title-details') === 'buttons' ? el('span', { className: 'sign-docs-document-link__summary-button' }, __('Details', 'sign-docs')) : null
+                            function () {
+                                var buttons = [];
+                                if (!!attributes.showDownloadButton && attributes.stampedFileUrl) {
+                                    buttons.push(el('span', {
+                                        className: 'sign-docs-document-link__download wp-element-button',
+                                        style: { marginRight: '8px', display: 'inline-flex' }
+                                    }, __('Download', 'sign-docs')));
+                                }
+                                if (attributes.showSignatureButton !== false) {
+                                    buttons.push(el('span', {
+                                        className: 'sign-docs-document-link__summary-button wp-element-button'
+                                    }, __('Signature', 'sign-docs')));
+                                }
+                                return buttons;
+                            }()
                         ),
                         attributes.showEmbeddedPdf && attributes.stampedFileUrl ? el('div', { className: 'sign-docs-document-link__embed' }, el('iframe', { title: selectedTitle || __('Stamped PDF', 'sign-docs'), src: attributes.stampedFileUrl })) : null
                     )
                 ) : el(
                     components.Placeholder,
-                    { icon: 'media-document', label: __('Document', 'sign-docs'), instructions: __('Add a signed document or choose an existing Sign Docs record.', 'sign-docs') },
+                    { icon: 'media-document', label: __('Sign Docs – Document', 'sign-docs'), instructions: __('Add a signed document or choose an existing Sign Docs record.', 'sign-docs') },
                     selectedError ? el(components.Notice, { status: 'error', isDismissible: false }, selectedError) : null,
                     el(
                         'div',

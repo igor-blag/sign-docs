@@ -71,7 +71,6 @@ final class Sign_Docs_Verification_Page
             return $content;
         }
 
-        $full_title = Sign_Docs_Meta::get($post_id, 'full_title');
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $hash = Sign_Docs_Meta::get($post_id, 'sha256_hash');
         $signer_name = Sign_Docs_Meta::get($post_id, 'signer_name');
@@ -103,7 +102,7 @@ final class Sign_Docs_Verification_Page
         <section class="sign-docs-verification" aria-label="Проверка документа">
             <header class="sign-docs-verification__header">
                 <p class="sign-docs-verification__eyebrow">Страница проверки документа</p>
-                <h2><?php echo esc_html($full_title ?: get_the_title($post_id)); ?></h2>
+                <h2><?php echo esc_html(get_the_title($post_id)); ?></h2>
             </header>
 
             <?php self::render_replacement_notices($replaces_post_id, $replaced_by_post_id); ?>

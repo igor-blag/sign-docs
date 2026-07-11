@@ -6,29 +6,60 @@
 </head>
 <body>
     <h1>Module: Plugin</h1>
-    <p>Класс <code>Sign_Docs_Plugin</code> является точкой сборки плагина.</p>
+    <p>Класс <code>Sign_Docs_Plugin</code> — точка сборки плагина. Загружает все модули, регистрирует WordPress hooks, управляет активацией/деактивацией и проверкой версии.</p>
 
-    <h2>Входные данные</h2>
+    <h2>Загружаемые модули</h2>
     <ul>
-        <li>WordPress hooks: <code>plugins_loaded</code>, activation, deactivation.</li>
-        <li>Константы путей, заданные в <code>sign-docs.php</code>.</li>
+        <li>Post Type, Taxonomies, Meta, Storage, Translit, Site Icon, Title Template</li>
+        <li>Document Service, AI Metadata, REST Controller, Verification Page</li>
+        <li>Settings, Admin, Blocks, Usage Index</li>
     </ul>
 
-    <h2>Выходные данные</h2>
+    <h2>Activation</h2>
     <ul>
-        <li>Зарегистрированные callbacks для CPT, таксономий, meta, публичной страницы, REST API, AI ability и админки.</li>
-        <li>Созданные директории хранилища при активации.</li>
-        <li>Созданная или обновленная таблица индекса использования при активации и upgrade-check по версии плагина.</li>
-        <li>Обновленные rewrite rules при активации и деактивации.</li>
+        <li>Регистрирует CPT и таксономии.</li>
+        <li>Создаёт директории <code>uploads/sign-docs/</code> и <code>uploads/sign-docs/assets/</code>.</li>
+        <li>Создаёт таблицу <code>{prefix}sign_docs_usage</code> через dbDelta.</li>
+        <li>Назначает capability <code>sign_docs_upload_documents</code> администраторам.</li>
+        <li>Фиксирует версию плагина в опции <code>sign_docs_version</code>.</li>
+        <li>Сбрасывает rewrite rules.</li>
+    </ul>
+
+    <h2>Upgrade check</h2>
+    <p><code>maybe_upgrade()</code> вызывается на <code>admin_init</code>. Если версия в опции отличается от <code>SIGN_DOCS_VERSION</code>, обновляет структуру таблицы индекса и версию в опции.</p>
+
+    <h2>Deactivation</h2>
+    <p>Только сбрасывает rewrite rules. Данные (CPT, таблицы, файлы, опции) не удаляются.</p>
+
+    <h2>Hooks, регистрируемые в boot()</h2>
+    <ul>
+        <li><code>init</code> — CPT, Taxonomies, Meta, rewrite rules, Blocks.</li>
+        <li><code>post_type_link</code> — verification permalink.</li>
+        <li><code>the_content</code> — verification page render.</li>
+        <li><code>wp_enqueue_scripts</code> — public assets (verification page, blocks).</li>
+        <li><code>manage_sign-docs_posts_columns</code> — колонки статуса и использования.</li>
+        <li><code>restrict_manage_posts</code> — фильтры таксономий и использования.</li>
+        <li><code>pre_get_posts</code> — применение фильтра использования.</li>
+        <li><code>add_meta_boxes_{sign-docs}</code> — meta boxes на карточке.</li>
+        <li><code>admin_init</code> — settings, title rules, upgrade, backfill, redirect add-new.</li>
+        <li><code>admin_menu</code> — submenu pages, скрытие таксономий.</li>
+        <li><code>admin_post_sign_docs_upload</code>, <code>admin_post_sign_docs_archive</code> — обработчики форм.</li>
+        <li><code>admin_enqueue_scripts</code> — admin JS/CSS.</li>
+        <li><code>post_submitbox_misc_actions</code> — archive/replace в submitbox.</li>
+        <li><code>admin_head-post.php</code> — скрытие кнопки удаления.</li>
+        <li><code>post_row_actions</code>, <code>bulk_actions</code> — кастомные действия.</li>
+        <li><code>pre_trash_post</code>, <code>pre_delete_post</code> — archive instead of trash.</li>
+        <li><code>rest_api_init</code> — REST routes.</li>
+        <li><code>wp_abilities_api_categories_init</code>, <code>wp_abilities_api_init</code> — AI ability.</li>
+        <li><code>enqueue_block_editor_assets</code> — block editor assets.</li>
+        <li><code>save_post</code>, <code>before_delete_post</code>, <code>transition_post_status</code> — usage index.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Модуль не содержит бизнес-логику подписи.</li>
-        <li>AI-логика живет в <code>Sign_Docs_AI_Metadata</code>; координатор только загружает файл класса и регистрирует hooks.</li>
-        <li>Модуль не работает напрямую с загружаемыми файлами, кроме вызова setup-функций при активации.</li>
-        <li><code>dbDelta</code> для таблицы индекса использования не запускается на каждом <code>init</code>; структура БД обновляется только при активации или изменении версии.</li>
-        <li>Повторный вызов <code>boot()</code> не должен дублировать регистрацию hooks.</li>
+        <li>Модуль не содержит бизнес-логику.</li>
+        <li><code>boot()</code> идемпотентен (флаг <code>$booted</code>).</li>
+        <li>dbDelta для таблицы индекса не запускается на каждом init.</li>
     </ul>
 </body>
 </html>

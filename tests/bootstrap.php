@@ -457,6 +457,7 @@ function get_users(array $args): array
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-post-type.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-meta.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-storage.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-translit.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-title-template.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-document-service.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-settings.php';

@@ -23,6 +23,7 @@ define('SIGN_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SIGN_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-plugin.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-updater.php';
 
 register_activation_hook(__FILE__, array('Sign_Docs_Plugin', 'activate'));
 register_deactivation_hook(__FILE__, array('Sign_Docs_Plugin', 'deactivate'));
@@ -31,5 +32,6 @@ add_action(
     'plugins_loaded',
     static function (): void {
         Sign_Docs_Plugin::instance()->boot();
+        Sign_Docs_Updater::init();
     }
 );

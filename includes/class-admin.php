@@ -34,12 +34,15 @@ final class Sign_Docs_Admin
             && file_exists($qr_path);
         $has_pdfjs = file_exists($pdfjs_path) && file_exists($pdfjs_worker_path);
 
+        $admin_asset_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-upload.js';
+        $admin_version = file_exists($admin_asset_path) ? (string) filemtime($admin_asset_path) : SIGN_DOCS_VERSION;
+
         if (! $has_vendor) {
             wp_enqueue_script(
                 'sign-docs-admin-upload',
                 SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-upload.js',
                 array(),
-                SIGN_DOCS_VERSION,
+                $admin_version,
                 true
             );
 
@@ -73,7 +76,7 @@ final class Sign_Docs_Admin
             'sign-docs-admin-upload',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-upload.js',
             array('sign-docs-pdf-lib', 'sign-docs-qrcode', 'sign-docs-fontkit'),
-            SIGN_DOCS_VERSION,
+            $admin_version,
             true
         );
 
@@ -443,16 +446,6 @@ final class Sign_Docs_Admin
                                         <p class="description">Можно выбрать существующую институцию из справочника или вписать новую в поле ниже.</p>
                                     </td>
                                 </tr>
-                                <tr id="sign-docs-include-institution-row">
-                                    <th scope="row">Учреждение в названии</th>
-                                    <td>
-                                        <label for="sign-docs-include-institution">
-                                            <input id="sign-docs-include-institution" name="include_institution_in_title" type="checkbox" value="1">
-                                            Добавить наименование учреждения в конструктор названия
-                                        </label>
-                                        <p class="description">Для локальных актов учреждение берется из настроек Sign Docs и обычно не нужно в названии.</p>
-                                    </td>
-                                </tr>
                                 <tr>
                                     <th scope="row">
                                         <label for="sign-docs-document-date">Дата и номер</label>
@@ -466,57 +459,26 @@ final class Sign_Docs_Admin
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-document-subject">О чем документ</label>
-                                    </th>
-                                    <td>
-                                        <textarea id="sign-docs-document-subject" name="document_subject" class="large-text" rows="2" placeholder="Например: О проведении аттестации в 9-х классах"></textarea>
-                                        <p style="margin: 8px 0 6px;">
-                                            <label for="sign-docs-include-subject-quotes">
-                                                <input id="sign-docs-include-subject-quotes" name="include_subject_quotes_in_title" type="checkbox" value="1" checked>
-                                                Добавлять кавычки в название
-                                            </label>
-                                        </p>
-                                        <p class="sign-docs-case-actions">
-                                            <button type="button" data-sign-docs-case="sentence">Как предложение</button>
-                                            <button type="button" data-sign-docs-case="lower">нижний регистр</button>
-                                            <button type="button" data-sign-docs-case="upper">ВЕРХНИЙ РЕГИСТР</button>
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
                                         <label for="sign-docs-title">Название</label>
                                     </th>
                                     <td>
-                                        <input id="sign-docs-title" name="post_title" type="text" class="large-text">
-                                        <p class="description">Краткое название записи в WordPress.</p>
+                                        <textarea id="sign-docs-title" name="post_title" class="large-text" rows="3"></textarea>
+                                        <p class="description">
+                                            Название записи в WordPress.
+                                            <button type="button" id="sign-docs-add-institution-to-title" class="button button-small" style="margin-left:8px;vertical-align:middle;">
+                                                Добавить наименование учреждения
+                                            </button>
+                                        </p>
+                                        <p class="sign-docs-case-actions" style="margin:4px 0 0;">
+                                            <button type="button" id="sign-docs-sentence-case">Как предложение</button>
+                                        </p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">
-                                        <label for="sign-docs-full-title">Полное название</label>
-                                    </th>
+                                    <th scope="row">Год / период</th>
                                     <td>
-                                        <textarea id="sign-docs-full-title" name="full_title" class="large-text" rows="3"></textarea>
-                                        <p class="description">Используется на странице проверки, в блоке документа и в публичной карточке. Если оставить пустым, будет использовано краткое название.</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="sign-docs-document-comment">Комментарий</label>
-                                    </th>
-                                    <td>
-                                        <textarea id="sign-docs-document-comment" name="document_comment" class="large-text" rows="3"></textarea>
-                                        <p class="description">Внутреннее описание для администратора. На странице проверки и в блоке документа не отображается.</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="sign-docs-academic-year">Год / период</label>
-                                    </th>
-                                    <td>
-                                        <input id="sign-docs-academic-year" name="academic_year" type="text" class="regular-text" placeholder="на 2025/26 учебный год">
                                         <p class="sign-docs-year-actions" aria-label="Автозаполнение года"></p>
+                                        <p class="description">Нажмите на кнопку периода, чтобы добавить его в название.</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -547,6 +509,11 @@ final class Sign_Docs_Admin
                 <div class="sign-docs-upload-actions sign-docs-upload-actions--bottom">
                     <button id="sign-docs-save-signed" type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed">Сохранить и подписать документ</button>
                     <button id="sign-docs-save-unsigned" type="submit" class="button button-secondary sign-docs-save-unsigned" name="sign_docs_save_mode" value="unsigned">Сохранить без подписи</button>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <label for="sign-docs-document-comment" style="font-weight:600;display:block;margin-bottom:4px;">Комментарий</label>
+                    <textarea id="sign-docs-document-comment" name="document_comment" class="large-text" rows="1" placeholder="Внутреннее описание для администратора"></textarea>
                 </div>
             </form>
         </div>
@@ -610,7 +577,6 @@ final class Sign_Docs_Admin
             $tmp_name,
             array(
                 'post_title' => isset($_POST['post_title']) ? (string) wp_unslash($_POST['post_title']) : '',
-                'full_title' => isset($_POST['full_title']) ? (string) wp_unslash($_POST['full_title']) : '',
                 'document_category' => $document_category,
                 'document_type_label' => isset($_POST['document_type_label']) ? (string) wp_unslash($_POST['document_type_label']) : '',
                 'document_type_term_id' => isset($_POST['document_type_term_id']) ? absint($_POST['document_type_term_id']) : 0,
@@ -632,9 +598,9 @@ final class Sign_Docs_Admin
                 'stamp_border_enabled' => $settings['stamp_border_enabled'],
                 'qr_logo_enabled' => $settings['qr_logo_enabled'],
                 'source_filename' => $source_name,
-                'document_status' => $save_unsigned ? 'unsigned' : 'active',
+                'document_status' => 'unsigned',
                 'document_version' => $replaces_post_id > 0 ? 0 : 1,
-                'defer_stamped' => $save_unsigned,
+                'defer_stamped' => true,
                 'replaces_post_id' => $replaces_post_id,
             )
         );
@@ -651,11 +617,9 @@ final class Sign_Docs_Admin
 
         wp_safe_redirect(
             add_query_arg(
-                array_filter(
-                    array(
-                        'created' => (int) $post_id,
-                        'unsigned' => $save_unsigned ? 1 : null,
-                    )
+                array(
+                    'created' => (int) $post_id,
+                    'unsigned' => 1,
                 ),
                 admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-upload')
             )
@@ -787,7 +751,7 @@ final class Sign_Docs_Admin
 
         self::render_meta_table(
             array(
-                'Название' => Sign_Docs_Meta::get($post_id, 'full_title') ?: get_the_title($post_id),
+                'Название' => get_the_title($post_id),
                 'Комментарий' => Sign_Docs_Meta::get($post_id, 'document_comment') ?: $post->post_content,
                 'Категория' => self::term_names($post_id, 'sign_doc_category'),
                 'Вид документа' => Sign_Docs_Meta::get($post_id, 'document_type_label'),

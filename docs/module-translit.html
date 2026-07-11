@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Module: Translit</title>
+</head>
+<body>
+    <h1>Module: Translit</h1>
+    <p>Модуль <code>includes/class-translit.php</code> преобразует кириллическое название документа в латинское имя файла для файловой системы. Файлы с кириллицей в имени могут вызывать проблемы на некоторых хостингах и в URL.</p>
+
+    <h2>Входные данные</h2>
+    <ul>
+        <li>Кириллическое название документа (<code>post_title</code>), переданное из формы загрузки или REST API.</li>
+    </ul>
+
+    <h2>Выходные данные</h2>
+    <ul>
+        <li>Латинское имя файла длиной до 100 символов, пригодное для использования в пути файловой системы.</li>
+    </ul>
+
+    <h2>Контракт</h2>
+    <ul>
+        <li>Преобразование по стандартной карте: <code>а→a, б→b, … ё→e, ж→zh, ц→ts, ч→ch, ш→sh, щ→sch, э→e, ю→yu, я→ya</code>.</li>
+        <li>Твёрдый и мягкий знак опускаются.</li>
+        <li>Латиница, цифры и дефисы сохраняются; пробелы и небуквенные символы заменяются на дефис.</li>
+        <li>Последовательные дефисы схлопываются.</li>
+        <li>Если результат пуст, возвращается <code>document</code>.</li>
+        <li>Имя файла используется <code>Sign_Docs_Document_Service</code> как <code>file_basename</code>; при наличии basename файлы сохраняются как <code>{basename}.pdf</code> и <code>{basename}-stamped.pdf</code> вместо <code>original.pdf</code> и <code>stamped.pdf</code>.</li>
+    </ul>
+</body>
+</html>

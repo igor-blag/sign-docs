@@ -42,6 +42,7 @@ final class Sign_Docs_Meta
         'source_filename' => 'string',
         'file_size' => 'integer',
         'mime_type' => 'string',
+        'file_basename' => 'string',
         'document_category' => 'string',
         'document_type_label' => 'string',
         'document_type_term_id' => 'integer',

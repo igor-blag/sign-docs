@@ -6,49 +6,45 @@
 </head>
 <body>
     <h1>Module: AI Metadata</h1>
-    <p>Модуль <code>includes/class-ai-metadata.php</code> автозаполняет реквизиты документа по тексту первой страницы PDF. Он не подписывает файл и не меняет контрольную копию; результат используется только как подсказка для формы загрузки.</p>
+    <p>Модуль <code>includes/class-ai-metadata.php</code> автозаполняет реквизиты документа по тексту первой страницы PDF. Он не подписывает файл и не меняет контрольную копию; результат — подсказка для формы загрузки.</p>
+
+    <h2>Регистрация AI ability</h2>
+    <ul>
+        <li><code>register_ability_category()</code> — регистрирует категорию <code>sign-docs</code> в WP Abilities API.</li>
+        <li><code>register_abilities()</code> — регистрирует ability <code>sign-docs/suggest-document-metadata</code> с input/output schema, permission и execute callback.</li>
+        <li>Ability помечена как readonly, не-destructive, не-idempotent, доступна через REST.</li>
+    </ul>
 
     <h2>Входные данные</h2>
     <ul>
-        <li>Текст первой страницы PDF, извлеченный в браузере через локальный PDF.js.</li>
+        <li>Текст первой страницы PDF (извлечён в браузере через локальный PDF.js).</li>
         <li>Имя исходного файла PDF.</li>
         <li>Настройки организации из <code>Sign_Docs_Settings</code>.</li>
-        <li>Текущие термины таксономий: категории, типы документов и институции.</li>
-        <li>Доступный WordPress AI Client и одобренный AI connector.</li>
+        <li>Текущие термины таксономий: категории, типы, институции.</li>
     </ul>
 
     <h2>Выходные данные</h2>
     <ul>
-        <li>Зарегистрированная ability <code>sign-docs/suggest-document-metadata</code>.</li>
         <li>REST endpoint <code>POST /wp-json/sign-docs/v1/suggest-metadata</code>.</li>
-        <li>Подсказки: категория, тип документа, term ID типа, институция, дата, номер, тема, краткое и полное название, confidence и warnings.</li>
+        <li>JSON: category, type_label, type_term_id, institution, date, number, subject, post_title, confidence (0..1), warnings.</li>
     </ul>
 
-    <h2>Модель</h2>
+    <h2>Модель и провайдер</h2>
     <ul>
-        <li>При настроенном OpenRouter модуль явно использует provider <code>openrouter</code>.</li>
+        <li>Предпочитаемый провайдер: <code>openrouter</code> (если настроен).</li>
         <li>Единственная предпочитаемая модель: <code>google/gemini-2.5-flash-lite</code>.</li>
-        <li>Fallback-моделей нет намеренно: если ответ занимает больше нескольких секунд, администратору быстрее заполнить поля вручную.</li>
-        <li>Для OpenRouter передается custom option <code>reasoning: {"exclude": true}</code>, чтобы не возвращать reasoning-текст и не раздувать ответ.</li>
+        <li>Для OpenRouter передаётся <code>reasoning: {"exclude": true}</code>.</li>
+        <li>Ответ запрашивается как JSON через <code>as_json_response()</code> с required-полями.</li>
+        <li>Нормализация ответа: проверка category по существующим slug, сопоставление type по term_id или label, удаление лишних символов.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Автозаполнение включается настройкой <code>ai_autofill_enabled</code>; по умолчанию выключено.</li>
-        <li>Endpoint доступен пользователям с правом <code>sign_docs_upload_documents</code>.</li>
-        <li>Минимальная длина текста первой страницы - 40 символов; более короткий текст считается ненадежным.</li>
-        <li>AI должен выбирать <code>document_category</code> только из slug: <code>local-act</code>, <code>external-regulation</code>, <code>other-document</code>.</li>
-        <li><code>document_type_term_id</code> должен соответствовать существующему термину. Если модель ошиблась, нормализация пытается сопоставить тип по названию.</li>
-        <li>Дата возвращается в формате <code>dd.mm.yyyy</code>, номер без символа <code>№</code>, тема без внешних кавычек.</li>
-        <li>Если пользователь изменил поля после выбора файла, браузерный код не перетирает эти значения ответом AI.</li>
-        <li>Если AI не отвечает или возвращает ошибку, форма остается ручной и загрузка документа не блокируется.</li>
-    </ul>
-
-    <h2>Локальные зависимости</h2>
-    <ul>
-        <li>PDF.js лежит в <code>assets/vendor/pdf.min.mjs</code> и <code>assets/vendor/pdf.worker.min.mjs</code>.</li>
-        <li>OpenRouter provider-плагин в локальном сайте был исправлен для поддержки <code>outputMimeType</code>, <code>outputSchema</code> и формата OpenAI structured output <code>json_schema.schema</code>.</li>
-        <li>Правки provider-плагина находятся вне репозитория <code>sign-docs</code> и могут быть затерты обновлением плагина из WordPress.org.</li>
+        <li>Включается настройкой <code>ai_autofill_enabled</code> (по умолчанию выключено).</li>
+        <li>Минимальная длина текста — 40 символов (<code>compact_text()</code> нормализует пробелы и пустые строки).</li>
+        <li>Если AI не отвечает или возвращает ошибку, форма остаётся ручной.</li>
+        <li>Если пользователь изменил поля после выбора файла, браузер не перетирает их ответом AI.</li>
+        <li>Патчи OpenRouter provider-плагина находятся вне репозитория плагина.</li>
     </ul>
 </body>
 </html>

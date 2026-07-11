@@ -48,6 +48,7 @@ final class Sign_Docs_Document_Service
         }
         $args['post_title'] = $title;
         $args['full_title'] = $full_title;
+        $file_basename = Sign_Docs_Translit::filename_from_title($title);
         $replaces_post_id = self::valid_replaces_post_id(isset($args['replaces_post_id']) ? absint($args['replaces_post_id']) : 0);
         $replacement_note = isset($args['replacement_note']) ? sanitize_text_field((string) $args['replacement_note']) : '';
 
@@ -76,7 +77,7 @@ final class Sign_Docs_Document_Service
 
         $post_id = (int) $post_id;
         $timestamp = strtotime($signed_at) ?: time();
-        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp);
+        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp, $file_basename);
 
         if (! copy($source_path, $paths['original_path'])) {
             self::rollback_created_post($post_id);
@@ -136,6 +137,7 @@ final class Sign_Docs_Document_Service
             'source_filename' => $source_filename,
             'file_size' => filesize($paths['original_path']) ?: 0,
             'mime_type' => $mime_type,
+            'file_basename' => $file_basename,
             'document_category' => isset($args['document_category']) ? sanitize_key((string) $args['document_category']) : '',
             'document_type_label' => isset($args['document_type_label']) ? sanitize_text_field((string) $args['document_type_label']) : '',
             'document_type_term_id' => isset($args['document_type_term_id']) ? absint($args['document_type_term_id']) : 0,
@@ -227,7 +229,8 @@ final class Sign_Docs_Document_Service
         $qr_code_data = Sign_Docs_Meta::get($post_id, 'qr_code_data');
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $timestamp = strtotime($signed_at) ?: time();
-        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp);
+        $file_basename = Sign_Docs_Meta::get($post_id, 'file_basename');
+        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp, $file_basename ?: null);
 
         if ('' === $original_path || ! is_readable($original_path)) {
             return new WP_Error('sign_docs_original_missing', __('Original PDF is missing.', 'sign-docs'));

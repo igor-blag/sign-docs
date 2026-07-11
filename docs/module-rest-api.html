@@ -11,48 +11,49 @@
     <h2>documents</h2>
     <p><code>GET /wp-json/sign-docs/v1/documents</code></p>
     <ul>
-        <li>Возвращает опубликованные записи <code>sign-docs</code> для модалки выбора загруженного документа.</li>
-        <li>Поддерживает фильтры поиска, статуса, категории, типа документа, подразделения, страницы и размера страницы.</li>
-        <li>Возвращает title, full title, verification URL, stamped/original file URLs, SHA-256, статус, дату подписи и версию.</li>
-        <li>Возвращает списки фильтров по таксономиям для editor UI.</li>
+        <li>Возвращает опубликованные записи <code>sign-docs</code> для модалки выбора.</li>
+        <li>Поддерживает фильтры: <code>search</code>, <code>status</code> (document_status), <code>category</code>, <code>type</code>, <code>department</code>, <code>page</code>, <code>per_page</code>, <code>include</code>.</li>
+        <li>Возвращает: id, title, verificationUrl, stampedFileUrl, originalFileUrl, status, signedAt, documentVersion, replacesPostId, replacedByPostId, sha256Hash, type, department.</li>
+        <li>Доступ: <code>edit_posts</code>.</li>
     </ul>
 
     <h2>prepare</h2>
     <p><code>POST /wp-json/sign-docs/v1/prepare</code></p>
     <ul>
-        <li>Принимает исходный PDF, реквизиты документа, категорию, тип, институцию, дату, номер, тему, данные подписанта и необязательный <code>replaces_post_id</code>.</li>
-        <li>Сохраняет исходник как контрольную копию.</li>
-        <li>Считает серверный SHA-256.</li>
-        <li>Для подписываемого документа создает приватную запись <code>sign-docs</code> со статусом <code>needs_public_copy</code> и meta <code>prepared_at</code>.</li>
-        <li>Возвращает данные для браузерного штампа: hash, URL проверки, дату, подписанта.</li>
-        <li>Возвращает параметры штампа, включая угол, цвет, прозрачность, размер шрифта, ширину, рамку и данные QR-кода.</li>
+        <li>Принимает мультипарт-форму: <code>original_pdf</code> (файл), реквизиты документа, <code>save_mode</code> (signed/unsigned), <code>replaces_post_id</code>.</li>
+        <li>При <code>save_mode=unsigned</code> или <code>document_category=external-regulation</code> подписант очищается, статус <code>unsigned</code>.</li>
+        <li>Вызывает <code>Sign_Docs_Document_Service::prepare_from_local_pdf()</code>.</li>
+        <li>Сохраняет исходник как контрольную копию, считает SHA-256.</li>
+        <li>Создаёт приватную запись со статусом <code>needs_public_copy</code> (или <code>unsigned</code>).</li>
+        <li>Возвращает данные для браузерного штампа: все параметры штампа (цвет, прозрачность, угол, ширина, рамка, ручные координаты, логотип в QR).</li>
+        <li>Доступ: <code>sign_docs_upload_documents</code>.</li>
     </ul>
 
     <h2>complete</h2>
     <p><code>POST /wp-json/sign-docs/v1/complete</code></p>
     <ul>
-        <li>Принимает <code>post_id</code> и готовый <code>stamped.pdf</code>.</li>
-        <li>Сохраняет публичную копию рядом с исходником в <code>uploads/sign-docs/year/month/post-id/stamped.pdf</code>.</li>
-        <li>Переводит документ в статус <code>active</code>, публикует запись и при наличии <code>replaces_post_id</code> помечает предыдущий документ как <code>replaced</code>.</li>
+        <li>Принимает <code>post_id</code> и <code>stamped_pdf</code> (файл).</li>
+        <li>Вызывает <code>Sign_Docs_Document_Service::complete_with_stamped_pdf()</code>.</li>
+        <li>Проверяет: запись существует, статус <code>needs_public_copy</code>, исходник на месте, SHA-256 совпадает, verification data не пуста.</li>
+        <li>Сохраняет stamped.pdf, переводит документ в <code>active</code>, публикует, применяет замену (replaces).</li>
+        <li>Доступ: <code>sign_docs_upload_documents</code> + <code>edit_post</code> для конкретной записи.</li>
     </ul>
 
     <h2>suggest-metadata</h2>
     <p><code>POST /wp-json/sign-docs/v1/suggest-metadata</code></p>
     <ul>
-        <li>Принимает <code>first_page_text</code> и необязательный <code>source_filename</code>.</li>
+        <li>Принимает <code>first_page_text</code> (обязательно) и <code>source_filename</code>.</li>
         <li>Вызывает ability <code>sign-docs/suggest-document-metadata</code>.</li>
-        <li>Возвращает JSON-подсказки для категории, типа документа, даты, номера, темы, институции и названий.</li>
-        <li>Используется только админским JavaScript после локального извлечения текста из первой страницы PDF.</li>
+        <li>Возвращает: category, type_label, type_term_id, institution, date, number, subject, post_title, confidence, warnings.</li>
+        <li>Доступ: <code>sign_docs_upload_documents</code>.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Write-endpoints доступны только пользователям с отдельным правом <code>sign_docs_upload_documents</code>.</li>
-        <li><code>complete</code> дополнительно требует права <code>edit_post</code> для конкретной записи документа.</li>
-        <li>Endpoint выбора документов доступен пользователям, которым разрешено редактировать записи в редакторе.</li>
-        <li>Endpoint AI-подсказок доступен пользователям с правом <code>sign_docs_upload_documents</code>.</li>
-        <li>Юридически значимым остается hash исходной контрольной копии.</li>
-        <li>Stamped PDF является публичным визуальным артефактом и не используется как источник истины.</li>
+        <li>Write-endpoints доступны только пользователям с <code>sign_docs_upload_documents</code>.</li>
+        <li><code>complete</code> дополнительно требует <code>edit_post</code> для конкретной записи.</li>
+        <li>Юридически значимым остаётся хеш исходной контрольной копии.</li>
+        <li>Stamped PDF — публичный визуальный артефакт, не источник истины.</li>
     </ul>
 </body>
 </html>

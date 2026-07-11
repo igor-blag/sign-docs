@@ -161,7 +161,6 @@ final class Sign_Docs_REST_Controller
             $items[] = array(
                 'id' => $post_id,
                 'title' => get_the_title($post_id),
-                'fullTitle' => Sign_Docs_Meta::get($post_id, 'full_title') ?: get_the_title($post_id),
                 'verificationUrl' => Sign_Docs_Meta::get($post_id, 'verification_url') ?: Sign_Docs_Verification_Page::url($post_id),
                 'stampedFileUrl' => Sign_Docs_Meta::get($post_id, 'stamped_file_url'),
                 'originalFileUrl' => Sign_Docs_Meta::get($post_id, 'original_file_url'),
@@ -212,7 +211,6 @@ final class Sign_Docs_REST_Controller
             (string) $file['tmp_name'],
             array(
                 'post_title' => (string) $request->get_param('post_title'),
-                'full_title' => (string) $request->get_param('full_title'),
                 'document_comment' => (string) $request->get_param('document_comment'),
                 'document_category' => $document_category,
                 'document_type_label' => (string) $request->get_param('document_type_label'),
@@ -258,7 +256,7 @@ final class Sign_Docs_REST_Controller
                 'sha256_hash' => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
                 'original_file_url' => Sign_Docs_Meta::get($post_id, 'original_file_url'),
                 'signed_at' => Sign_Docs_Meta::get($post_id, 'signed_at'),
-                'title' => Sign_Docs_Meta::get($post_id, 'full_title') ?: get_the_title($post_id),
+                'title' => get_the_title($post_id),
                 'signer' => trim(Sign_Docs_Meta::get($post_id, 'signer_position') . ' ' . Sign_Docs_Meta::get($post_id, 'signer_name')),
                 'signer_name' => Sign_Docs_Meta::get($post_id, 'signer_name'),
                 'signer_position' => Sign_Docs_Meta::get($post_id, 'signer_position'),

@@ -6,33 +6,75 @@
 </head>
 <body>
     <h1>Module: Document Service</h1>
-    <p>Модуль <code>Sign_Docs_Document_Service</code> выполняет первый вертикальный сценарий подписи PDF.</p>
+    <p>Модуль <code>Sign_Docs_Document_Service</code> выполняет создание записи документа из PDF-файла: копирует исходник, считает SHA-256, сохраняет meta, управляет двухфазным prepare/complete и заменой документов.</p>
+
+    <h2>Методы</h2>
+
+    <h3>create_from_local_pdf(source_path, args): int|WP_Error</h3>
+    <p>Базовый метод создания записи. Принимает путь к локальному PDF и массив аргументов. Выполняет:</p>
+    <ul>
+        <li>Проверка читаемости и MIME-типа PDF.</li>
+        <li>Сборка <code>post_title</code> через <code>Sign_Docs_Title_Template::compose()</code>, если не передан явно.</li>
+        <li>Создание CPT-записи <code>sign-docs</code>.</li>
+        <li>Создание директорий через <code>Sign_Docs_Storage::ensure_document_directories()</code> с опциональным <code>file_basename</code> для нестандартного имени файла (транслитерация).</li>
+        <li>Копирование исходника как <code>original.pdf</code> (или <code>{file_basename}.pdf</code>).</li>
+        <li>Расчёт серверного SHA-256.</li>
+        <li>Запись всех meta-полей документа (подписант, штамп, реквизиты, термы таксономий).</li>
+        <li>Проверка контракта: если <code>defer_stamped=false</code> (синхронная подпись), документ должен иметь статус <code>unsigned</code>; статус <code>active</code> без <code>defer_stamped</code> запрещён — сервер не генерирует stamped PDF.</li>
+        <li>Назначение термов таксономий: категория, тип документа, институция.</li>
+        <li>Вызов <code>apply_replacement()</code>, если документ не отложенный.</li>
+    </ul>
+
+    <h3>prepare_from_local_pdf(source_path, args): int|WP_Error</h3>
+    <p>Двухфазная подготовка: вызывает <code>create_from_local_pdf</code> с <code>defer_stamped=true</code> и <code>document_status=needs_public_copy</code>. Создаёт приватную запись без публичной копии. Используется REST endpoint <code>POST /prepare</code>.</p>
+
+    <h3>complete_with_stamped_pdf(post_id, stamped_source_path): true|WP_Error</h3>
+    <p>Завершает двухфазную подпись:</p>
+    <ul>
+        <li>Проверяет, что запись существует и имеет статус <code>needs_public_copy</code>.</li>
+        <li>Проверяет, что исходный PDF на месте и его SHA-256 совпадает с сохранённым (<code>hash_equals</code>).</li>
+        <li>Проверяет, что verification_url и qr_code_data не пусты.</li>
+        <li>Копирует полученный stamped PDF в постоянное хранилище.</li>
+        <li>Считает SHA-256 публичной копии.</li>
+        <li>Записывает audit-поля: <code>completed_at</code>, <code>completed_by_user_id</code>, <code>completed_ip</code>, <code>completed_user_agent</code>.</li>
+        <li>Переводит запись в <code>active</code> и публикует.</li>
+        <li>Вызывает <code>apply_replacement()</code>.</li>
+    </ul>
+
+    <h3>valid_replaces_post_id(post_id): int</h3>
+    <p>Проверяет, что ID существует и относится к CPT <code>sign-docs</code>. Возвращает ID или 0.</p>
+
+    <h3>apply_replacement(post_id): void</h3>
+    <p>Если у new-записи указан <code>replaces_post_id</code>, помечает старую запись статусом <code>replaced</code> и устанавливает <code>replaced_by_post_id</code>.</p>
 
     <h2>Входные данные</h2>
     <ul>
-        <li>Путь к локальному PDF-файлу, доступному WordPress.</li>
+        <li>Путь к локальному PDF-файлу.</li>
         <li>Краткое и полное название документа.</li>
         <li>Данные подписанта: ФИО, должность, организация.</li>
-        <li>Исходное имя файла.</li>
+        <li>Реквизиты: категория, тип, институция, дата, номер, тема, год/период.</li>
+        <li>Параметры штампа: угол, цвет, прозрачность, размер шрифта, ширина, рамка, ручные координаты, логотип в QR.</li>
+        <li>Опциональный <code>replaces_post_id</code> для замены документа.</li>
     </ul>
 
     <h2>Выходные данные</h2>
     <ul>
-        <li>Запись CPT <code>sign-docs</code>: опубликованная для завершенного документа или приватная для промежуточного состояния <code>needs_public_copy</code>.</li>
-        <li>Неизмененная контрольная копия <code>original.pdf</code>.</li>
-        <li>Публичная копия <code>stamped.pdf</code> появляется только после браузерного workflow <code>prepare/complete</code>; серверный fallback не генерирует PDF-копию.</li>
+        <li>Запись CPT <code>sign-docs</code>: опубликованная (<code>active</code>) или приватная (<code>needs_public_copy</code>, <code>unsigned</code>).</li>
+        <li>Неизменённая контрольная копия <code>original.pdf</code> или <code>{file_basename}.pdf</code>.</li>
+        <li>Публичная копия <code>stamped.pdf</code> или <code>{file_basename}-stamped.pdf</code> — только после <code>complete</code>.</li>
         <li>Серверный SHA-256 исходной контрольной копии.</li>
-        <li>Meta-поля документа, включая URL проверки и данные для QR-кода.</li>
+        <li>Все meta-поля документа, URL проверки, QR data.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Модуль принимает только PDF с MIME <code>application/pdf</code>.</li>
-        <li><code>post_title</code> хранит краткое название записи, а <code>full_title</code> сохраняется отдельно в meta; если полное название не передано, используется краткое.</li>
+        <li>Модуль принимает только PDF с MIME <code>application/pdf</code> (fileinfo или wp_check_filetype).</li>
+        <li><code>post_title</code> — краткое название; <code>full_title</code> — полное (из meta, не перезаписывается кратким).</li>
         <li>Хеш считается после сохранения контрольной копии в постоянное хранилище.</li>
-        <li>Промежуточная запись двухфазной подписи создается приватной и публикуется только после успешного сохранения <code>stamped.pdf</code>.</li>
-        <li>При ошибке сохранения или расчета хеша запись удаляется через внутренний rollback, который не должен превращаться в пользовательское архивирование.</li>
-        <li>Разметка поверх страниц исходного PDF выполняется только в браузере через <code>pdf-lib</code>. Серверный PHP-код не должен подменять ее отдельным PDF-сертификатом.</li>
+        <li>Промежуточная запись двухфазной подписи создаётся приватной и публикуется только после успешного сохранения <code>stamped.pdf</code>.</li>
+        <li>При ошибке сохранения или расчёта хеша запись удаляется через внутренний rollback (<code>wp_delete_post</code> с force=true), который не должен превращаться в пользовательское архивирование (флаг <code>rollback_delete_in_progress</code>).</li>
+        <li>Сервер не генерирует <code>stamped.pdf</code>; визуальная отметка наносится только в браузере через <code>pdf-lib</code>.</li>
+        <li>IP и User-Agent сохраняются как audit-поля (<code>substr</code> до 100 и 500 символов соответственно).</li>
     </ul>
 </body>
 </html>

@@ -8,3 +8,12 @@ __pycache__/
 extracted*.txt
 *автовосстановление*.docx
 tests/.tmp/
+
+# Distribution build artifact
+/sign-docs/
+
+# macOS
+.DS_Store
+
+# Personal agent instructions (contains local paths)
+/AGENTS.md

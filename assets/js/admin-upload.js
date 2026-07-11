@@ -226,10 +226,7 @@
             'document_institution',
             'document_date',
             'document_number',
-            'document_subject',
-            'academic_year',
             'post_title',
-            'full_title',
             'document_comment'
         ].forEach(function (name) {
             values[name] = field(name);
@@ -298,7 +295,6 @@
         setFieldIfUnchanged('document_institution', suggestion.document_institution, initialValues);
         setFieldIfUnchanged('document_date', suggestion.document_date, initialValues);
         setFieldIfUnchanged('document_number', suggestion.document_number, initialValues);
-        setFieldIfUnchanged('document_subject', suggestion.document_subject, initialValues);
 
         syncInstitutionMode();
         syncDocumentTitle();
@@ -306,7 +302,6 @@
         if (suggestion.post_title && !titleManuallyEdited) {
             setFieldIfUnchanged('post_title', suggestion.post_title, initialValues);
         }
-        setFieldIfUnchanged('full_title', suggestion.full_title, initialValues);
     }
 
     async function suggestMetadataFromFile(file) {
@@ -432,8 +427,12 @@
     }
 
     function titleComponentValue(name, rule) {
-        if (name === 'document_subject') {
-            return String(rule && rule.subject_quotes === '1' ? quoteSubject(inputValue(name)) : plainSubject(inputValue(name))).trim();
+        if (name === 'document_institution') {
+            return '';
+        }
+        if (name === 'document_number') {
+            var num = inputValue(name).replace(/^[№\s]+/, '').trim();
+            return num ? '№ ' + num : '';
         }
 
         return inputValue(name);
@@ -516,8 +515,8 @@
 
     function renderYearPresetButtons() {
         const container = form.querySelector('.sign-docs-year-actions');
-        const input = form.querySelector('[name="academic_year"]');
-        if (!container || !input) {
+        const titleInput = form.querySelector('[name="post_title"]');
+        if (!container || !titleInput) {
             return;
         }
 
@@ -535,8 +534,9 @@
                 button.className = 'button button-small';
                 button.textContent = item.label;
                 button.addEventListener('click', function () {
-                    input.value = item.value;
-                    syncDocumentTitle();
+                    var currentTitle = titleInput.value.trim();
+                    titleInput.value = currentTitle ? currentTitle + ' ' + item.value : item.value;
+                    titleManuallyEdited = true;
                 });
                 groupEl.appendChild(button);
             });
@@ -545,23 +545,29 @@
         });
     }
 
-    function applySubjectCase(mode) {
-        const subjectInput = form.querySelector('[name="document_subject"]');
-        if (!subjectInput) {
+    function applySentenceCase() {
+        const titleInput = form.querySelector('[name="post_title"]');
+        if (!titleInput) {
             return;
         }
 
-        const source = subjectInput.value.trim();
-        if (mode === 'upper') {
-            subjectInput.value = source.toLocaleUpperCase('ru-RU');
-        } else if (mode === 'lower') {
-            subjectInput.value = source.toLocaleLowerCase('ru-RU');
-        } else {
-            const lower = source.toLocaleLowerCase('ru-RU');
-            subjectInput.value = lower ? lower.charAt(0).toLocaleUpperCase('ru-RU') + lower.slice(1) : '';
+        var source = titleInput.value.trim();
+        if (!source) {
+            return;
         }
 
-        syncDocumentTitle();
+        var lower = source.toLocaleLowerCase('ru-RU');
+        titleInput.value = lower ? lower.charAt(0).toLocaleUpperCase('ru-RU') + lower.slice(1) : '';
+        titleManuallyEdited = true;
+    }
+
+    function formatDateInput(value) {
+        var digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return '';
+        var formatted = digits.substring(0, 2);
+        if (digits.length > 2) formatted += '.' + digits.substring(2, 4);
+        if (digits.length > 4) formatted += '.' + digits.substring(4, 8);
+        return formatted;
     }
 
     function syncDocumentTypeOptions() {
@@ -598,17 +604,12 @@
 
     function syncInstitutionMode() {
         const institutionRow = document.getElementById('sign-docs-institution-row');
-        const includeInstitutionRow = document.getElementById('sign-docs-include-institution-row');
         const institutionInput = form.querySelector('[name="document_institution"]');
         const defaultInstitutionInput = form.querySelector('[name="default_institution"]');
         const defaultInstitution = defaultInstitutionInput ? defaultInstitutionInput.value.trim() : '';
 
         if (institutionRow) {
             institutionRow.hidden = isLocalAct();
-        }
-
-        if (includeInstitutionRow) {
-            includeInstitutionRow.hidden = !isLocalAct();
         }
 
         if (isLocalAct() && institutionInput) {
@@ -848,7 +849,7 @@
     function fillTitleFromFile(file) {
         const titleInput = form.querySelector('[name="post_title"]');
 
-        if (!titleInput || !file || titleInput.value.trim() !== '' || composeDocumentTitle()) {
+        if (!titleInput || !file) {
             return;
         }
 
@@ -857,6 +858,7 @@
             .replace(/[_-]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
+        titleManuallyEdited = false;
     }
 
     function field(name) {
@@ -1061,12 +1063,16 @@
 
     function compactSignedAt(value) {
         const source = String(value || '').trim();
-        const match = source.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-        if (match) {
-            return match[3] + '.' + match[2] + '.' + match[1] + ', ' + match[4] + ':' + match[5];
-        }
-
-        return source.replace(/(\d{1,2}:\d{2}):\d{2}(?=\s|$)/, '$1');
+        if (!source) return '';
+        const d = new Date(source.replace(' ', 'T'));
+        if (isNaN(d.getTime())) return source.replace(/(\d{1,2}:\d{2}):\d{2}(?=\s|$)/, '$1');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mi = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        return dd + '.' + mm + '.' + yyyy + ' ' + hh + ':' + mi + ':' + ss;
     }
 
     function localSignedAt() {
@@ -1130,21 +1136,27 @@
         return lines;
     }
 
-    function stampTextRows(data, fonts, fontSize, textWidth) {
-        const signedText = 'Документ подписан: ' + compactSignedAt(data.local_signed_at || data.signed_at);
-        const signedFontSize = fittedFontSize(fonts.regular, signedText, fontSize * 0.83, textWidth, 5.6);
+    function stampTextRows(data, fonts, fontSize, textWidth, fullWidth) {
         const rows = [];
+        const hash = data.sha256_hash || '';
+        const shortHash = hash.length > 8 ? hash.slice(0, 4) + '...' + hash.slice(-4) : hash;
 
-        wrapText(fonts.medium, data.signer_name || data.signer || '', fontSize, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.medium });
+        wrapText(fonts.regular, 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ', fontSize, fullWidth, 2).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
         });
-        wrapText(fonts.regular, data.signer_position || '', fontSize * 0.93, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize * 0.93, font: fonts.regular });
+        const line1 = compactSignedAt(data.local_signed_at || data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash;
+        wrapText(fonts.regular, line1, fontSize, textWidth, 2).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
         });
-        wrapText(fonts.regular, data.organization || '', fontSize * 0.89, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize * 0.89, font: fonts.regular });
+        wrapText(fonts.regular, data.signer_name || data.signer || '', fontSize, textWidth, 1).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
         });
-        rows.push({ text: signedText, size: signedFontSize, font: fonts.regular });
+        wrapText(fonts.regular, data.signer_position || '', fontSize, textWidth, 1).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
+        });
+        wrapText(fonts.regular, data.organization || '', fontSize, fullWidth, 3).forEach(function (line) {
+            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
+        });
 
         return rows;
     }
@@ -1250,8 +1262,9 @@
         const qrSize = 54;
         const innerPadding = 8;
         const textWidth = stampWidth - qrSize - innerPadding * 3;
-        const rows = stampTextRows(data, fonts, fontSize, textWidth);
-        const stampHeight = Math.max(82, innerPadding * 2 + rows.length * lineHeight + 4);
+        const fullWidth = stampWidth - innerPadding * 2;
+        const rows = stampTextRows(data, fonts, fontSize, textWidth, fullWidth);
+        const stampHeight = Math.max(innerPadding * 2 + qrSize + 4, innerPadding * 2 + rows.length * lineHeight + 4);
         const origin = manualStampOrigin(size, stampWidth, stampHeight, data) || stampOrigin(size, stampWidth, stampHeight, data.stamp_corner || 'top-left');
         const x = origin.x;
         const y = origin.y;
@@ -1259,7 +1272,7 @@
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const opacity = stampOpacity(data);
         const qrX = x + stampWidth - qrSize - innerPadding;
-        const qrY = y + 24;
+        const qrY = y + (stampHeight - qrSize) / 2;
         const textX = x + innerPadding;
         let textY = y + stampHeight - innerPadding - fontSize;
 
@@ -1283,7 +1296,7 @@
                 font: row.font,
                 color: mainColor,
                 opacity: opacity,
-                maxWidth: textWidth
+                maxWidth: row.maxWidth
             });
             textY -= lineHeight;
         });
@@ -1318,7 +1331,7 @@
         const PDFLib = window.PDFLib;
         const size = page.getSize();
         const margin = Math.min(30, Math.max(16, size.width * 0.04));
-        const y = 18;
+        const y = size.height - margin - 28;
         const stampWidth = size.width - margin * 2;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
@@ -1408,7 +1421,6 @@
             const prepareData = new FormData();
             prepareData.append('original_pdf', file, file.name);
             prepareData.append('post_title', field('post_title'));
-            prepareData.append('full_title', field('full_title') || field('post_title'));
             prepareData.append('document_comment', field('document_comment'));
             prepareData.append('document_category', field('document_category'));
             prepareData.append('document_type_label', field('document_type_label'));
@@ -1416,8 +1428,6 @@
             prepareData.append('document_institution', field('document_institution'));
             prepareData.append('document_date', field('document_date'));
             prepareData.append('document_number', field('document_number'));
-            prepareData.append('document_subject', field('document_subject'));
-            prepareData.append('academic_year', field('academic_year'));
             prepareData.append('signer_name', field('signer_name'));
             prepareData.append('signer_position', field('signer_position'));
             prepareData.append('signer_organization', field('signer_organization'));
@@ -1506,7 +1516,15 @@
         });
     }
 
-    ['document_category', 'document_type_label', 'document_institution', 'document_date', 'document_number', 'document_subject', 'academic_year'].forEach(function (name) {
+    var categoryInput = form.querySelector('[name="document_category"]');
+    if (categoryInput) {
+        var savedCategory = window.localStorage.getItem('sign_docs_last_category');
+        if (savedCategory && categoryInput.querySelector('option[value="' + savedCategory.replace(/"/g, '') + '"]')) {
+            categoryInput.value = savedCategory;
+        }
+    }
+
+    ['document_category', 'document_type_label', 'document_institution', 'document_date', 'document_number'].forEach(function (name) {
         const input = form.querySelector('[name="' + name + '"]');
         if (!input) {
             return;
@@ -1516,22 +1534,15 @@
             if (name === 'document_date') {
                 renderYearPresetButtons();
             }
+            if (name === 'document_category') {
+                window.localStorage.setItem('sign_docs_last_category', input.value);
+            }
             (name === 'document_category' || name === 'document_type_label' ? syncDocumentTypeOptions : syncDocumentTitle)();
         };
 
         input.addEventListener('input', handler);
         input.addEventListener('change', handler);
     });
-
-    const includeInstitutionInput = form.querySelector('[name="include_institution_in_title"]');
-    if (includeInstitutionInput) {
-        includeInstitutionInput.addEventListener('change', syncDocumentTitle);
-    }
-
-    const includeSubjectQuotesInput = form.querySelector('[name="include_subject_quotes_in_title"]');
-    if (includeSubjectQuotesInput) {
-        includeSubjectQuotesInput.addEventListener('change', syncDocumentTitle);
-    }
 
     const institutionSelect = document.getElementById('sign-docs-institution-select');
     const institutionInput = form.querySelector('[name="document_institution"]');
@@ -1546,6 +1557,32 @@
         });
     }
 
+    const addInstitutionBtn = document.getElementById('sign-docs-add-institution-to-title');
+    if (addInstitutionBtn && institutionInput) {
+        addInstitutionBtn.addEventListener('click', function () {
+            var institutionValue = institutionInput.value.trim();
+            if (!institutionValue) {
+                return;
+            }
+
+            var titleInput = form.querySelector('[name="post_title"]');
+            if (!titleInput) {
+                return;
+            }
+
+            var currentTitle = titleInput.value.trim();
+            titleInput.value = currentTitle ? currentTitle + ' ' + institutionValue : institutionValue;
+            titleManuallyEdited = true;
+        });
+    }
+
+    var dateInput = form.querySelector('[name="document_date"]');
+    if (dateInput) {
+        dateInput.addEventListener('input', function () {
+            dateInput.value = formatDateInput(dateInput.value);
+        });
+    }
+
     const titleInput = form.querySelector('[name="post_title"]');
     if (titleInput) {
         titleInput.addEventListener('input', function () {
@@ -1555,11 +1592,10 @@
 
     renderYearPresetButtons();
 
-    Array.prototype.forEach.call(form.querySelectorAll('[data-sign-docs-case]'), function (button) {
-        button.addEventListener('click', function () {
-            applySubjectCase(button.getAttribute('data-sign-docs-case') || 'sentence');
-        });
-    });
+    var sentenceBtn = document.getElementById('sign-docs-sentence-case');
+    if (sentenceBtn) {
+        sentenceBtn.addEventListener('click', applySentenceCase);
+    }
 
     syncDocumentTypeOptions();
     syncUploadMode();

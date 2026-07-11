@@ -90,7 +90,7 @@ run_test(
 
         $original_path = Sign_Docs_Meta::get($post_id, 'original_file_path');
         assert_true(is_file($original_path), 'Original control copy should exist.');
-        assert_true(str_contains($original_path, '/uploads/sign-docs/2026/05/' . (string) $post_id . '/original.pdf'), 'Original path should use the contract directory structure.');
+        assert_true(str_contains($original_path, '/uploads/sign-docs/2026/05/' . (string) $post_id . '/short-title.pdf'), 'Original path should use the contract directory structure.');
         assert_same(Sign_Docs_Meta::get($post_id, 'sha256_hash'), hash_file('sha256', $original_path), 'Stored SHA-256 should be calculated from the saved original.');
         assert_same(Sign_Docs_Meta::get($post_id, 'stamped_file_path'), '', 'Stamped copy path should be empty until complete.');
         assert_same(Sign_Docs_Meta::get($post_id, 'verification_url'), 'https://example.test/sign-docs/' . (string) $post_id . '/', 'Verification URL should be stored for QR data.');

@@ -6,27 +6,47 @@
 </head>
 <body>
     <h1>Module: Taxonomies</h1>
-    <p>Модуль регистрирует таксономии классификации подписанных документов.</p>
+    <p>Модуль <code>Sign_Docs_Taxonomies</code> регистрирует таксономии классификации подписанных документов. Все таксономии непубличные (<code>public=false</code>), показываются в админке, доступны через REST.</p>
 
-    <h2>Входные данные</h2>
+    <h2>Зарегистрированные таксономии</h2>
+
+    <h3>sign_doc_category</h3>
+    <p>Категории документов. Иерархическая. Термины по умолчанию:</p>
     <ul>
-        <li>Хук WordPress <code>init</code>.</li>
-        <li>CPT <code>sign-docs</code>.</li>
+        <li><code>local-act</code> — Локальный акт</li>
+        <li><code>external-regulation</code> — Внешний нормативный документ</li>
+        <li><code>other-document</code> — Прочий документ</li>
     </ul>
 
-    <h2>Выходные данные</h2>
+    <h3>sign_doc_type</h3>
+    <p>Типы/виды документов. Иерархическая. Двухуровневая структура: родительские категории и дочерние типы.</p>
     <ul>
-        <li><code>sign_doc_category</code> - категория документа: локальный акт, внешний нормативный документ, прочий документ.</li>
-        <li><code>sign_doc_type</code> - иерархический вид документа. Верхний уровень: локальные акты, внешние нормативные документы, прочие документы; дочерние термины: приказ, положение, распоряжение, постановление, федеральный закон и т.д.</li>
-        <li><code>sign_doc_institution</code> - институция или организация, non-hierarchical taxonomy с поведением, близким к меткам.</li>
-        <li><code>sign_doc_department</code> - подразделение или раздел сайта.</li>
+        <li><code>local-acts</code> → <code>local-order</code> (Приказ), <code>local-regulation</code> (Положение), <code>local-rule</code> (Правила), <code>local-program</code> (Программа)</li>
+        <li><code>external-regulations</code> → <code>external-order</code> (Приказ), <code>external-directive</code> (Распоряжение), <code>external-resolution</code> (Постановление), <code>external-federal-law</code> (Федеральный закон)</li>
+        <li><code>other-documents</code> → <code>other-document-type</code> (Иное)</li>
+    </ul>
+    <p>При регистрации удаляются устаревшие плоские термины (<code>order</code>, <code>regulation</code>, <code>directive</code>, <code>resolution</code>, <code>federal-law</code>), если они не используются.</p>
+
+    <h3>sign_doc_department</h3>
+    <p>Структурные подразделения. Иерархическая.</p>
+
+    <h3>sign_doc_institution</h3>
+    <p>Институции / органы власти, издавшие документ. Неиерархическая (<code>hierarchical=false</code>).</p>
+
+    <h2>Связь с формами</h2>
+    <ul>
+        <li>Категория выбирается в форме загрузки и влияет на доступные типы документов.</li>
+        <li>Тип документа привязан к родительской категории: при смене категории список типов фильтруется.</li>
+        <li>Институция — комбинированный ввод: выбор существующего термина или ввод нового (через wp_insert_term).</li>
+        <li>Для локальных актов институция подставляется из настроек организации.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Таксономии доступны в админке и REST. Пункты справочников скрыты из меню <code>Sign Docs</code>, ссылки на стандартные экраны WordPress размещены в настройках.</li>
-        <li>Модуль создает базовые термины для категорий и видов документа, чтобы форма загрузки была готова сразу после активации.</li>
-        <li>Таксономии не заменяют юридический статус документа, который хранится в meta <code>document_status</code>.</li>
+        <li>Таксономии регистрируются на <code>init</code> вместе с CPT.</li>
+        <li>Термины по умолчанию создаются только если их ещё нет (<code>term_exists</code>).</li>
+        <li>Show admin column включено для всех таксономий.</li>
+        <li>Меню таксономий скрыты из админки (<code>remove_taxonomy_menus</code>), доступны только через ссылки со страницы настроек.</li>
     </ul>
 </body>
 </html>

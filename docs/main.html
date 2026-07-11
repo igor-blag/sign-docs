@@ -12,38 +12,40 @@
     <ul>
         <li>Исходный PDF после подписания не изменяется.</li>
         <li>Серверный SHA-256 является главным источником истины.</li>
-        <li>Публичная PDF-копия может содержать визуальную отметку, QR-код и человекочитаемые данные.</li>
+        <li>Публичная PDF-копия создается только в браузере через <code>pdf-lib</code>; сервер не генерирует и не подменяет stamped PDF.</li>
         <li>QR-код ведет на страницу проверки, а не напрямую на PDF.</li>
-        <li>Повторная подпись должна создавать новую версию, не перезаписывая предыдущую.</li>
+        <li>Повторная подпись создает новую версию, не перезаписывая предыдущую.</li>
+        <li>Удаление записи заменяется переводом в статус <code>archived</code>.</li>
     </ul>
 
     <h2>Модули</h2>
     <ul>
-        <li><a href="session-handoff.html">Session Handoff</a> - current state, recent changes, checks and next steps.</li>
-        <li><a href="module-plugin.html">Plugin</a> - координация загрузки модулей и lifecycle hooks.</li>
-        <li><a href="module-post-type.html">Post Type</a> - регистрация CPT <code>sign-docs</code>.</li>
-        <li><a href="module-meta.html">Meta</a> - контракт метаданных документа.</li>
-        <li><a href="module-taxonomies.html">Taxonomies</a> - типы документов и подразделения.</li>
-        <li><a href="module-storage.html">Storage</a> - структура файлового хранилища и SHA-256.</li>
-        <li><a href="module-document-service.html">Document Service</a> - создание записи документа из PDF.</li>
-        <li><a href="module-rest-api.html">REST API</a> - двухфазный workflow браузерного штампа.</li>
-        <li><a href="module-ai-metadata.html">AI Metadata</a> - автозаполнение реквизитов по тексту первой страницы PDF.</li>
-        <li><a href="module-title-template.html">Title Template</a> - матрица сборки названия документа по категории, типу и реквизитам.</li>
-        <li><a href="module-admin-upload-js.html">Admin Upload JS</a> - наложение штампа через pdf-lib.</li>
-        <li><a href="module-blocks.html">Gutenberg Blocks</a> - блок редактора для выбора, подписи и вывода документов.</li>
-        <li><a href="module-settings.html">Settings</a> - значения по умолчанию для подписи, штампа, QR-кода и кнопок блока.</li>
-        <li><a href="module-site-icon.html">Site Icon</a> - PNG-кэш favicon или логотипа для QR-кода.</li>
-        <li><a href="module-verification-page.html">Verification Page</a> - публичная страница проверки.</li>
-        <li><a href="module-admin.html">Admin</a> - административные колонки и экран добавления одного документа.</li>
-        <li><a href="module-usage-index.html">Usage Index</a> - индекс использования блока документа в записях и страницах.</li>
-        <li><a href="module-tests.html">Tests</a> - автоматизированные контрактные проверки критичных workflow и прав доступа.</li>
+        <li><a href="session-handoff.html">Session Handoff</a> — current state, recent changes, checks and next steps.</li>
+        <li><a href="module-plugin.html">Plugin</a> — координация загрузки модулей и lifecycle hooks.</li>
+        <li><a href="module-post-type.html">Post Type</a> — регистрация CPT <code>sign-docs</code>.</li>
+        <li><a href="module-meta.html">Meta</a> — контракт метаданных документа.</li>
+        <li><a href="module-taxonomies.html">Taxonomies</a> — типы, категории, подразделения и институции.</li>
+        <li><a href="module-storage.html">Storage</a> — структура файлового хранилища, SHA-256, index.php guard.</li>
+        <li><a href="module-translit.html">Translit</a> — транслитерация кириллического названия в латинское имя файла.</li>
+        <li><a href="module-document-service.html">Document Service</a> — создание записи, двухфазный prepare/complete, замена и rollback.</li>
+        <li><a href="module-rest-api.html">REST API</a> — двухфазный workflow браузерного штампа, выбор документов, AI-подсказки.</li>
+        <li><a href="module-ai-metadata.html">AI Metadata</a> — автозаполнение реквизитов по тексту первой страницы PDF.</li>
+        <li><a href="module-title-template.html">Title Template</a> — матрица сборки названия документа по категории, типу и реквизитам.</li>
+        <li><a href="module-admin-upload-js.html">Admin Upload JS</a> — наложение штампа через pdf-lib, выбор места, AI-подсказки.</li>
+        <li><a href="module-blocks.html">Gutenberg Blocks</a> — блок редактора для выбора, подписи и вывода документов.</li>
+        <li><a href="module-settings.html">Settings</a> — значения по умолчанию, права на загрузку, AI-флаг.</li>
+        <li><a href="module-site-icon.html">Site Icon</a> — PNG-кэш favicon или логотипа для QR-кода.</li>
+        <li><a href="module-verification-page.html">Verification Page</a> — публичная страница проверки.</li>
+        <li><a href="module-admin.html">Admin</a> — админские колонки, фильтры, экран добавления, архивирование.</li>
+        <li><a href="module-usage-index.html">Usage Index</a> — индекс использования блока документа в записях и страницах.</li>
+        <li><a href="module-tests.html">Tests</a> — автоматизированные контрактные проверки критичных workflow и прав доступа.</li>
     </ul>
 
     <h2>Следующие модули</h2>
     <ul>
-        <li>Админский пакетный загрузчик.</li>
         <li>Пакетная загрузка с очередью файлов и отчетом по результатам.</li>
-        <li>Fallback на изображение первой страницы, если текст PDF пустой или плохо распознан.</li>
+        <li>Fallback на изображение первой страницы для AI, если текст PDF пустой.</li>
+        <li>uninstall.php — очистка таблиц, опций и файлов при удалении плагина.</li>
     </ul>
 </body>
 </html>

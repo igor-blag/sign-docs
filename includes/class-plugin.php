@@ -15,6 +15,7 @@ require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-post-type.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-taxonomies.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-meta.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-storage.php';
+require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-translit.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-site-icon.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-title-template.php';
 require_once SIGN_DOCS_PLUGIN_DIR . 'includes/class-document-service.php';

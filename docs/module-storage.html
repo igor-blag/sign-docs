@@ -6,27 +6,48 @@
 </head>
 <body>
     <h1>Module: Storage</h1>
-    <p>Модуль описывает файловое хранилище в <code>wp-content/uploads/sign-docs</code>.</p>
+    <p>Модуль <code>Sign_Docs_Storage</code> отвечает за файловое хранилище в <code>wp-content/uploads/sign-docs</code> и серверный SHA-256.</p>
+
+    <h2>Структура директорий</h2>
+    <pre>uploads/sign-docs/
+  assets/
+    site-icon.png        # кэш favicon/логотипа для QR
+    index.php
+  YYYY/
+    MM/
+      {post_id}/
+        original.pdf          # или {file_basename}.pdf
+        stamped.pdf           # или {file_basename}-stamped.pdf
+        index.php</pre>
 
     <h2>Входные данные</h2>
     <ul>
         <li>Путь к файлу исходного PDF.</li>
-        <li>Стандартная директория uploads WordPress.</li>
+        <li>ID записи, timestamp и опциональный <code>file_basename</code> (транслитерация названия).</li>
     </ul>
 
     <h2>Выходные данные</h2>
     <ul>
-        <li><code>uploads/sign-docs/year/month/post-id/original.pdf</code> - контрольная копия.</li>
-        <li><code>uploads/sign-docs/year/month/post-id/stamped.pdf</code> - публичная копия с отметкой.</li>
-        <li>Обе копии документа хранятся рядом в одной папке <code>year/month/post-id</code>.</li>
-        <li>SHA-256 для читаемого файла.</li>
+        <li>Структура директорий <code>uploads/sign-docs/YYYY/MM/{post_id}/</code> с index.php guard.</li>
+        <li>Базовые директории <code>uploads/sign-docs/</code> и <code>uploads/sign-docs/assets/</code> с index.php guard.</li>
+        <li>SHA-256 для переданного файла.</li>
+    </ul>
+
+    <h2>Методы</h2>
+    <ul>
+        <li><code>paths()</code> — базовые пути: <code>base_dir</code>, <code>base_url</code>, <code>assets_dir</code>, <code>assets_url</code>.</li>
+        <li><code>ensure_directories()</code> — создаёт базовые и assets-директории при активации плагина.</li>
+        <li><code>document_paths(post_id, timestamp, file_basename?)</code> — пути для конкретного документа. Если <code>file_basename</code> задан, файлы именуются <code>{basename}.pdf</code> и <code>{basename}-stamped.pdf</code>.</li>
+        <li><code>ensure_document_directories(post_id, timestamp, file_basename?)</code> — создаёт директорию документа и пишет index.php.</li>
+        <li><code>hash_file(path)</code> — возвращает SHA-256 файла или пустую строку при ошибке.</li>
     </ul>
 
     <h2>Контракт</h2>
     <ul>
-        <li>Исходный файл не изменяется после расчета хеша.</li>
-        <li>Модуль не создает записи WordPress и не принимает HTTP-запросы.</li>
-        <li>Детальная структура <code>year/month/post-id</code> применяется сервисом создания документа.</li>
+        <li>Исходный файл не изменяется после расчёта хеша.</li>
+        <li>В каждую директорию пишется <code>index.php</code> (silence is golden).</li>
+        <li>Модуль не создаёт записи WordPress и не принимает HTTP-запросы.</li>
+        <li>Хеш считается через <code>hash_file('sha256')</code>.</li>
     </ul>
 </body>
 </html>
