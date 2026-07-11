@@ -38,8 +38,8 @@ final class Sign_Docs_Taxonomies
 
         self::register_taxonomy(
             'sign_doc_institution',
-            __('Institutions', 'sign-docs'),
-            __('Institution', 'sign-docs'),
+            __('Издавшие органы', 'sign-docs'),
+            __('Издавший орган', 'sign-docs'),
             'document-institution',
             false
         );
@@ -78,27 +78,27 @@ final class Sign_Docs_Taxonomies
         self::ensure_terms(
             'sign_doc_category',
             array(
-                array('slug' => 'local-act', 'name' => 'Локальный акт'),
-                array('slug' => 'external-regulation', 'name' => 'Внешний нормативный документ'),
-                array('slug' => 'other-document', 'name' => 'Прочий документ'),
+                array('slug' => 'local-act', 'name' => __('Локальный акт', 'sign-docs')),
+                array('slug' => 'external-regulation', 'name' => __('Внешний нормативный документ', 'sign-docs')),
+                array('slug' => 'other-document', 'name' => __('Прочий документ', 'sign-docs')),
             )
         );
 
         self::ensure_terms(
             'sign_doc_type',
             array(
-                array('slug' => 'local-acts', 'name' => 'Локальные акты'),
-                array('slug' => 'local-order', 'name' => 'Приказ', 'parent' => 'local-acts'),
-                array('slug' => 'local-regulation', 'name' => 'Положение', 'parent' => 'local-acts'),
-                array('slug' => 'local-rule', 'name' => 'Правила', 'parent' => 'local-acts'),
-                array('slug' => 'local-program', 'name' => 'Программа', 'parent' => 'local-acts'),
-                array('slug' => 'external-regulations', 'name' => 'Внешние нормативные документы'),
-                array('slug' => 'external-order', 'name' => 'Приказ', 'parent' => 'external-regulations'),
-                array('slug' => 'external-directive', 'name' => 'Распоряжение', 'parent' => 'external-regulations'),
-                array('slug' => 'external-resolution', 'name' => 'Постановление', 'parent' => 'external-regulations'),
-                array('slug' => 'external-federal-law', 'name' => 'Федеральный закон', 'parent' => 'external-regulations'),
-                array('slug' => 'other-documents', 'name' => 'Прочие документы'),
-                array('slug' => 'other-document-type', 'name' => 'Иное', 'parent' => 'other-documents'),
+                array('slug' => 'local-acts', 'name' => __('Локальные акты', 'sign-docs')),
+                array('slug' => 'local-order', 'name' => __('Приказ', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-regulation', 'name' => __('Положение', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-rule', 'name' => __('Правила', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-program', 'name' => __('Программа', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'external-regulations', 'name' => __('Внешние нормативные документы', 'sign-docs')),
+                array('slug' => 'external-order', 'name' => __('Приказ', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-directive', 'name' => __('Распоряжение', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-resolution', 'name' => __('Постановление', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-federal-law', 'name' => __('Федеральный закон', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'other-documents', 'name' => __('Прочие документы', 'sign-docs')),
+                array('slug' => 'other-document-type', 'name' => __('Иное', 'sign-docs'), 'parent' => 'other-documents'),
             )
         );
 

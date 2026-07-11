@@ -7,6 +7,7 @@
  * Requires at least: 6.5
  * Requires PHP: 8.1
  * Text Domain: sign-docs
+ * Domain Path: /languages
  *
  * @package SignDocs
  */

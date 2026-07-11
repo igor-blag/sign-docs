@@ -77,6 +77,7 @@ final class Sign_Docs_Plugin
         }
 
         $this->booted = true;
+        load_plugin_textdomain('sign-docs', false, dirname(plugin_basename(SIGN_DOCS_PLUGIN_FILE)) . '/languages');
         Sign_Docs_Settings::ensure_administrator_capability();
 
         add_action('init', array(Sign_Docs_Post_Type::class, 'register'));

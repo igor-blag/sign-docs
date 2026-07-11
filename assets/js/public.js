@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    const __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function (text) { return text; };
+
     document.addEventListener('click', function (event) {
         document.querySelectorAll('.sign-docs-document-link__details[open]').forEach(function (details) {
             if (!details.contains(event.target)) {
@@ -58,11 +60,11 @@
         }
 
         if (!window.crypto || !window.crypto.subtle) {
-            setCheckerResult(checker, 'В этом браузере недоступен расчет SHA-256.', 'error');
+            setCheckerResult(checker, __('В этом браузере недоступен расчет SHA-256.', 'sign-docs'), 'error');
             return;
         }
 
-        setCheckerResult(checker, 'Считаю SHA-256 выбранного файла...', 'pending');
+        setCheckerResult(checker, __('Считаю SHA-256 выбранного файла...', 'sign-docs'), 'pending');
 
         try {
             const hash = await hashFile(file);
@@ -70,18 +72,18 @@
             const stampedHash = (checker.dataset.stampedHash || '').toLowerCase();
 
             if (originalHash && hash === originalHash) {
-                setCheckerResult(checker, 'Файл совпадает с контрольной исходной копией.', 'success');
+                setCheckerResult(checker, __('Файл совпадает с контрольной исходной копией.', 'sign-docs'), 'success');
                 return;
             }
 
             if (stampedHash && hash === stampedHash) {
-                setCheckerResult(checker, 'Файл совпадает с публичной PDF-копией с отметкой.', 'success');
+                setCheckerResult(checker, __('Файл совпадает с публичной PDF-копией с отметкой.', 'sign-docs'), 'success');
                 return;
             }
 
-            setCheckerResult(checker, 'Файл не совпадает с контрольной исходной копией или публичной копией с отметкой.', 'error');
+            setCheckerResult(checker, __('Файл не совпадает с контрольной исходной копией или публичной копией с отметкой.', 'sign-docs'), 'error');
         } catch (error) {
-            setCheckerResult(checker, 'Не удалось рассчитать SHA-256 выбранного файла.', 'error');
+            setCheckerResult(checker, __('Не удалось рассчитать SHA-256 выбранного файла.', 'sign-docs'), 'error');
         }
     });
 }());

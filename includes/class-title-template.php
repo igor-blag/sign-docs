@@ -21,12 +21,12 @@ final class Sign_Docs_Title_Template
     public static function fields(): array
     {
         return array(
-            'document_type_label' => 'Тип документа',
-            'document_date' => 'Дата',
-            'document_number' => 'Номер',
-            'document_subject' => 'О чем документ',
-            'academic_year' => 'Год / период',
-            'document_institution' => 'Институция',
+            'document_type_label' => __('Тип документа', 'sign-docs'),
+            'document_date' => __('Дата', 'sign-docs'),
+            'document_number' => __('Номер', 'sign-docs'),
+            'document_subject' => __('Предмет документа', 'sign-docs'),
+            'academic_year' => __('Год / период', 'sign-docs'),
+            'document_institution' => __('Издавший орган', 'sign-docs'),
         );
     }
 
@@ -185,20 +185,20 @@ final class Sign_Docs_Title_Template
         $types = Sign_Docs_Admin::document_type_terms_for_select();
         ?>
         <div class="wrap">
-            <h1>Матрица названий документов</h1>
-            <p>Настройки определяют, из каких реквизитов собирается краткое и полное название при загрузке PDF.</p>
+            <h1><?php echo esc_html__('Шаблоны названий документов', 'sign-docs'); ?></h1>
+            <p><?php echo esc_html__('Настройки определяют, из каких реквизитов собирается краткое и полное название при загрузке PDF.', 'sign-docs'); ?></p>
 
             <form method="post" action="options.php">
                 <?php settings_fields('sign_docs_title_rules'); ?>
                 <table class="widefat striped" style="max-width: 1200px;">
                     <thead>
                         <tr>
-                            <th style="width: 180px;">Категория</th>
-                            <th style="width: 220px;">Тип документа</th>
-                            <th>Компоненты</th>
-                            <th style="width: 110px;">Кавычки</th>
-                            <th style="width: 120px;">Разделитель</th>
-                            <th style="width: 90px;">Активно</th>
+                            <th style="width: 180px;"><?php echo esc_html__('Категория', 'sign-docs'); ?></th>
+                            <th style="width: 220px;"><?php echo esc_html__('Тип документа', 'sign-docs'); ?></th>
+                            <th><?php echo esc_html__('Компоненты', 'sign-docs'); ?></th>
+                            <th style="width: 110px;"><?php echo esc_html__('Кавычки', 'sign-docs'); ?></th>
+                            <th style="width: 120px;"><?php echo esc_html__('Разделитель', 'sign-docs'); ?></th>
+                            <th style="width: 90px;"><?php echo esc_html__('Активно', 'sign-docs'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -217,7 +217,7 @@ final class Sign_Docs_Title_Template
                             <tr>
                                 <td>
                                     <select name="<?php echo esc_attr(self::OPTION_NAME); ?>[rules][<?php echo esc_attr((string) $index); ?>][category]">
-                                        <option value="">Любая</option>
+                                        <option value=""><?php echo esc_html__('Любая', 'sign-docs'); ?></option>
                                         <?php foreach ($categories as $slug => $name) : ?>
                                             <option value="<?php echo esc_attr($slug); ?>" <?php selected((string) $rule['category'], (string) $slug); ?>><?php echo esc_html($name); ?></option>
                                         <?php endforeach; ?>
@@ -225,7 +225,7 @@ final class Sign_Docs_Title_Template
                                 </td>
                                 <td>
                                     <select name="<?php echo esc_attr(self::OPTION_NAME); ?>[rules][<?php echo esc_attr((string) $index); ?>][type_slug]">
-                                        <option value="">Не использовать строку</option>
+                                        <option value=""><?php echo esc_html__('Не использовать строку', 'sign-docs'); ?></option>
                                         <?php foreach ($types as $type) : ?>
                                             <option value="<?php echo esc_attr((string) $type['slug']); ?>" <?php selected((string) $rule['type_slug'], (string) $type['slug']); ?>><?php echo esc_html((string) $type['name']); ?></option>
                                         <?php endforeach; ?>
@@ -242,7 +242,7 @@ final class Sign_Docs_Title_Template
                                 <td>
                                     <label>
                                         <input name="<?php echo esc_attr(self::OPTION_NAME); ?>[rules][<?php echo esc_attr((string) $index); ?>][subject_quotes]" type="checkbox" value="1" <?php checked((string) $rule['subject_quotes'], '1'); ?>>
-                                        Тема
+                                        <?php echo esc_html__('Тема', 'sign-docs'); ?>
                                     </label>
                                 </td>
                                 <td>
@@ -255,8 +255,8 @@ final class Sign_Docs_Title_Template
                         <?php endfor; ?>
                     </tbody>
                 </table>
-                <p class="description">Порядок компонентов сейчас берется из порядка галочек в таблице. Пустая строка с типом "Не использовать строку" игнорируется.</p>
-                <?php submit_button('Сохранить матрицу'); ?>
+                <p class="description"><?php echo esc_html__('Порядок компонентов сейчас берется из порядка галочек в таблице. Пустая строка с типом "Не использовать строку" игнорируется.', 'sign-docs'); ?></p>
+                <?php submit_button(__('Сохранить матрицу', 'sign-docs')); ?>
             </form>
         </div>
         <?php
