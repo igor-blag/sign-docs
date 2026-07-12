@@ -1537,6 +1537,9 @@
             if (name === 'document_category') {
                 window.localStorage.setItem('sign_docs_last_category', input.value);
             }
+            if (name === 'document_type_label') {
+                window.localStorage.setItem('sign_docs_last_type', input.value);
+            }
             (name === 'document_category' || name === 'document_type_label' ? syncDocumentTypeOptions : syncDocumentTitle)();
         };
 
@@ -1598,6 +1601,23 @@
     }
 
     syncDocumentTypeOptions();
+
+    var typeSelect = form.querySelector('[name="document_type_label"]');
+    var typeTermInput = form.querySelector('[name="document_type_term_id"]');
+    var savedType = window.localStorage.getItem('sign_docs_last_type');
+    if (typeSelect && savedType) {
+        Array.prototype.forEach.call(typeSelect.options, function (option) {
+            if (option.value === savedType && !option.disabled) {
+                typeSelect.value = savedType;
+                if (typeTermInput) {
+                    typeTermInput.value = option.dataset.termId || '';
+                }
+                syncDocumentTitle();
+                syncUploadMode();
+            }
+        });
+    }
+
     syncUploadMode();
 
     const pickButton = document.getElementById('sign-docs-stamp-pick');

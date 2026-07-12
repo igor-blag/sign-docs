@@ -48,6 +48,7 @@ final class Sign_Docs_Plugin
     {
         Sign_Docs_Post_Type::register();
         Sign_Docs_Taxonomies::register();
+        Sign_Docs_Verification_Page::register_rewrite_rules();
         Sign_Docs_Storage::ensure_directories();
         Sign_Docs_Usage_Index::ensure_table();
         Sign_Docs_Settings::ensure_administrator_capability();
@@ -61,8 +62,10 @@ final class Sign_Docs_Plugin
             return;
         }
 
+        Sign_Docs_Verification_Page::register_rewrite_rules();
         Sign_Docs_Usage_Index::ensure_table();
         update_option(self::VERSION_OPTION, SIGN_DOCS_VERSION, false);
+        flush_rewrite_rules();
     }
 
     public static function deactivate(): void
@@ -112,6 +115,8 @@ final class Sign_Docs_Plugin
         add_action('admin_head-post.php', array(Sign_Docs_Admin::class, 'hide_trash_action'));
         add_filter('post_row_actions', array(Sign_Docs_Admin::class, 'row_actions'), 10, 2);
         add_filter('bulk_actions-edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'bulk_actions'));
+        add_filter('handle_bulk_actions-edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'handle_bulk_archive'), 10, 3);
+        add_action('admin_notices', array(Sign_Docs_Admin::class, 'bulk_archive_notice'));
         add_filter('pre_trash_post', array(Sign_Docs_Admin::class, 'archive_instead_of_trash'), 10, 2);
         add_filter('pre_delete_post', array(Sign_Docs_Admin::class, 'archive_instead_of_delete'), 10, 3);
         add_action('rest_api_init', array(Sign_Docs_REST_Controller::class, 'register_routes'));

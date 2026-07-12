@@ -187,21 +187,18 @@
 
 .sign-docs-document-link__anchor {
     align-items: flex-start;
-    color: inherit;
     display: inline-flex;
     gap: 10px;
     max-width: 100%;
+}
+
+.sign-docs-document-link__anchor:not(.sign-docs-document-link__anchor--open) {
+    color: inherit;
     text-decoration: none;
 }
 
 .sign-docs-document-link__anchor--open {
     cursor: pointer;
-    text-decoration: none;
-}
-
-.sign-docs-document-link__anchor--open:hover .sign-docs-document-link__text,
-.sign-docs-document-link__anchor--open:focus .sign-docs-document-link__text {
-    text-decoration: underline;
 }
 
 .sign-docs-document-link__anchor:hover .sign-docs-document-link__text,

@@ -857,8 +857,51 @@ final class Sign_Docs_Admin
     public static function bulk_actions(array $actions): array
     {
         unset($actions['trash'], $actions['delete']);
+        $actions['archive'] = __('Архивировать', 'sign-docs');
 
         return $actions;
+    }
+
+    /**
+     * @param string $redirect
+     * @param string $doaction
+     * @param list<int> $post_ids
+     */
+    public static function handle_bulk_archive(string $redirect, string $doaction, array $post_ids): string
+    {
+        if ('archive' !== $doaction) {
+            return $redirect;
+        }
+
+        $archived = 0;
+
+        foreach ($post_ids as $post_id) {
+            $post_id = absint($post_id);
+
+            if ($post_id <= 0 || Sign_Docs_Post_Type::POST_TYPE !== get_post_type($post_id) || ! current_user_can('edit_post', $post_id)) {
+                continue;
+            }
+
+            self::archive_document($post_id);
+            $archived++;
+        }
+
+        return add_query_arg('bulk_archived', $archived, $redirect);
+    }
+
+    public static function bulk_archive_notice(): void
+    {
+        $screen = get_current_screen();
+
+        if (! $screen || Sign_Docs_Post_Type::POST_TYPE !== $screen->post_type) {
+            return;
+        }
+
+        $count = isset($_GET['bulk_archived']) ? absint($_GET['bulk_archived']) : 0;
+
+        if ($count > 0) {
+            echo '<div class="notice notice-success"><p>' . esc_html(sprintf(/* translators: %d = number of documents */ _n('Archived %d document.', 'Archived %d documents.', $count, 'sign-docs'), $count)) . '</p></div>';
+        }
     }
 
     public static function submitbox_archive_action(): void

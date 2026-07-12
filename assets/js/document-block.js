@@ -527,7 +527,15 @@
             }
             return filters.categories && filters.categories[0] && filters.categories[0].slug || '';
         })());
-        const [typeId, setTypeId] = useState('');
+        const [typeId, setTypeId] = useState((function () {
+            var saved;
+            try { saved = window.localStorage.getItem('sign_docs_last_type'); } catch (e) {}
+            const types = documentTypesForCategory(category);
+            if (saved && types.some(function (t) { return String(t.id) === saved; })) {
+                return saved;
+            }
+            return types[0] ? String(types[0].id) : '';
+        })());
         const [institution, setInstitution] = useState('');
         const [dragOver, setDragOver] = useState(false);
         const [documentDate, setDocumentDate] = useState('');
@@ -891,7 +899,7 @@
                             )
                         ),
                         el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Category', 'sign-docs'), value: category, options: optionList(__('Choose category', 'sign-docs'), filters.categories, 'slug'), onChange: function (value) { try { window.localStorage.setItem('sign_docs_last_category', value); } catch (e) {} setCategory(value); }, __next40pxDefaultSize: true })),
-                        el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Document type', 'sign-docs'), value: typeId, options: optionList(__('Choose type', 'sign-docs'), documentTypesForCategory(category)), onChange: setTypeId, __next40pxDefaultSize: true })),
+                        el('div', { style: fieldStyle() }, el(components.SelectControl, { label: __('Document type', 'sign-docs'), value: typeId, options: optionList(__('Choose type', 'sign-docs'), documentTypesForCategory(category)), onChange: function (value) { try { window.localStorage.setItem('sign_docs_last_type', value); } catch (e) {} setTypeId(value); }, __next40pxDefaultSize: true })),
                         category === 'local-act' ? el(
                             'div',
                             { style: fieldStyle() },

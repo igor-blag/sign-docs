@@ -127,6 +127,14 @@ final class Sign_Docs_REST_Controller
                     'compare' => '=',
                 ),
             );
+        } elseif ($include <= 0) {
+            $query_args['meta_query'] = array(
+                array(
+                    'key' => 'document_status',
+                    'value' => 'archived',
+                    'compare' => '!=',
+                ),
+            );
         }
 
         $tax_query = array();

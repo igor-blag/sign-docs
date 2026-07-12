@@ -211,6 +211,12 @@ final class Sign_Docs_Blocks
             return '';
         }
 
+        $document_status = Sign_Docs_Meta::get($post_id, 'document_status') ?: 'active';
+
+        if ('archived' === $document_status) {
+            return '';
+        }
+
         self::enqueue_public_style();
 
         $title = get_the_title($post_id);
@@ -224,7 +230,6 @@ final class Sign_Docs_Blocks
         $stamped_file_url = Sign_Docs_Meta::get($post_id, 'stamped_file_url');
         $original_file_url = Sign_Docs_Meta::get($post_id, 'original_file_url');
         $sha256_hash = Sign_Docs_Meta::get($post_id, 'sha256_hash');
-        $document_status = Sign_Docs_Meta::get($post_id, 'document_status') ?: 'active';
         $status = self::status_label($document_status);
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
         $version = Sign_Docs_Meta::get($post_id, 'document_version') ?: '1';

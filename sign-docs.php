@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sign Docs
  * Description: Fixes signed PDF documents with a server-side SHA-256 hash and a public verification page.
- * Version: 0.1.1
+ * Version: 0.2.0
  * Author: Igor Blagoveshchensky
  * Requires at least: 6.5
  * Requires PHP: 8.1
