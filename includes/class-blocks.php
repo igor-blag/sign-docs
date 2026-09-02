@@ -63,7 +63,7 @@ final class Sign_Docs_Blocks
                     ),
                     'showIcon' => array(
                         'type' => 'boolean',
-                        'default' => true,
+                        'default' => false,
                     ),
                     'showMeta' => array(
                         'type' => 'boolean',
@@ -222,8 +222,7 @@ final class Sign_Docs_Blocks
         $title = get_the_title($post_id);
         $link_text = isset($attributes['linkText']) ? sanitize_text_field((string) $attributes['linkText']) : '';
         $display_mode = isset($attributes['displayMode']) ? sanitize_key((string) $attributes['displayMode']) : 'link';
-        $display_mode = in_array($display_mode, array('link', 'button', 'card'), true) ? $display_mode : 'link';
-        $show_icon = ! array_key_exists('showIcon', $attributes) || (bool) $attributes['showIcon'];
+        $display_mode = in_array($display_mode, array('link', 'button', 'card', 'table'), true) ? $display_mode : 'link';
         $show_meta = ! empty($attributes['showMeta']);
         $open_in_new_tab = ! empty($attributes['openInNewTab']);
         $verification_url = Sign_Docs_Meta::get($post_id, 'verification_url') ?: Sign_Docs_Verification_Page::url($post_id);
@@ -246,12 +245,12 @@ final class Sign_Docs_Blocks
 
         $wrapper_attributes = get_block_wrapper_attributes(
             array(
-                'class' => 'sign-docs-document-link sign-docs-document-link--' . $display_mode . ($is_current_document ? '' : ' sign-docs-document-link--inactive'),
+                'class' => 'sign-docs-document-link sign-docs-document-link--' . $display_mode . ' sign-docs-document-link--' . $document_status . ($is_current_document ? '' : ' sign-docs-document-link--inactive'),
             )
         );
         $target = $open_in_new_tab ? ' target="_blank" rel="noopener noreferrer"' : '';
         $label = '' !== trim($link_text) ? $link_text : $title;
-        $icon = $show_icon ? '<span class="sign-docs-document-link__icon" aria-hidden="true"></span>' : '';
+        $icon = '';
         $meta = '';
 
         if ($show_meta) {
@@ -259,9 +258,10 @@ final class Sign_Docs_Blocks
             $meta = '<span class="sign-docs-document-link__meta">' . esc_html(implode(' · ', $parts)) . '</span>';
         }
 
-        $download = $is_current_document && '' !== $stamped_file_url ? sprintf(
+        $download_file_url = '' !== $stamped_file_url ? $stamped_file_url : $original_file_url;
+        $download = $is_current_document && '' !== $download_file_url ? sprintf(
             '<a class="sign-docs-document-link__download wp-element-button" href="%s" download>%s</a>',
-            esc_url($stamped_file_url),
+            esc_url($download_file_url),
             esc_html__('Скачать', 'sign-docs')
         ) : '';
         $notice = $is_current_document ? '' : sprintf(
@@ -285,10 +285,10 @@ final class Sign_Docs_Blocks
             );
         }
 
-        $title_link = $is_current_document && '' !== $stamped_file_url
+        $title_link = $is_current_document && '' !== $download_file_url
             ? sprintf(
                 '<a class="sign-docs-document-link__anchor sign-docs-document-link__anchor--open" href="%s"%s>%s</a>',
-                esc_url($stamped_file_url),
+                esc_url($download_file_url),
                 $target,
                 $title_content
             )
@@ -298,11 +298,20 @@ final class Sign_Docs_Blocks
             );
 
         $buttons = '';
-        if ($show_download_button && $is_current_document && '' !== $stamped_file_url) {
-            $buttons .= $download;
-        }
-        if ($show_signature_button) {
-            $buttons .= $details;
+        if ('table' === $display_mode) {
+            if ($show_signature_button && 'unsigned' !== $document_status) {
+                $buttons .= $details;
+            }
+            if ($show_download_button && $is_current_document && '' !== $download_file_url) {
+                $buttons .= $download;
+            }
+        } else {
+            if ($show_download_button && $is_current_document && '' !== $download_file_url) {
+                $buttons .= $download;
+            }
+            if ($show_signature_button) {
+                $buttons .= $details;
+            }
         }
 
         return sprintf(

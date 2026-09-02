@@ -479,3 +479,336 @@
 .sign-docs-document-block.alignwide .sign-docs-document-link__anchor {
     width: 100%;
 }
+
+/* School 435 integration. These declarations intentionally use the theme's
+ * public tokens with safe fallbacks, so Sign Docs remains portable. */
+body.single-sign-docs {
+    --sign-docs-ink: var(--wp--preset--color--contrast, #17324a);
+    --sign-docs-rule: var(--wp--preset--color--accent-1, #24564f);
+    --sign-docs-muted: var(--wp--preset--color--accent-4, #536b78);
+    --sign-docs-surface: var(--wp--preset--color--base, #f2eee5);
+    --sign-docs-panel: var(--wp--preset--color--accent-5, #dceae6);
+    --sign-docs-action: var(--wp--preset--color--accent-3, #087a70);
+    --sign-docs-cta: var(--wp--preset--color--accent-7, #e86f3d);
+}
+
+body.single-sign-docs .sign-docs-verification {
+    border: 2px solid var(--sign-docs-rule);
+    border-radius: 0;
+    background: var(--sign-docs-surface);
+    color: var(--sign-docs-ink);
+    margin: 0;
+    padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+body.single-sign-docs .sign-docs-verification__header {
+    border-bottom: 2px solid var(--sign-docs-rule);
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    padding-bottom: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+body.single-sign-docs .sign-docs-verification__eyebrow,
+body.single-sign-docs .sign-docs-verification__row dt,
+body.single-sign-docs .sign-docs-verification__note,
+body.single-sign-docs .sign-docs-verification__qr-data {
+    color: var(--sign-docs-muted);
+}
+
+body.single-sign-docs .sign-docs-verification__eyebrow {
+    font-size: var(--school435-step--1, .82rem);
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+body.single-sign-docs .sign-docs-verification__header h2 {
+    color: var(--sign-docs-ink);
+    font-size: var(--school435-step-4, 2rem);
+    line-height: 1.08;
+}
+
+body.single-sign-docs .sign-docs-verification__details {
+    gap: 0;
+    border-top: 1px solid color-mix(in srgb, var(--sign-docs-rule) 35%, transparent);
+}
+
+body.single-sign-docs .sign-docs-verification__row {
+    grid-template-columns: minmax(10rem, 35%) 1fr;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--sign-docs-rule) 35%, transparent);
+}
+
+body.single-sign-docs .sign-docs-verification__row dt {
+    font-size: var(--school435-step--1, .82rem);
+}
+
+body.single-sign-docs .sign-docs-verification__button,
+body.single-sign-docs .sign-docs-document-link--button .sign-docs-document-link__anchor {
+    background: var(--sign-docs-action);
+    border: 2px solid var(--sign-docs-action);
+    border-radius: 0;
+    color: var(--wp--preset--color--base, #f2eee5);
+    font-weight: 700;
+    padding: .8rem 1rem;
+}
+
+body.single-sign-docs .sign-docs-verification__button--secondary {
+    background: transparent;
+    color: var(--sign-docs-ink);
+}
+
+body.single-sign-docs .sign-docs-verification__button:hover,
+body.single-sign-docs .sign-docs-verification__button:focus,
+body.single-sign-docs .sign-docs-document-link--button .sign-docs-document-link__anchor:hover,
+body.single-sign-docs .sign-docs-document-link--button .sign-docs-document-link__anchor:focus {
+    background: var(--sign-docs-cta);
+    border-color: var(--sign-docs-cta);
+    color: var(--wp--preset--color--base, #f2eee5);
+}
+
+body.single-sign-docs .sign-docs-verification__button--secondary:hover,
+body.single-sign-docs .sign-docs-verification__button--secondary:focus {
+    color: var(--wp--preset--color--base, #f2eee5);
+}
+
+body.single-sign-docs .sign-docs-verification__checker {
+    border-top: 2px solid var(--sign-docs-rule);
+}
+
+body.single-sign-docs .sign-docs-verification__replacement {
+    background: var(--sign-docs-panel);
+    border-left: 4px solid var(--sign-docs-rule);
+    border-radius: 0;
+}
+
+body.single-sign-docs .sign-docs-document-link--card .sign-docs-document-link__anchor {
+    border: 2px solid var(--sign-docs-rule);
+    border-radius: 0;
+    padding: 1rem;
+}
+
+@media (max-width: 600px) {
+    body.single-sign-docs .sign-docs-verification__row {
+        grid-template-columns: 1fr;
+        gap: .25rem;
+    }
+}
+
+/* Document collections placed in the School 435 page template. */
+.school435-documents-page {
+    --sign-docs-ink: var(--wp--preset--color--contrast, #17324a);
+    --sign-docs-rule: var(--wp--preset--color--accent-1, #24564f);
+    --sign-docs-muted: var(--wp--preset--color--accent-4, #536b78);
+    --sign-docs-surface: var(--wp--preset--color--base, #f2eee5);
+    --sign-docs-panel: var(--wp--preset--color--accent-5, #dceae6);
+    --sign-docs-action: var(--wp--preset--color--accent-3, #087a70);
+    --sign-docs-cta: var(--wp--preset--color--accent-7, #e86f3d);
+}
+
+.school435-documents-page .sign-docs-document-link--card {
+    margin: 0;
+}
+
+.school435-documents-page .sign-docs-document-link--card .sign-docs-document-link__anchor {
+    border: 2px solid var(--sign-docs-rule);
+    border-radius: 0;
+    color: var(--sign-docs-ink);
+    min-height: 100%;
+    padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.school435-documents-page .sign-docs-document-link--card .sign-docs-document-link__anchor:hover,
+.school435-documents-page .sign-docs-document-link--card .sign-docs-document-link__anchor:focus {
+    background: var(--sign-docs-panel);
+    color: var(--sign-docs-ink);
+}
+
+.school435-documents-page .sign-docs-document-link__meta,
+.school435-documents-page .sign-docs-document-link__notice {
+    color: var(--sign-docs-muted);
+}
+
+.school435-documents-page .sign-docs-document-link--inactive .sign-docs-document-link__anchor {
+    background: var(--sign-docs-panel);
+    color: var(--sign-docs-ink);
+}
+
+/* School 435 document register: one document, one table row. */
+.school435-documents-table {
+    width: 100%;
+    max-width: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    box-sizing: border-box;
+    border: 2px solid #9bb8b3;
+    border-bottom: 0;
+    background: #f8f4ed;
+}
+
+.school435-documents-table__head,
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__row,
+.school435-documents-table .school435-documents-plain-row {
+    display: grid;
+    grid-template-columns: minmax(0, 64%) minmax(8rem, 18%) minmax(8rem, 18%);
+}
+
+.school435-documents-table__head {
+    background: #dce8e6;
+    color: #087a70;
+    color: var(--sign-docs-muted);
+    font-size: var(--school435-step--1, .82rem);
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+.school435-documents-table__head > span,
+.school435-documents-table .sign-docs-document-link--table :is(.sign-docs-document-link__anchor, .sign-docs-document-link__details, .sign-docs-document-link__download, .sign-docs-document-link__signature-status),
+.school435-documents-table .school435-documents-plain-row > * {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: clamp(.9rem, 1.8vw, 1.35rem);
+    border-right: 2px solid #9bb8b3;
+}
+
+.school435-documents-table__head > :last-child,
+.school435-documents-table .sign-docs-document-link--table :is(.sign-docs-document-link__download, .sign-docs-document-link__details:last-child),
+.school435-documents-table .school435-documents-plain-row > :last-child {
+    border-right: 0;
+}
+
+.school435-documents-table .sign-docs-document-link--table,
+.school435-documents-table .school435-documents-plain-row {
+    margin: 0;
+    border-bottom: 2px solid #9bb8b3;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__row {
+    align-items: stretch;
+}
+
+.school435-documents-table .sign-docs-document-link--table.sign-docs-document-link--unsigned .sign-docs-document-link__download,
+.school435-documents-table .school435-documents-plain-row--unsigned > :last-child {
+    grid-column: 2 / 4;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__anchor {
+    align-items: flex-start;
+    color: var(--sign-docs-ink);
+    text-decoration: none;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__text,
+.school435-documents-table .school435-documents-plain-row .wp-block-file a {
+    color: var(--sign-docs-ink);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__body {
+    gap: .3rem;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__details {
+    position: relative;
+    padding: 0;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__signature-status {
+    display: flex;
+    align-items: center;
+    color: var(--sign-docs-muted);
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__summary-button.wp-element-button,
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__download.wp-element-button {
+    display: flex !important;
+    align-items: center;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--sign-docs-ink);
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__summary-button.wp-element-button {
+    width: 100%;
+}
+
+.school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__summary-button.wp-element-button {
+    padding: clamp(.9rem, 1.8vw, 1.35rem);
+}
+
+@media (hover: hover) {
+    .school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__details:hover,
+    .school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__download:hover,
+    .school435-documents-table .school435-documents-plain-row > :last-child:hover {
+        background: #dce8e6;
+    }
+
+    .school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__summary-button:hover {
+        background: transparent;
+    }
+}
+
+.school435-documents-table .sign-docs-document-link--table :is(.sign-docs-document-link__summary-button, .sign-docs-document-link__download):focus-visible {
+    background: #dce8e6;
+    color: var(--sign-docs-ink);
+}
+
+.school435-documents-table .school435-documents-plain-row .wp-block-file {
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+}
+
+.school435-documents-table .school435-documents-plain-row > :not(.wp-block-file) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.school435-documents-table .school435-documents-plain-row > :not(.wp-block-file) a {
+    color: var(--sign-docs-ink);
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+@media (max-width: 781px) {
+    .school435-documents-table {
+        width: calc(100% + 64px);
+        margin-right: -32px !important;
+        margin-left: -32px !important;
+    }
+
+    .school435-documents-table__head {
+        display: none;
+    }
+
+    .school435-documents-table .sign-docs-document-link--table .sign-docs-document-link__row,
+    .school435-documents-table .school435-documents-plain-row {
+        grid-template-columns: 1fr;
+    }
+
+    .school435-documents-table .sign-docs-document-link--table :is(.sign-docs-document-link__anchor, .sign-docs-document-link__details, .sign-docs-document-link__download, .sign-docs-document-link__signature-status),
+    .school435-documents-table .school435-documents-plain-row > * {
+        border-right: 0;
+        border-bottom: 2px solid #9bb8b3;
+    }
+
+    .school435-documents-table .sign-docs-document-link--table :is(.sign-docs-document-link__download, .sign-docs-document-link__details:last-child),
+    .school435-documents-table .school435-documents-plain-row > :last-child {
+        border-bottom: 0;
+    }
+}

@@ -1048,7 +1048,7 @@
             sha256Hash: { type: 'string', default: '' },
             linkText: { type: 'string', default: '' },
             openInNewTab: { type: 'boolean', default: false },
-            showIcon: { type: 'boolean', default: true },
+            showIcon: { type: 'boolean', default: false },
             showMeta: { type: 'boolean', default: false },
             showDownloadButton: { type: 'boolean', default: false },
             showSignatureButton: { type: 'boolean', default: true },
@@ -1172,11 +1172,6 @@
                                 __next40pxDefaultSize: true
                             }),
                             el(components.ToggleControl, {
-                                label: __('Show document icon', 'sign-docs'),
-                                checked: attributes.showIcon !== false,
-                                onChange: function (value) { setAttributes({ showIcon: value }); }
-                            }),
-                            el(components.ToggleControl, {
                                 label: __('Show status, date and version', 'sign-docs'),
                                 checked: !!attributes.showMeta,
                                 onChange: function (value) { setAttributes({ showMeta: value }); }
@@ -1211,7 +1206,7 @@
                         { className: 'sign-docs-document-link sign-docs-document-link--' + (attributes.displayMode || 'link') },
                         el('span', { className: 'sign-docs-document-link__row', style: { alignItems: 'center', display: 'inline-flex', flexWrap: 'wrap', gap: '10px', margin: 0 } },
                             el('span', { className: 'sign-docs-document-link__anchor' },
-                                attributes.showIcon !== false ? el('span', { className: 'sign-docs-document-link__icon', 'aria-hidden': true }) : null,
+                                null,
                                 el(
                                     'span',
                                     { className: 'sign-docs-document-link__body' },

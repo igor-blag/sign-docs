@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('SIGN_DOCS_VERSION', '0.1.1');
+define('SIGN_DOCS_VERSION', '0.2.0');
 define('SIGN_DOCS_PLUGIN_FILE', __FILE__);
 define('SIGN_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SIGN_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
