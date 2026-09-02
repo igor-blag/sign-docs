@@ -29,7 +29,6 @@ final class Sign_Docs_Settings
             'stamp_color' => '#2e7d32',
             'stamp_opacity' => '1',
             'stamp_font_size' => '8.4',
-            'stamp_width_mm' => '100',
             'stamp_border_enabled' => '1',
             'qr_logo_enabled' => '1',
             'button_primary_color' => '#32373c',
@@ -78,7 +77,6 @@ final class Sign_Docs_Settings
         $color = isset($value['stamp_color']) ? sanitize_hex_color((string) $value['stamp_color']) : '';
         $opacity = isset($value['stamp_opacity']) ? (float) $value['stamp_opacity'] : 1.0;
         $font_size = isset($value['stamp_font_size']) ? (float) $value['stamp_font_size'] : 8.4;
-        $width_mm = isset($value['stamp_width_mm']) ? (int) $value['stamp_width_mm'] : 100;
         $corner = isset($value['stamp_corner']) ? sanitize_key((string) $value['stamp_corner']) : 'top-left';
         $stamp_border_enabled = ! empty($value['stamp_border_enabled']) ? '1' : '0';
         $qr_logo_enabled = ! empty($value['qr_logo_enabled']) ? '1' : '0';
@@ -100,7 +98,6 @@ final class Sign_Docs_Settings
             'stamp_color' => $color ?: '#2e7d32',
             'stamp_opacity' => (string) min(1, max(0.1, $opacity)),
             'stamp_font_size' => (string) min(12, max(6, $font_size)),
-            'stamp_width_mm' => (string) min(160, max(70, $width_mm)),
             'stamp_border_enabled' => $stamp_border_enabled,
             'qr_logo_enabled' => $qr_logo_enabled,
             'button_primary_color' => $button_primary_color ?: '#32373c',
@@ -219,14 +216,6 @@ final class Sign_Docs_Settings
                                 <input id="sign-docs-default-stamp-font-size" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_font_size]" type="number" min="6" max="12" step="0.1" class="small-text" value="<?php echo esc_attr($settings['stamp_font_size']); ?>">
                                 <span>pt</span>
                                 <p class="description"><?php echo esc_html__('Базовый размер шрифта в основном штампе. Для длинных ФИО или названий можно уменьшить значение.', 'sign-docs'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-stamp-width-mm"><?php echo esc_html__('Длина штампа', 'sign-docs'); ?></label></th>
-                            <td>
-                                <input id="sign-docs-default-stamp-width-mm" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_width_mm]" type="number" min="70" max="160" step="1" class="small-text" value="<?php echo esc_attr($settings['stamp_width_mm']); ?>">
-                                <span><?php echo esc_html__('мм', 'sign-docs'); ?></span>
-                                <p class="description"><?php echo esc_html__('Ширина рамки штампа. Фактическая ширина ограничивается размером страницы PDF.', 'sign-docs'); ?></p>
                             </td>
                         </tr>
                         <tr>

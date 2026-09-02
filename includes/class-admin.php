@@ -357,7 +357,6 @@ final class Sign_Docs_Admin
                 <input type="hidden" name="stamp_color" value="<?php echo esc_attr($settings['stamp_color']); ?>">
                 <input type="hidden" name="stamp_opacity" value="<?php echo esc_attr($settings['stamp_opacity']); ?>">
                 <input type="hidden" name="stamp_font_size" value="<?php echo esc_attr($settings['stamp_font_size']); ?>">
-                <input type="hidden" name="stamp_width_mm" value="<?php echo esc_attr($settings['stamp_width_mm']); ?>">
                 <input type="hidden" name="stamp_border_enabled" value="<?php echo esc_attr($settings['stamp_border_enabled']); ?>">
                 <input type="hidden" name="qr_logo_enabled" value="<?php echo esc_attr($settings['qr_logo_enabled']); ?>">
                 <input type="hidden" name="stamp_placement_mode" value="corner">
@@ -594,7 +593,6 @@ final class Sign_Docs_Admin
                 'stamp_color' => $settings['stamp_color'],
                 'stamp_opacity' => $settings['stamp_opacity'],
                 'stamp_font_size' => $settings['stamp_font_size'],
-                'stamp_width_mm' => $settings['stamp_width_mm'],
                 'stamp_border_enabled' => $settings['stamp_border_enabled'],
                 'qr_logo_enabled' => $settings['qr_logo_enabled'],
                 'source_filename' => $source_name,
@@ -808,7 +806,6 @@ final class Sign_Docs_Admin
                 'Цвет' => Sign_Docs_Meta::get($post_id, 'stamp_color'),
                 'Прозрачность' => Sign_Docs_Meta::get($post_id, 'stamp_opacity'),
                 'Размер шрифта' => Sign_Docs_Meta::get($post_id, 'stamp_font_size') . ' pt',
-                'Длина штампа' => Sign_Docs_Meta::get($post_id, 'stamp_width_mm') . ' мм',
                 'Рамка' => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_border_enabled')),
                 'Расположение' => self::stamp_placement_label($post_id),
                 'Логотип в QR' => self::yes_no(Sign_Docs_Meta::get($post_id, 'qr_logo_enabled')),

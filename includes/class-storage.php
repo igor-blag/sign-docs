@@ -21,13 +21,13 @@ final class Sign_Docs_Storage
     public static function paths(): array
     {
         $uploads = wp_get_upload_dir();
-        $base_dir = trailingslashit($uploads['basedir']) . self::BASE_DIR;
+        $base_dir = trailingslashit(wp_normalize_path($uploads['basedir'])) . self::BASE_DIR;
         $base_url = trailingslashit($uploads['baseurl']) . self::BASE_DIR;
 
         return array(
-            'base_dir' => $base_dir,
+            'base_dir' => wp_normalize_path($base_dir),
             'base_url' => $base_url,
-            'assets_dir' => $base_dir . '/assets',
+            'assets_dir' => wp_normalize_path($base_dir . '/assets'),
             'assets_url' => $base_url . '/assets',
         );
     }

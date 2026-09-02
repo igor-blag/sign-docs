@@ -32,7 +32,7 @@
         <li><code>document_category</code>, <code>document_type_label</code>, <code>document_type_term_id</code>, <code>document_institution</code> (string/integer) — реквизиты классификации.</li>
         <li><code>document_date</code>, <code>document_number</code>, <code>document_subject</code>, <code>academic_year</code> (string) — реквизиты документа.</li>
         <li><code>stamp_position</code> (string) — устаревшее поле (не используется).</li>
-        <li><code>stamp_corner</code>, <code>stamp_color</code>, <code>stamp_opacity</code>, <code>stamp_font_size</code>, <code>stamp_width_mm</code>, <code>stamp_border_enabled</code> (string/integer) — параметры штампа.</li>
+        <li><code>stamp_corner</code>, <code>stamp_color</code>, <code>stamp_opacity</code>, <code>stamp_font_size</code>, <code>stamp_border_enabled</code> (string/integer) — параметры штампа. Ширина штампа не хранится и вычисляется автоматически по содержимому.</li>
         <li><code>stamp_placement_mode</code> (string) — <code>corner</code> или <code>manual</code>.</li>
         <li><code>stamp_manual_x</code>, <code>stamp_manual_y</code> (string) — ручные координаты штампа (0..1).</li>
         <li><code>qr_logo_enabled</code> (string) — флаг наложения логотипа на QR.</li>

@@ -151,7 +151,6 @@ final class Sign_Docs_Document_Service
             'stamp_color' => isset($args['stamp_color']) ? (sanitize_hex_color((string) $args['stamp_color']) ?: '#2e7d32') : '#2e7d32',
             'stamp_opacity' => isset($args['stamp_opacity']) ? (string) min(1, max(0.1, (float) $args['stamp_opacity'])) : '1',
             'stamp_font_size' => isset($args['stamp_font_size']) ? (string) min(12, max(6, (float) $args['stamp_font_size'])) : '8.4',
-            'stamp_width_mm' => isset($args['stamp_width_mm']) ? min(160, max(70, absint($args['stamp_width_mm']))) : 100,
             'stamp_border_enabled' => array_key_exists('stamp_border_enabled', $args) ? (! empty($args['stamp_border_enabled']) && '0' !== (string) $args['stamp_border_enabled'] ? '1' : '0') : '1',
             'stamp_placement_mode' => isset($args['stamp_placement_mode']) && 'manual' === sanitize_key((string) $args['stamp_placement_mode']) ? 'manual' : 'corner',
             'stamp_manual_x' => isset($args['stamp_manual_x']) ? (string) min(1, max(0, (float) $args['stamp_manual_x'])) : '',

@@ -33,6 +33,108 @@
         };
     }
 
+    let measureContext = null;
+    let measureFontLoaded = false;
+    let measureFontPromise = null;
+
+    function ensureMeasureFont() {
+        if (measureFontLoaded || typeof FontFace === 'undefined') {
+            return Promise.resolve();
+        }
+
+        if (!measureFontPromise) {
+            measureFontPromise = (function () {
+                const url = window.SignDocsUpload && window.SignDocsUpload.fonts && window.SignDocsUpload.fonts.regular ? window.SignDocsUpload.fonts.regular : '';
+                if (!url) {
+                    return Promise.resolve();
+                }
+
+                const face = new FontFace('SignDocsPreview', 'url(' + url + ')');
+                return face.load()
+                    .then(function () {
+                        document.fonts.add(face);
+                        measureFontLoaded = true;
+                    })
+                    .catch(function () {
+                        measureFontLoaded = false;
+                    });
+            })();
+        }
+
+        return measureFontPromise;
+    }
+
+    function textWidthPt(text, sizePt) {
+        if (!measureContext) {
+            measureContext = document.createElement('canvas').getContext('2d');
+        }
+
+        const family = measureFontLoaded ? '"SignDocsPreview", sans-serif' : 'sans-serif';
+        measureContext.font = (sizePt * 96 / 72) + 'px ' + family;
+
+        return measureContext.measureText(String(text || '')).width;
+    }
+
+    function measureLines(text, sizePt, maxWidth, maxLines) {
+        const words = String(text || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+        let count = 1;
+        let lineWidth = 0;
+
+        words.forEach(function (word) {
+            const wordWidth = textWidthPt(word, sizePt);
+            const nextWidth = lineWidth > 0 ? lineWidth + textWidthPt(' ', sizePt) + wordWidth : wordWidth;
+
+            if (nextWidth <= maxWidth || lineWidth === 0) {
+                lineWidth = nextWidth;
+                return;
+            }
+
+            count += 1;
+            lineWidth = wordWidth;
+        });
+
+        return Math.min(count, maxLines);
+    }
+
+    function stampPreviewMetrics(pageWidth) {
+        const fontSize = stampFontSize({ stamp_font_size: field('stamp_font_size') || '8.4' });
+        const lineHeight = fontSize * 1.25;
+        const pad = 5;
+        const qrSize = 54;
+        const margin = 24;
+        const pageAvail = Math.max(120, pageWidth - margin * 2);
+        const natural = function (text) {
+            return textWidthPt(String(text || '').trim(), fontSize);
+        };
+        const signerName = field('signer_name');
+        const signerPosition = field('signer_position');
+        const signer = signerPosition ? signerPosition + ': ' + signerName : signerName;
+        const fields = {
+            header: 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ',
+            line1: localSignedAt() + ' (UTC)  |  ID:   |  SHA-256: ',
+            signer: signer,
+            org: field('document_institution') || field('signer_organization')
+        };
+        const candidates = [
+            natural(fields.header) + qrSize + pad * 3,
+            natural(fields.line1) + pad * 2,
+            natural(fields.signer) + pad * 2,
+            natural(fields.org) + pad * 2
+        ];
+        let stampWidth = Math.min(pageAvail, Math.max.apply(null, candidates));
+        stampWidth = Math.max(stampWidth, qrSize + pad * 4);
+
+        const textWidth = stampWidth - qrSize - pad * 3;
+        const fullMax = stampWidth - pad * 2;
+        const bodyCount = measureLines(fields.header, fontSize, textWidth, 2)
+            + measureLines(fields.line1, fontSize, textWidth, 2)
+            + measureLines(fields.signer, fontSize, textWidth, 2)
+            + measureLines(fields.org, fontSize, fullMax, 3);
+        const stampHeight = pad * 2 + Math.max(bodyCount * lineHeight, qrSize);
+
+        return { width: stampWidth, height: stampHeight };
+    }
+
     function setStatus(message, type) {
         statusBox.hidden = false;
         statusBox.className = 'notice notice-' + (type || 'info');
@@ -187,6 +289,10 @@
                 previewPageSize = await renderCanvasPreview(file);
                 syncManualStampLayer();
                 updateManualStampControls(false);
+                ensureMeasureFont().then(function () {
+                    syncManualStampLayer();
+                    updateManualStampControls(false);
+                });
                 return;
             } catch (error) {
                 // Fall back to the iframe path; Firefox shows no preview there either.
@@ -199,6 +305,10 @@
         previewPageSize = await readPreviewPageSize(file);
         syncManualStampLayer();
         updateManualStampControls(false);
+        ensureMeasureFont().then(function () {
+            syncManualStampLayer();
+            updateManualStampControls(false);
+        });
     }
 
     function setHiddenField(name, value) {
@@ -736,18 +846,13 @@
     function stampPreviewSize(layer) {
         const pageWidth = previewPageSize && previewPageSize.width ? previewPageSize.width : 595.28;
         const pageHeight = previewPageSize && previewPageSize.height ? previewPageSize.height : 841.89;
-        const data = {
-            stamp_width_mm: field('stamp_width_mm') || '100',
-            stamp_font_size: field('stamp_font_size') || '8.4'
-        };
-        const widthRatio = stampWidthPoints(data, pageWidth) / pageWidth;
-        const fontSize = stampFontSize(data);
-        const lineHeight = fontSize * 1.25;
-        const heightRatio = Math.max(82, 36 + lineHeight * 4) / pageHeight;
+        const metrics = stampPreviewMetrics(pageWidth);
+        const scaleX = layer.clientWidth / pageWidth;
+        const scaleY = layer.clientHeight / pageHeight;
 
         return {
-            width: Math.max(120, Math.min(layer.clientWidth * 0.75, layer.clientWidth * widthRatio)),
-            height: Math.max(58, Math.min(layer.clientHeight * 0.35, layer.clientHeight * heightRatio))
+            width: Math.max(60, Math.min(layer.clientWidth, metrics.width * scaleX)),
+            height: Math.max(40, Math.min(layer.clientHeight, metrics.height * scaleY))
         };
     }
 
@@ -1150,13 +1255,6 @@
         return Math.min(12, Math.max(6, fontSize));
     }
 
-    function stampWidthPoints(data, pageWidth) {
-        const widthMm = Number.parseFloat(data.stamp_width_mm || '100');
-        const points = (Number.isNaN(widthMm) ? 100 : Math.min(160, Math.max(70, widthMm))) * 72 / 25.4;
-
-        return Math.min(points, pageWidth - 48);
-    }
-
     function qrLogoEnabled(data) {
         return data.qr_logo_enabled !== '0' && data.qr_logo_enabled !== false;
     }
@@ -1238,31 +1336,6 @@
         }
 
         return lines;
-    }
-
-    function stampTextRows(data, fonts, fontSize, textWidth, fullWidth) {
-        const rows = [];
-        const hash = data.sha256_hash || '';
-        const shortHash = hash.length > 8 ? hash.slice(0, 4) + '...' + hash.slice(-4) : hash;
-
-        wrapText(fonts.regular, 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ', fontSize, fullWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
-        });
-        const line1 = compactSignedAt(data.local_signed_at || data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash;
-        wrapText(fonts.regular, line1, fontSize, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
-        });
-        wrapText(fonts.regular, data.signer_name || data.signer || '', fontSize, textWidth, 1).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
-        });
-        wrapText(fonts.regular, data.signer_position || '', fontSize, textWidth, 1).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
-        });
-        wrapText(fonts.regular, data.organization || '', fontSize, fullWidth, 3).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
-        });
-
-        return rows;
     }
 
     function addUriLink(pdfDoc, page, rect, url) {
@@ -1360,75 +1433,101 @@
     function drawFirstPageStamp(pdfDoc, page, data, fonts, qrImage) {
         const PDFLib = window.PDFLib;
         const size = page.getSize();
-        const stampWidth = stampWidthPoints(data, size.width);
+        const regular = fonts.regular;
         const fontSize = stampFontSize(data);
         const lineHeight = fontSize * 1.25;
         const qrSize = 54;
-        const innerPadding = 8;
-        const textWidth = stampWidth - qrSize - innerPadding * 3;
-        const fullWidth = stampWidth - innerPadding * 2;
-        const rows = stampTextRows(data, fonts, fontSize, textWidth, fullWidth);
-        const stampHeight = Math.max(innerPadding * 2 + qrSize + 4, innerPadding * 2 + rows.length * lineHeight + 4);
-        const origin = manualStampOrigin(size, stampWidth, stampHeight, data) || stampOrigin(size, stampWidth, stampHeight, data.stamp_corner || 'top-left');
+        const pad = 5;
+        const margin = 24;
+        const pageAvail = Math.max(120, size.width - margin * 2);
+        const hash = data.sha256_hash || '';
+        const shortHash = hash.length > 8 ? hash.slice(0, 4) + '...' + hash.slice(-4) : hash;
+        const natural = function (text) {
+            return regular.widthOfTextAtSize(String(text || '').trim(), fontSize);
+        };
+
+        const fields = {
+            header: 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ',
+            line1: compactSignedAt(data.local_signed_at || data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash,
+            name: data.signer_name || data.signer || '',
+            position: data.signer_position || '',
+            org: data.organization || ''
+        };
+        fields.signer = fields.position ? fields.position + ': ' + fields.name : fields.name;
+
+        const candidates = [
+            natural(fields.header) + qrSize + pad * 3,
+            natural(fields.line1) + pad * 2,
+            natural(fields.signer) + pad * 2,
+            natural(fields.org) + pad * 2
+        ];
+        let stampW = Math.min(pageAvail, Math.max.apply(null, candidates));
+        stampW = Math.max(stampW, qrSize + pad * 4);
+
+        const textWidth = stampW - qrSize - pad * 3;
+        const fullWidth = stampW - pad * 2;
+        const lines = [];
+
+        wrapText(regular, fields.header, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
+        });
+        wrapText(regular, fields.line1, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
+        });
+        wrapText(regular, fields.signer, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
+        });
+        wrapText(regular, fields.org, fontSize, fullWidth, 3).forEach(function (line) {
+            lines.push({ text: line });
+        });
+
+        const stampH = pad * 2 + Math.max(lines.length * lineHeight, qrSize);
+        const origin = manualStampOrigin(size, stampW, stampH, data) || stampOrigin(size, stampW, stampH, data.stamp_corner || 'top-left');
         const x = origin.x;
         const y = origin.y;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const opacity = stampOpacity(data);
-        const qrX = x + stampWidth - qrSize - innerPadding;
-        const qrY = y + (stampHeight - qrSize) / 2;
-        const textX = x + innerPadding;
-        let textY = y + stampHeight - innerPadding - fontSize;
+        const textX = x + pad;
+        const qrX = x + stampW - qrSize - pad;
+        const qrBottom = y + stampH - pad - qrSize;
+        let baseline = y + stampH - pad - fontSize;
 
         if (stampBorderEnabled(data)) {
             page.drawRectangle({
                 x: x,
                 y: y,
-                width: stampWidth,
-                height: stampHeight,
+                width: stampW,
+                height: stampH,
                 borderColor: mainColor,
                 borderWidth: 1.2,
                 borderOpacity: opacity
             });
         }
 
-        rows.forEach(function (row) {
-            page.drawText(row.text, {
+        lines.forEach(function (line) {
+            const overlap = baseline + fontSize * 0.8 > qrBottom;
+            page.drawText(line.text, {
                 x: textX,
-                y: textY,
-                size: row.size,
-                font: row.font,
+                y: baseline,
+                size: fontSize,
+                font: regular,
                 color: mainColor,
                 opacity: opacity,
-                maxWidth: row.maxWidth
+                maxWidth: overlap ? textWidth : fullWidth
             });
-            textY -= lineHeight;
+            baseline -= lineHeight;
         });
 
         page.drawImage(qrImage, {
             x: qrX,
-            y: qrY,
+            y: qrBottom,
             width: qrSize,
             height: qrSize,
             opacity: opacity
         });
 
-        const docId = 'ID ' + data.post_id;
-        const docIdSize = 7.2;
-        const docIdWidth = fonts.medium.widthOfTextAtSize(docId, docIdSize);
-        const docIdX = qrX - 5;
-        const docIdY = qrY + qrSize / 2 + docIdWidth / 2;
-        page.drawText(docId, {
-            x: docIdX,
-            y: docIdY,
-            size: docIdSize,
-            font: fonts.medium,
-            color: mainColor,
-            opacity: opacity,
-            rotate: PDFLib.degrees(-90)
-        });
-
-        addUriLink(pdfDoc, page, [qrX, qrY, qrX + qrSize, qrY + qrSize], data.verification_url);
+        addUriLink(pdfDoc, page, [qrX, qrBottom, qrX + qrSize, qrBottom + qrSize], data.verification_url);
     }
 
     function drawFooterStamp(pdfDoc, page, data, fonts) {
@@ -1539,7 +1638,6 @@
             prepareData.append('stamp_color', field('stamp_color') || '#2e7d32');
             prepareData.append('stamp_opacity', field('stamp_opacity') || '1');
             prepareData.append('stamp_font_size', field('stamp_font_size') || '8.4');
-            prepareData.append('stamp_width_mm', field('stamp_width_mm') || '100');
             prepareData.append('stamp_border_enabled', field('stamp_border_enabled') === '0' ? '0' : '1');
             prepareData.append('stamp_placement_mode', field('stamp_placement_mode') || 'corner');
             prepareData.append('stamp_manual_x', field('stamp_manual_x'));

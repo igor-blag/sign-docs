@@ -180,13 +180,6 @@
         return Number.isNaN(parsed) ? 1 : Math.min(1, Math.max(0.1, parsed));
     }
 
-    function stampWidthPoints(data, pageWidth) {
-        const widthMm = Number.parseFloat(data.stamp_width_mm || '100');
-        const points = (Number.isNaN(widthMm) ? 100 : Math.min(160, Math.max(70, widthMm))) * 72 / 25.4;
-
-        return Math.min(points, pageWidth - 48);
-    }
-
     function stampFontSize(data) {
         const fontSize = Number.parseFloat(data.stamp_font_size || '8.4');
 
@@ -374,69 +367,93 @@
     function drawFirstPageStamp(pdfDoc, page, data, fonts, qrImage) {
         const PDFLib = window.PDFLib;
         const pageSize = page.getSize();
-        const stampWidth = stampWidthPoints(data, pageSize.width);
+        const regular = fonts.regular;
         const fontSize = stampFontSize(data);
         const lineHeight = fontSize * 1.25;
         const qrSize = 54;
-        const padding = 8;
-        const textWidth = stampWidth - qrSize - padding * 3;
-        const fullWidth = stampWidth - padding * 2;
-        const rows = [];
+        const pad = 5;
+        const margin = 24;
+        const pageAvail = Math.max(120, pageSize.width - margin * 2);
         const hash = data.sha256_hash || '';
         const shortHash = hash.length > 8 ? hash.slice(0, 4) + '...' + hash.slice(-4) : hash;
+        const natural = function (text) {
+            return regular.widthOfTextAtSize(String(text || '').trim(), fontSize);
+        };
 
-        wrapText(fonts.regular, 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ', fontSize, fullWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
+        const fields = {
+            header: 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ',
+            line1: compactSignedAt(data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash,
+            name: data.signer_name || data.signer || '',
+            position: data.signer_position || '',
+            org: data.organization || ''
+        };
+        fields.signer = fields.position ? fields.position + ': ' + fields.name : fields.name;
+
+        const candidates = [
+            natural(fields.header) + qrSize + pad * 3,
+            natural(fields.line1) + pad * 2,
+            natural(fields.signer) + pad * 2,
+            natural(fields.org) + pad * 2
+        ];
+        let stampW = Math.min(pageAvail, Math.max.apply(null, candidates));
+        stampW = Math.max(stampW, qrSize + pad * 4);
+
+        const textWidth = stampW - qrSize - pad * 3;
+        const fullWidth = stampW - pad * 2;
+        const lines = [];
+
+        wrapText(regular, fields.header, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
         });
-        const line1 = compactSignedAt(data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash;
-        wrapText(fonts.regular, line1, fontSize, textWidth, 2).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
+        wrapText(regular, fields.line1, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
         });
-        wrapText(fonts.regular, data.signer_name || data.signer || '', fontSize, textWidth, 1).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
+        wrapText(regular, fields.signer, fontSize, textWidth, 2).forEach(function (line) {
+            lines.push({ text: line });
         });
-        wrapText(fonts.regular, data.signer_position || '', fontSize, textWidth, 1).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: textWidth });
-        });
-        wrapText(fonts.regular, data.organization || '', fontSize, fullWidth, 3).forEach(function (line) {
-            rows.push({ text: line, size: fontSize, font: fonts.regular, maxWidth: fullWidth });
+        wrapText(regular, fields.org, fontSize, fullWidth, 3).forEach(function (line) {
+            lines.push({ text: line });
         });
 
-        const stampHeight = Math.max(padding * 2 + qrSize + 4, padding * 2 + rows.length * lineHeight + 4);
+        const stampH = pad * 2 + Math.max(lines.length * lineHeight, qrSize);
+
         const corner = data.stamp_corner || 'top-left';
         const right = corner === 'top-right' || corner === 'bottom-right';
         const bottom = corner === 'bottom-left' || corner === 'bottom-right';
         const manualX = Number.parseFloat(data.stamp_manual_x || '');
         const manualY = Number.parseFloat(data.stamp_manual_y || '');
         const hasManual = data.stamp_placement_mode === 'manual' && !Number.isNaN(manualX) && !Number.isNaN(manualY);
-        const x = hasManual ? clamp(manualX, 0, 1) * Math.max(0, pageSize.width - stampWidth) : (right ? pageSize.width - stampWidth - 24 : 24);
-        const y = hasManual ? (1 - clamp(manualY, 0, 1)) * Math.max(0, pageSize.height - stampHeight) : (bottom ? 24 : pageSize.height - stampHeight - 24);
+        const x = hasManual ? clamp(manualX, 0, 1) * Math.max(0, pageSize.width - stampW) : (right ? pageSize.width - stampW - margin : margin);
+        const y = hasManual ? (1 - clamp(manualY, 0, 1)) * Math.max(0, pageSize.height - stampH) : (bottom ? margin : pageSize.height - stampH - margin);
+
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
         const alpha = stampOpacity(data.stamp_opacity);
-        const qrX = x + stampWidth - qrSize - padding;
-        const qrY = y + (stampHeight - qrSize) / 2;
-        let textY = y + stampHeight - padding - fontSize;
+        const textX = x + pad;
+        const qrX = x + stampW - qrSize - pad;
+        const qrBottom = y + stampH - pad - qrSize;
+        let baseline = y + stampH - pad - fontSize;
 
         if (stampBorderEnabled(data)) {
             page.drawRectangle({
                 x: x,
                 y: y,
-                width: stampWidth,
-                height: stampHeight,
+                width: stampW,
+                height: stampH,
                 borderColor: mainColor,
                 borderWidth: 1.2,
                 borderOpacity: alpha
             });
         }
 
-        rows.forEach(function (row) {
-            page.drawText(row.text, { x: x + padding, y: textY, size: row.size, font: row.font, color: mainColor, opacity: alpha, maxWidth: row.maxWidth });
-            textY -= lineHeight;
+        lines.forEach(function (line) {
+            const overlap = baseline + fontSize * 0.8 > qrBottom;
+            page.drawText(line.text, { x: textX, y: baseline, size: fontSize, font: regular, color: mainColor, opacity: alpha, maxWidth: overlap ? textWidth : fullWidth });
+            baseline -= lineHeight;
         });
 
-        page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize, opacity: alpha });
-        addUriLink(pdfDoc, page, [qrX, qrY, qrX + qrSize, qrY + qrSize], data.verification_url);
+        page.drawImage(qrImage, { x: qrX, y: qrBottom, width: qrSize, height: qrSize, opacity: alpha });
+        addUriLink(pdfDoc, page, [qrX, qrBottom, qrX + qrSize, qrBottom + qrSize], data.verification_url);
     }
 
     function drawFooterStamp(pdfDoc, page, data, fonts) {
@@ -941,7 +958,6 @@
                 prepareData.append('stamp_color', text(defaults.stamp_color) || '#2e7d32');
                 prepareData.append('stamp_opacity', String(defaults.stamp_opacity || '1'));
                 prepareData.append('stamp_font_size', String(defaults.stamp_font_size || '8.4'));
-                prepareData.append('stamp_width_mm', String(defaults.stamp_width_mm || '100'));
                 prepareData.append('stamp_border_enabled', defaults.stamp_border_enabled === '0' ? '0' : '1');
                 prepareData.append('stamp_placement_mode', !unsigned && stampPosition ? 'manual' : 'corner');
                 prepareData.append('stamp_manual_x', !unsigned && stampPosition ? stampPosition.x.toFixed(6) : '');
