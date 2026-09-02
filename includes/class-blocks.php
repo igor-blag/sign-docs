@@ -116,11 +116,14 @@ final class Sign_Docs_Blocks
         $qr_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/qrcode.min.js';
         $regular_font_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/GolosText-Regular.ttf';
         $medium_font_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/GolosText-Medium.ttf';
+        $pdfjs_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.min.mjs';
+        $pdfjs_worker_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.worker.min.mjs';
         $has_vendor = file_exists($pdf_lib_path)
             && file_exists($fontkit_path)
             && file_exists($qr_path)
             && file_exists($regular_font_path)
             && file_exists($medium_font_path);
+        $has_pdfjs = file_exists($pdfjs_path) && file_exists($pdfjs_worker_path);
 
         if ($has_vendor) {
             wp_enqueue_script('sign-docs-pdf-lib', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf-lib.min.js', array(), (string) filemtime($pdf_lib_path), true);
@@ -161,7 +164,12 @@ final class Sign_Docs_Blocks
                 'completeUrl' => rest_url('sign-docs/v1/complete'),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'hasVendor' => $has_vendor,
+                'hasPdfJs' => $has_pdfjs,
                 'siteIconUrl' => self::site_icon_url(),
+                'pdfJs' => $has_pdfjs ? array(
+                    'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
+                    'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
+                ) : null,
                 'documentsPath' => '/sign-docs/v1/documents',
                 'defaults' => Sign_Docs_Settings::get(),
                 'filters' => self::filters(),

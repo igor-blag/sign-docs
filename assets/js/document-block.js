@@ -14,6 +14,63 @@
     const defaults = config.defaults || {};
     const filters = config.filters || {};
 
+    let pdfJsModule = null;
+
+    function isFirefox() {
+        return typeof navigator !== 'undefined' && /Firefox\//.test(navigator.userAgent);
+    }
+
+    async function loadPdfJs() {
+        if (pdfJsModule) {
+            return pdfJsModule;
+        }
+
+        const pdfConfig = config.pdfJs || {};
+        if (!config.hasPdfJs || !pdfConfig.module || !pdfConfig.worker) {
+            throw new Error(__('PDF.js is not available.', 'sign-docs'));
+        }
+
+        pdfJsModule = await import(pdfConfig.module);
+        pdfJsModule.GlobalWorkerOptions.workerSrc = pdfConfig.worker;
+
+        return pdfJsModule;
+    }
+
+    async function renderFirstPageToCanvas(pdfjs, file, canvas, stage) {
+        const pdf = await pdfjs.getDocument({
+            data: await file.arrayBuffer(),
+            useWorkerFetch: false,
+            isEvalSupported: false
+        });
+
+        try {
+            const page = await pdf.getPage(1);
+            const base = page.getViewport({ scale: 1 });
+            const dpr = window.devicePixelRatio > 1 ? window.devicePixelRatio : 1;
+            const scale = Math.min(stage.clientWidth / base.width, stage.clientHeight / base.height);
+            const width = base.width * scale;
+            const height = base.height * scale;
+            const viewport = page.getViewport({ scale: scale * dpr });
+
+            canvas.style.left = Math.max(0, (stage.clientWidth - width) / 2) + 'px';
+            canvas.style.top = Math.max(0, (stage.clientHeight - height) / 2) + 'px';
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            canvas.width = Math.max(1, Math.round(viewport.width));
+            canvas.height = Math.max(1, Math.round(viewport.height));
+
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            return { width: base.width, height: base.height };
+        } finally {
+            if (typeof pdf.destroy === 'function') {
+                await pdf.destroy();
+            }
+        }
+    }
+
     const statusOptions = [
         { label: __('Any status', 'sign-docs'), value: '' },
         { label: __('Active', 'sign-docs'), value: 'active' },
@@ -515,6 +572,9 @@
         const fileRef = useRef(null);
         const previewFrameRef = useRef(null);
         const previewLayerRef = useRef(null);
+        const previewStageRef = useRef(null);
+        const previewCanvasRef = useRef(null);
+        const previewGenRef = useRef(0);
         const fileInputRef = useRef(null);
         const [fileName, setFileName] = useState('');
         const [postTitle, setPostTitle] = useState('');
@@ -542,6 +602,8 @@
         const [documentNumber, setDocumentNumber] = useState('');
         const [documentComment, setDocumentComment] = useState('');
         const [previewUrl, setPreviewUrl] = useState('');
+        const [ffCanvasMode, setFfCanvasMode] = useState(false);
+        const [fileNonce, setFileNonce] = useState(0);
         const [previewPageSize, setPreviewPageSize] = useState(null);
         const [manualPicking, setManualPicking] = useState(false);
         const [stampPosition, setStampPosition] = useState(null);
@@ -604,6 +666,44 @@
             }
         }, [unsignedOnly]);
 
+        useEffect(function () {
+            if (!isFirefox() || !ffCanvasMode) {
+                return;
+            }
+
+            const file = fileRef.current;
+            const canvas = previewCanvasRef.current;
+            const stage = previewStageRef.current;
+
+            if (!file || !canvas || !stage) {
+                return;
+            }
+
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+            const generation = ++previewGenRef.current;
+
+            loadPdfJs()
+                .then(function (pdfjs) {
+                    return renderFirstPageToCanvas(pdfjs, file, canvas, stage);
+                })
+                .then(function (size) {
+                    if (generation !== previewGenRef.current) {
+                        return;
+                    }
+                    setPreviewPageSize(size);
+                })
+                .catch(function () {
+                    if (generation !== previewGenRef.current) {
+                        return;
+                    }
+                    setFfCanvasMode(false);
+                    const url = URL.createObjectURL(file);
+                    setPreviewUrl(url);
+                    readPreviewPageSize(file).then(setPreviewPageSize);
+                });
+        }, [ffCanvasMode, fileNonce]);
+
         async function readPreviewPageSize(file) {
             if (!window.PDFLib || !file) {
                 return null;
@@ -624,6 +724,7 @@
             setPreviewPageSize(null);
             setStampPosition(null);
             setManualPicking(false);
+            setFfCanvasMode(false);
 
             if (previewUrl) {
                 URL.revokeObjectURL(previewUrl);
@@ -636,6 +737,13 @@
             }
 
             if (!file || (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || ''))) {
+                return;
+            }
+
+            setFileNonce(function (value) { return value + 1; });
+
+            if (isFirefox()) {
+                setFfCanvasMode(true);
                 return;
             }
 
@@ -767,11 +875,32 @@
         function previewLayerStyle() {
             return {
                 cursor: manualPicking ? 'crosshair' : 'default',
-                display: previewUrl ? 'block' : 'none',
+                display: previewUrl || ffCanvasMode ? 'block' : 'none',
                 inset: 0,
                 position: 'absolute',
                 zIndex: 2
             };
+        }
+
+        function stageContent() {
+            if (previewUrl) {
+                return el('iframe', {
+                    ref: previewFrameRef,
+                    title: __('Selected PDF preview', 'sign-docs'),
+                    src: previewUrl + '#page=1&toolbar=0&navpanes=0&scrollbar=0&view=Fit',
+                    style: { border: 0, height: '100%', position: 'relative', width: '100%', zIndex: 1 }
+                });
+            }
+
+            if (isFirefox() && ffCanvasMode) {
+                return el('canvas', {
+                    ref: previewCanvasRef,
+                    'aria-hidden': true,
+                    style: { border: 0, display: 'block', position: 'absolute', zIndex: 1 }
+                });
+            }
+
+            return el('div', { style: { color: '#646970', padding: '24px' } }, __('Choose a PDF to preview the first page.', 'sign-docs'));
         }
 
         async function saveDocument(saveUnsigned) {
@@ -984,19 +1113,14 @@
                             unsignedOnly ? null : el(
                                 'div',
                                 { style: { display: 'flex', gap: '8px' } },
-                                el(components.Button, { variant: manualPicking ? 'primary' : 'secondary', disabled: !previewUrl || busy, onClick: function () { setManualPicking(!manualPicking); } }, manualPicking ? __('Cancel picking', 'sign-docs') : __('Pick stamp position', 'sign-docs')),
+                                el(components.Button, { variant: manualPicking ? 'primary' : 'secondary', disabled: (!previewUrl && !ffCanvasMode) || busy, onClick: function () { setManualPicking(!manualPicking); } }, manualPicking ? __('Cancel picking', 'sign-docs') : __('Pick stamp position', 'sign-docs')),
                                 el(components.Button, { variant: 'tertiary', disabled: !stampPosition || busy, onClick: function () { setStampPosition(null); setManualPicking(false); } }, __('Reset', 'sign-docs'))
                             )
                         ),
                         el(
                             'div',
-                            { style: { position: 'relative', width: '100%', height: '620px', border: '1px solid #c3c4c7', background: '#fff', overflow: 'hidden' } },
-                            previewUrl ? el('iframe', {
-                                ref: previewFrameRef,
-                                title: __('Selected PDF preview', 'sign-docs'),
-                                src: previewUrl + '#page=1&toolbar=0&navpanes=0&scrollbar=0&view=Fit',
-                                style: { border: 0, height: '100%', position: 'relative', width: '100%', zIndex: 1 }
-                            }) : el('div', { style: { color: '#646970', padding: '24px' } }, __('Choose a PDF to preview the first page.', 'sign-docs')),
+                            { ref: previewStageRef, style: { position: 'relative', width: '100%', height: '620px', border: '1px solid #c3c4c7', background: '#fff', overflow: 'hidden' } },
+                            stageContent(),
                             el('div', { ref: previewLayerRef, onClick: pickStampPosition, style: previewLayerStyle() },
                                 el('div', { style: stampRectStyle() })
                             )

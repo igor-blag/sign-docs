@@ -10,12 +10,28 @@
 
     const statusText = statusBox.querySelector('p');
     let previewUrl = '';
+    let previewCanvas = null;
     let manualStampPicking = false;
     let previewPageSize = null;
     let selectedStampPosition = null;
     let titleManuallyEdited = false;
     let pdfJsModule = null;
     let metadataSuggestionRun = 0;
+
+    function isFirefox() {
+        return typeof navigator !== 'undefined' && /Firefox\//.test(navigator.userAgent);
+    }
+
+    function pageFitRect(wrapper, pageWidth, pageHeight) {
+        const scale = Math.min(wrapper.clientWidth / pageWidth, wrapper.clientHeight / pageHeight);
+
+        return {
+            left: Math.max(0, (wrapper.clientWidth - pageWidth * scale) / 2),
+            top: Math.max(0, (wrapper.clientHeight - pageHeight * scale) / 2),
+            width: pageWidth * scale,
+            height: pageHeight * scale
+        };
+    }
 
     function setStatus(message, type) {
         statusBox.hidden = false;
@@ -43,10 +59,16 @@
 
         if (frame) {
             frame.removeAttribute('src');
+            frame.style.display = '';
         }
 
         if (preview) {
             preview.style.display = 'none';
+        }
+
+        if (previewCanvas) {
+            previewCanvas.remove();
+            previewCanvas = null;
         }
 
         if (previewUrl) {
@@ -77,6 +99,79 @@
         }
     }
 
+    async function renderCanvasPreview(file) {
+        const preview = document.getElementById('sign-docs-pdf-preview');
+        const wrapper = document.getElementById('sign-docs-preview-frame-wrap');
+
+        if (!preview || !wrapper) {
+            throw new Error('Preview container not found.');
+        }
+
+        const pdfjs = await loadPdfJs();
+        const pdf = await pdfjs.getDocument({
+            data: await file.arrayBuffer(),
+            useWorkerFetch: false,
+            isEvalSupported: false
+        });
+
+        try {
+            const page = await pdf.getPage(1);
+            const base = page.getViewport({ scale: 1 });
+
+            preview.style.display = 'block';
+
+            const rect = pageFitRect(wrapper, base.width, base.height);
+            const dpr = window.devicePixelRatio > 1 ? window.devicePixelRatio : 1;
+            const scale = (rect.width / base.width) * dpr;
+            const viewport = page.getViewport({ scale });
+
+            if (!previewCanvas || previewCanvas.parentNode !== wrapper) {
+                previewCanvas = document.createElement('canvas');
+                previewCanvas.setAttribute('aria-hidden', 'true');
+                previewCanvas.style.position = 'absolute';
+                previewCanvas.style.zIndex = '1';
+                previewCanvas.style.pointerEvents = 'none';
+                wrapper.insertBefore(previewCanvas, wrapper.firstChild);
+            }
+
+            previewCanvas.style.left = rect.left + 'px';
+            previewCanvas.style.top = rect.top + 'px';
+            previewCanvas.style.width = rect.width + 'px';
+            previewCanvas.style.height = rect.height + 'px';
+            previewCanvas.width = Math.max(1, Math.round(viewport.width));
+            previewCanvas.height = Math.max(1, Math.round(viewport.height));
+
+            const context = previewCanvas.getContext('2d');
+            context.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const frame = preview.querySelector('iframe');
+            if (frame) {
+                frame.style.display = 'none';
+            }
+
+            return { width: base.width, height: base.height };
+        } catch (error) {
+            if (previewCanvas) {
+                previewCanvas.remove();
+                previewCanvas = null;
+            }
+            const frame = preview.querySelector('iframe');
+            if (frame) {
+                frame.style.display = '';
+            }
+            throw error;
+        } finally {
+            try {
+                if (typeof pdf.destroy === 'function') {
+                    await pdf.destroy();
+                }
+            } catch (ignore) {
+                // Ignore destroy errors.
+            }
+        }
+    }
+
     async function showPdfPreview(file) {
         const preview = document.getElementById('sign-docs-pdf-preview');
         const frame = preview ? preview.querySelector('iframe') : null;
@@ -85,6 +180,17 @@
 
         if (!preview || !frame || !file || (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || ''))) {
             return;
+        }
+
+        if (isFirefox()) {
+            try {
+                previewPageSize = await renderCanvasPreview(file);
+                syncManualStampLayer();
+                updateManualStampControls(false);
+                return;
+            } catch (error) {
+                // Fall back to the iframe path; Firefox shows no preview there either.
+            }
         }
 
         previewUrl = URL.createObjectURL(file);
@@ -655,14 +761,12 @@
 
         const pageWidth = previewPageSize && previewPageSize.width ? previewPageSize.width : 595.28;
         const pageHeight = previewPageSize && previewPageSize.height ? previewPageSize.height : 841.89;
-        const scale = Math.min(wrapper.clientWidth / pageWidth, wrapper.clientHeight / pageHeight);
-        const width = pageWidth * scale;
-        const height = pageHeight * scale;
+        const rect = pageFitRect(wrapper, pageWidth, pageHeight);
 
-        layer.style.left = Math.max(0, (wrapper.clientWidth - width) / 2) + 'px';
-        layer.style.top = Math.max(0, (wrapper.clientHeight - height) / 2) + 'px';
-        layer.style.width = width + 'px';
-        layer.style.height = height + 'px';
+        layer.style.left = rect.left + 'px';
+        layer.style.top = rect.top + 'px';
+        layer.style.width = rect.width + 'px';
+        layer.style.height = rect.height + 'px';
         layer.style.right = 'auto';
         layer.style.bottom = 'auto';
 
