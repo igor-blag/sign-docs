@@ -107,8 +107,8 @@ bash tools/build-dist.sh
 ### Создание релиза
 
 ```bash
-bash tools/create-release.sh v0.2.0
-gh release create v0.2.0 'sign-docs.zip#Sign Docs plugin' --title 'v0.2.0' --notes 'Что нового'
+bash tools/create-release.sh v0.3.0
+gh release create v0.3.0 'sign-docs.zip#Sign Docs plugin' --title 'v0.3.0' --notes 'Что нового'
 ```
 
 ### Тесты
