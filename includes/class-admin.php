@@ -19,6 +19,24 @@ final class Sign_Docs_Admin
             return;
         }
 
+        $layout_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/stamp-layout.js';
+        wp_enqueue_script(
+            'sign-docs-stamp-layout',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-layout.js',
+            array(),
+            file_exists($layout_path) ? (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
+            true
+        );
+
+        $ui_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/stamp-ui.js';
+        wp_enqueue_script(
+            'sign-docs-stamp-ui',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-ui.js',
+            array(),
+            file_exists($ui_path) ? (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
+            true
+        );
+
         $pdf_lib_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf-lib.min.js';
         $fontkit_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/fontkit.umd.min.js';
         $golos_regular_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/GolosText-Regular.ttf';
@@ -37,73 +55,45 @@ final class Sign_Docs_Admin
         $admin_asset_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-upload.js';
         $admin_version = file_exists($admin_asset_path) ? (string) filemtime($admin_asset_path) : SIGN_DOCS_VERSION;
 
-        if (! $has_vendor) {
-            wp_enqueue_script(
-                'sign-docs-admin-upload',
-                SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-upload.js',
-                array(),
-                $admin_version,
-                true
-            );
+        $dependencies = array('sign-docs-stamp-layout', 'sign-docs-stamp-ui');
+        $config = array(
+            'prepareUrl' => rest_url('sign-docs/v1/prepare'),
+            'completeUrl' => rest_url('sign-docs/v1/complete'),
+            'suggestMetadataUrl' => rest_url('sign-docs/v1/suggest-metadata'),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'hasVendor' => $has_vendor,
+            'aiAutofillEnabled' => '1' === $settings['ai_autofill_enabled'],
+            'hasPdfJs' => $has_pdfjs,
+            'siteIconUrl' => self::site_icon_url(),
+            'pdfJs' => $has_pdfjs ? array(
+                'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
+                'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
+            ) : null,
+            'titleRules' => Sign_Docs_Title_Template::client_config(),
+        );
 
-            wp_localize_script(
-                'sign-docs-admin-upload',
-                'SignDocsUpload',
-                array(
-                    'prepareUrl' => rest_url('sign-docs/v1/prepare'),
-                    'completeUrl' => rest_url('sign-docs/v1/complete'),
-                    'suggestMetadataUrl' => rest_url('sign-docs/v1/suggest-metadata'),
-                    'nonce' => wp_create_nonce('wp_rest'),
-                    'hasVendor' => false,
-                    'aiAutofillEnabled' => '1' === $settings['ai_autofill_enabled'],
-                    'hasPdfJs' => $has_pdfjs,
-                    'siteIconUrl' => self::site_icon_url(),
-                    'pdfJs' => $has_pdfjs ? array(
-                        'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
-                        'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
-                    ) : null,
-                    'titleRules' => Sign_Docs_Title_Template::client_config(),
-                )
+        if ($has_vendor) {
+            wp_enqueue_script('sign-docs-pdf-lib', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf-lib.min.js', array(), (string) filemtime($pdf_lib_path), true);
+            wp_enqueue_script('sign-docs-qrcode', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/qrcode.min.js', array(), (string) filemtime($qr_path), true);
+            wp_enqueue_script('sign-docs-fontkit', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/fontkit.umd.min.js', array(), (string) filemtime($fontkit_path), true);
+            $dependencies[] = 'sign-docs-pdf-lib';
+            $dependencies[] = 'sign-docs-qrcode';
+            $dependencies[] = 'sign-docs-fontkit';
+            $config['fonts'] = array(
+                'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
+                'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
             );
-
-            return;
         }
 
-        wp_enqueue_script('sign-docs-pdf-lib', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf-lib.min.js', array(), (string) filemtime($pdf_lib_path), true);
-        wp_enqueue_script('sign-docs-qrcode', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/qrcode.min.js', array(), (string) filemtime($qr_path), true);
-        wp_enqueue_script('sign-docs-fontkit', SIGN_DOCS_PLUGIN_URL . 'assets/vendor/fontkit.umd.min.js', array(), (string) filemtime($fontkit_path), true);
         wp_enqueue_script(
             'sign-docs-admin-upload',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-upload.js',
-            array('sign-docs-pdf-lib', 'sign-docs-qrcode', 'sign-docs-fontkit'),
+            $dependencies,
             $admin_version,
             true
         );
 
-        wp_localize_script(
-            'sign-docs-admin-upload',
-            'SignDocsUpload',
-                array(
-                    'prepareUrl' => rest_url('sign-docs/v1/prepare'),
-                    'completeUrl' => rest_url('sign-docs/v1/complete'),
-                    'suggestMetadataUrl' => rest_url('sign-docs/v1/suggest-metadata'),
-                    'nonce' => wp_create_nonce('wp_rest'),
-                    'hasVendor' => true,
-                    'aiAutofillEnabled' => '1' === $settings['ai_autofill_enabled'],
-                    'hasPdfJs' => $has_pdfjs,
-                    'siteIconUrl' => self::site_icon_url(),
-                    'pdfJs' => $has_pdfjs ? array(
-                        'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
-                        'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
-                    ) : null,
-                    'titleRules' => Sign_Docs_Title_Template::client_config(),
-                    'fonts' => array(
-                        'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
-                        'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
-                ),
-            )
-        );
-
+        wp_localize_script('sign-docs-admin-upload', 'SignDocsUpload', $config);
     }
 
     public static function menu(): void
@@ -358,6 +348,13 @@ final class Sign_Docs_Admin
                 <input type="hidden" name="stamp_opacity" value="<?php echo esc_attr($settings['stamp_opacity']); ?>">
                 <input type="hidden" name="stamp_font_size" value="<?php echo esc_attr($settings['stamp_font_size']); ?>">
                 <input type="hidden" name="stamp_border_enabled" value="<?php echo esc_attr($settings['stamp_border_enabled']); ?>">
+                <input type="hidden" name="stamp_padding" value="<?php echo esc_attr($settings['stamp_padding']); ?>">
+                <input type="hidden" name="stamp_qr_gap" value="<?php echo esc_attr($settings['stamp_qr_gap']); ?>">
+                <input type="hidden" name="stamp_qr_padding" value="<?php echo esc_attr($settings['stamp_qr_padding']); ?>">
+                <input type="hidden" name="stamp_line_spacing" value="<?php echo esc_attr($settings['stamp_line_spacing']); ?>">
+                <input type="hidden" name="stamp_rows" value="<?php echo esc_attr($settings['stamp_rows']); ?>">
+                <input type="hidden" name="stamp_qr_enabled" value="<?php echo esc_attr($settings['stamp_qr_enabled']); ?>">
+                <input type="hidden" name="stamp_qr_position" value="<?php echo esc_attr($settings['stamp_qr_position']); ?>">
                 <input type="hidden" name="qr_logo_enabled" value="<?php echo esc_attr($settings['qr_logo_enabled']); ?>">
                 <input type="hidden" name="stamp_placement_mode" value="corner">
                 <input type="hidden" name="stamp_manual_x" value="">
@@ -594,6 +591,13 @@ final class Sign_Docs_Admin
                 'stamp_opacity' => $settings['stamp_opacity'],
                 'stamp_font_size' => $settings['stamp_font_size'],
                 'stamp_border_enabled' => $settings['stamp_border_enabled'],
+                'stamp_padding' => $settings['stamp_padding'],
+                'stamp_qr_gap' => $settings['stamp_qr_gap'],
+                'stamp_qr_padding' => $settings['stamp_qr_padding'],
+                'stamp_line_spacing' => $settings['stamp_line_spacing'],
+                'stamp_rows' => $settings['stamp_rows'],
+                'stamp_qr_enabled' => $settings['stamp_qr_enabled'],
+                'stamp_qr_position' => $settings['stamp_qr_position'],
                 'qr_logo_enabled' => $settings['qr_logo_enabled'],
                 'source_filename' => $source_name,
                 'document_status' => 'unsigned',
@@ -806,12 +810,40 @@ final class Sign_Docs_Admin
                 'Цвет' => Sign_Docs_Meta::get($post_id, 'stamp_color'),
                 'Прозрачность' => Sign_Docs_Meta::get($post_id, 'stamp_opacity'),
                 'Размер шрифта' => Sign_Docs_Meta::get($post_id, 'stamp_font_size') . ' pt',
+                'Отступ от рамки' => Sign_Docs_Meta::get($post_id, 'stamp_padding') . ' pt',
+                'Отступ до QR' => Sign_Docs_Meta::get($post_id, 'stamp_qr_gap') . ' pt',
+                'Отступ QR от рамки' => Sign_Docs_Meta::get($post_id, 'stamp_qr_padding') . ' pt',
+                'Межстрочный' => Sign_Docs_Meta::get($post_id, 'stamp_line_spacing') . ' ×',
                 'Рамка' => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_border_enabled')),
+                'Строки' => self::stamp_rows_label(Sign_Docs_Meta::get($post_id, 'stamp_rows')),
+                'QR-код' => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled')),
+                'QR положение' => self::qr_position_label(Sign_Docs_Meta::get($post_id, 'stamp_qr_position')),
                 'Расположение' => self::stamp_placement_label($post_id),
                 'Логотип в QR' => self::yes_no(Sign_Docs_Meta::get($post_id, 'qr_logo_enabled')),
             ),
             true
         );
+    }
+
+    private static function stamp_rows_label(string $rows): string
+    {
+        $keys = Sign_Docs_Settings::sanitize_stamp_rows($rows);
+        $labels = Sign_Docs_Settings::row_labels();
+
+        return implode(
+            ', ',
+            array_map(
+                static function (string $key) use ($labels): string {
+                    return $labels[$key] ?? $key;
+                },
+                explode(',', $keys)
+            )
+        );
+    }
+
+    private static function qr_position_label(string $position): string
+    {
+        return 'below' === $position ? __('Под текстом', 'sign-docs') : __('Справа от текста', 'sign-docs');
     }
 
     /**

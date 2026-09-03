@@ -16,6 +16,10 @@ final class Sign_Docs_Settings
     public const OPTION_NAME = 'sign_docs_settings';
     public const UPLOAD_CAPABILITY = 'sign_docs_upload_documents';
 
+    public const ROW_KEYS = array('header', 'meta', 'signer', 'org');
+
+    public const QR_POSITIONS = array('right', 'below');
+
     /**
      * @return array<string,string>
      */
@@ -30,6 +34,13 @@ final class Sign_Docs_Settings
             'stamp_opacity' => '1',
             'stamp_font_size' => '8.4',
             'stamp_border_enabled' => '1',
+            'stamp_padding' => '5',
+            'stamp_qr_gap' => '5',
+            'stamp_qr_padding' => '5',
+            'stamp_line_spacing' => '1.25',
+            'stamp_rows' => 'header,meta,signer,org',
+            'stamp_qr_enabled' => '1',
+            'stamp_qr_position' => 'right',
             'qr_logo_enabled' => '1',
             'button_primary_color' => '#32373c',
             'button_primary_text_color' => '#ffffff',
@@ -79,6 +90,16 @@ final class Sign_Docs_Settings
         $font_size = isset($value['stamp_font_size']) ? (float) $value['stamp_font_size'] : 8.4;
         $corner = isset($value['stamp_corner']) ? sanitize_key((string) $value['stamp_corner']) : 'top-left';
         $stamp_border_enabled = ! empty($value['stamp_border_enabled']) ? '1' : '0';
+        $stamp_padding = isset($value['stamp_padding']) ? (float) $value['stamp_padding'] : 5.0;
+        $stamp_qr_gap = isset($value['stamp_qr_gap']) ? (float) $value['stamp_qr_gap'] : 5.0;
+        $stamp_qr_padding = isset($value['stamp_qr_padding']) ? (float) $value['stamp_qr_padding'] : 5.0;
+        $stamp_line_spacing = isset($value['stamp_line_spacing']) ? (float) $value['stamp_line_spacing'] : 1.25;
+        $stamp_rows = self::sanitize_stamp_rows(isset($value['stamp_rows']) ? $value['stamp_rows'] : array());
+        $stamp_qr_enabled = ! empty($value['stamp_qr_enabled']) ? '1' : '0';
+        $qr_position = isset($value['stamp_qr_position']) ? sanitize_key((string) $value['stamp_qr_position']) : 'right';
+        if (! in_array($qr_position, self::QR_POSITIONS, true)) {
+            $qr_position = 'right';
+        }
         $qr_logo_enabled = ! empty($value['qr_logo_enabled']) ? '1' : '0';
         $button_primary_color = isset($value['button_primary_color']) ? sanitize_hex_color((string) $value['button_primary_color']) : '';
         $button_primary_text_color = isset($value['button_primary_text_color']) ? sanitize_hex_color((string) $value['button_primary_text_color']) : '';
@@ -99,12 +120,161 @@ final class Sign_Docs_Settings
             'stamp_opacity' => (string) min(1, max(0.1, $opacity)),
             'stamp_font_size' => (string) min(12, max(6, $font_size)),
             'stamp_border_enabled' => $stamp_border_enabled,
+            'stamp_padding' => (string) round(min(16, max(2, $stamp_padding)), 1),
+            'stamp_qr_gap' => (string) round(min(20, max(0, $stamp_qr_gap)), 1),
+            'stamp_qr_padding' => (string) round(min(12, max(0, $stamp_qr_padding)), 1),
+            'stamp_line_spacing' => (string) round(min(2, max(1, $stamp_line_spacing)), 2),
+            'stamp_rows' => $stamp_rows,
+            'stamp_qr_enabled' => $stamp_qr_enabled,
+            'stamp_qr_position' => $qr_position,
             'qr_logo_enabled' => $qr_logo_enabled,
             'button_primary_color' => $button_primary_color ?: '#32373c',
             'button_primary_text_color' => $button_primary_text_color ?: '#ffffff',
             'button_outline_color' => $button_outline_color ?: '#32373c',
             'button_border_radius' => (string) min(9999, max(0, $button_border_radius)),
             'ai_autofill_enabled' => $ai_autofill_enabled,
+        );
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    public static function row_labels(): array
+    {
+        return array(
+            'header' => __('Заголовок «Документ подписан…»', 'sign-docs'),
+            'meta' => __('Дата, ID и SHA-256', 'sign-docs'),
+            'signer' => __('Должность и ФИО подписанта', 'sign-docs'),
+            'org' => __('Организация (подразделение)', 'sign-docs'),
+        );
+    }
+
+    /**
+     * @param mixed $raw
+     */
+    public static function sanitize_stamp_rows($raw): string
+    {
+        $items = array();
+        if (is_array($raw)) {
+            $items = $raw;
+        } elseif (is_string($raw)) {
+            $items = explode(',', $raw);
+        }
+
+        $rows = array();
+        foreach ($items as $item) {
+            $key = sanitize_key((string) $item);
+            if (! in_array($key, self::ROW_KEYS, true) || in_array($key, $rows, true)) {
+                continue;
+            }
+            $rows[] = $key;
+        }
+
+        if (empty($rows)) {
+            $rows = self::ROW_KEYS;
+        }
+
+        return implode(',', $rows);
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    public static function stamp_rows(): array
+    {
+        $settings = self::get();
+        $rows = array();
+        foreach (explode(',', (string) $settings['stamp_rows']) as $key) {
+            $key = sanitize_key($key);
+            if (in_array($key, self::ROW_KEYS, true)) {
+                $rows[] = $key;
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    public static function ordered_rows(): array
+    {
+        $active = self::stamp_rows();
+        $rest = array_diff(self::ROW_KEYS, $active);
+
+        return array_merge($active, array_values($rest));
+    }
+
+    public static function enqueue_assets(string $hook_suffix): void
+    {
+        if ('sign-docs_page_sign-docs-settings' !== $hook_suffix) {
+            return;
+        }
+
+        self::enqueue_stamp_assets();
+
+        $style_path = SIGN_DOCS_PLUGIN_DIR . 'assets/css/admin-settings.css';
+        wp_enqueue_style(
+            'sign-docs-admin-settings',
+            SIGN_DOCS_PLUGIN_URL . 'assets/css/admin-settings.css',
+            array(),
+            file_exists($style_path) ? (string) filemtime($style_path) : SIGN_DOCS_VERSION
+        );
+
+        $builder_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-stamp-builder.js';
+        wp_enqueue_script(
+            'sign-docs-admin-settings',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-stamp-builder.js',
+            array('sign-docs-stamp-layout', 'sign-docs-stamp-ui', 'sign-docs-qrcode'),
+            file_exists($builder_path) ? (string) filemtime($builder_path) : SIGN_DOCS_VERSION,
+            true
+        );
+
+        wp_localize_script(
+            'sign-docs-admin-settings',
+            'SignDocsStampBuilder',
+            array(
+                'fonts' => array(
+                    'regular' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Regular.ttf',
+                    'medium' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/GolosText-Medium.ttf',
+                ),
+                'siteIconUrl' => Sign_Docs_Site_Icon::url(),
+                'sample' => array(
+                    'post_id' => '0000',
+                    'sha256_hash' => str_repeat('a', 64),
+                    'verification_url' => home_url('/signed/0000/'),
+                ),
+            )
+        );
+    }
+
+    public static function enqueue_stamp_assets(): void
+    {
+        $layout_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/stamp-layout.js';
+        wp_enqueue_script(
+            'sign-docs-stamp-layout',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-layout.js',
+            array(),
+            file_exists($layout_path) ? (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
+            true
+        );
+
+        $ui_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/stamp-ui.js';
+        wp_enqueue_script(
+            'sign-docs-stamp-ui',
+            SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-ui.js',
+            array(),
+            file_exists($ui_path) ? (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
+            true
+        );
+
+        $qrcode_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/qrcode.min.js';
+        wp_enqueue_script(
+            'sign-docs-qrcode',
+            SIGN_DOCS_PLUGIN_URL . 'assets/vendor/qrcode.min.js',
+            array(),
+            file_exists($qrcode_path) ? (string) filemtime($qrcode_path) : SIGN_DOCS_VERSION,
+            true
         );
     }
 
@@ -129,6 +299,9 @@ final class Sign_Docs_Settings
 
         $settings = self::get();
         $upload_users = self::upload_users();
+        $row_labels = self::row_labels();
+        $active_rows = self::stamp_rows();
+        $ordered_rows = self::ordered_rows();
         ?>
         <div class="wrap">
             <h1><?php echo esc_html__('Настройки Sign Docs', 'sign-docs'); ?></h1>
@@ -147,6 +320,187 @@ final class Sign_Docs_Settings
 
             <form method="post" action="options.php">
                 <?php settings_fields('sign_docs_settings'); ?>
+
+                <div class="sign-docs-builder">
+                    <div class="sign-docs-builder__fields">
+                        <h2><?php echo esc_html__('Конструктор штампа', 'sign-docs'); ?></h2>
+                        <p class="description">
+                            <?php echo esc_html__('Соберите штамп, который накладывается на первую страницу при подписании PDF. Строки с датой, ID, SHA-256 и ссылкой проверки заполняются для каждого документа автоматически.', 'sign-docs'); ?>
+                        </p>
+
+                        <table class="form-table" role="presentation">
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('Реквизиты подписанта', 'sign-docs'); ?></th>
+                                    <td>
+                                        <p>
+                                            <label for="sign-docs-default-signer-name">
+                                                <?php echo esc_html__('ФИО', 'sign-docs'); ?>
+                                            </label><br>
+                                            <input id="sign-docs-default-signer-name" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_name]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_name']); ?>">
+                                        </p>
+                                        <p>
+                                            <label for="sign-docs-default-signer-position">
+                                                <?php echo esc_html__('Должность', 'sign-docs'); ?>
+                                            </label><br>
+                                            <input id="sign-docs-default-signer-position" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_position]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_position']); ?>">
+                                        </p>
+                                        <p>
+                                            <label for="sign-docs-default-signer-organization">
+                                                <?php echo esc_html__('Организация (по умолчанию)', 'sign-docs'); ?>
+                                            </label><br>
+                                            <input id="sign-docs-default-signer-organization" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_organization]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_organization']); ?>">
+                                        </p>
+                                        <p class="description"><?php echo esc_html__('Эти реквизиты попадают в строки «Подписант» и «Организация».', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('Строки штампа', 'sign-docs'); ?></th>
+                                    <td>
+                                        <input id="sign-docs-stamp-rows-value" type="hidden" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_rows]" value="<?php echo esc_attr(implode(',', $active_rows)); ?>">
+                                        <ul id="sign-docs-stamp-rows" class="sign-docs-stamp-rows">
+                                            <?php foreach ($ordered_rows as $key) : ?>
+                                                <?php $label = $row_labels[$key] ?? $key; ?>
+                                                <li data-row-key="<?php echo esc_attr($key); ?>"<?php echo in_array($key, $active_rows, true) ? ' class="is-active"' : ''; ?>>
+                                                    <label>
+                                                        <input
+                                                            type="checkbox"
+                                                            name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_rows_enabled][]"
+                                                            value="<?php echo esc_attr($key); ?>"
+                                                            <?php checked(in_array($key, $active_rows, true)); ?>
+                                                        >
+                                                        <span class="sign-docs-stamp-rows__label"><?php echo esc_html($label); ?></span>
+                                                    </label>
+                                                    <span class="sign-docs-stamp-rows__actions">
+                                                        <button type="button" class="button button-small sign-docs-stamp-rows__up" title="<?php echo esc_attr__('Выше', 'sign-docs'); ?>">&uarr;</button>
+                                                        <button type="button" class="button button-small sign-docs-stamp-rows__down" title="<?php echo esc_attr__('Ниже', 'sign-docs'); ?>">&darr;</button>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <p class="description"><?php echo esc_html__('Отметьте строки, которые должны отображаться, и расставьте их стрелками в нужном порядке. Выключенные строки остаются в списке и возвращаются на место при повторном включении.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('QR-код проверки', 'sign-docs'); ?></th>
+                                    <td>
+                                        <label for="sign-docs-default-stamp-qr-enabled">
+                                            <input id="sign-docs-default-stamp-qr-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_qr_enabled]" type="checkbox" value="1" <?php checked($settings['stamp_qr_enabled'], '1'); ?>>
+                                            <?php echo esc_html__('Показывать QR-код со ссылкой на страницу проверки', 'sign-docs'); ?>
+                                        </label>
+                                        <p class="description"><?php echo esc_html__('Если штамп остаётся без текстовых строк и без QR, на первую страницу ничего не накладывается.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('Положение QR-кода', 'sign-docs'); ?></th>
+                                    <td>
+                                        <fieldset>
+                                            <legend class="screen-reader-text"><?php echo esc_html__('Положение QR-кода', 'sign-docs'); ?></legend>
+                                            <label style="display:block; margin:0 0 4px;">
+                                                <input type="radio" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_qr_position]" value="right" <?php checked($settings['stamp_qr_position'], 'right'); ?>>
+                                                <?php echo esc_html__('Справа от текста', 'sign-docs'); ?>
+                                            </label>
+                                            <label style="display:block; margin:0;">
+                                                <input type="radio" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_qr_position]" value="below" <?php checked($settings['stamp_qr_position'], 'below'); ?>>
+                                                <?php echo esc_html__('Под текстом по центру', 'sign-docs'); ?>
+                                            </label>
+                                        </fieldset>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('Логотип сайта в QR-коде', 'sign-docs'); ?></th>
+                                    <td>
+                                        <label for="sign-docs-default-qr-logo-enabled">
+                                            <input id="sign-docs-default-qr-logo-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[qr_logo_enabled]" type="checkbox" value="1" <?php checked($settings['qr_logo_enabled'], '1'); ?>>
+                                            <?php echo esc_html__('Накладывать favicon или логотип сайта на модули QR-кода', 'sign-docs'); ?>
+                                        </label>
+                                        <p class="description"><?php echo esc_html__('Логотип не является частью QR-стандарта. Плагин не закрывает центр QR-кода, а использует favicon как полупрозрачную текстуру поверх темных модулей и снижает уровень коррекции до M, чтобы матрица была компактнее.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-corner"><?php echo esc_html__('Угол штампа на листе', 'sign-docs'); ?></label></th>
+                                    <td><?php self::render_corner_select(self::OPTION_NAME . '[stamp_corner]', 'sign-docs-default-stamp-corner', $settings['stamp_corner']); ?></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-color"><?php echo esc_html__('Цвет штампа', 'sign-docs'); ?></label></th>
+                                    <td><input id="sign-docs-default-stamp-color" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_color]" type="color" value="<?php echo esc_attr($settings['stamp_color']); ?>"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-opacity"><?php echo esc_html__('Прозрачность', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-opacity" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_opacity]" type="range" min="0.1" max="1" step="0.05" value="<?php echo esc_attr($settings['stamp_opacity']); ?>">
+                                        <span id="sign-docs-stamp-opacity-label"><?php echo esc_html((string) round((float) $settings['stamp_opacity'] * 100)); ?>%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-font-size"><?php echo esc_html__('Размер шрифта', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-font-size" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_font_size]" type="number" min="6" max="12" step="0.1" class="small-text" value="<?php echo esc_attr($settings['stamp_font_size']); ?>">
+                                        <span>pt</span>
+                                        <p class="description"><?php echo esc_html__('Базовый размер шрифта в основном штампе. Для длинных ФИО или названий можно уменьшить значение.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-padding"><?php echo esc_html__('Отступ текста от рамки', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-padding" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_padding]" type="number" min="2" max="16" step="0.5" class="small-text" value="<?php echo esc_attr($settings['stamp_padding']); ?>">
+                                        <span>pt</span>
+                                        <p class="description"><?php echo esc_html__('Поле между рамкой и текстовыми строками. На QR-код не влияет.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-qr-gap"><?php echo esc_html__('Зазор между текстом и QR', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-qr-gap" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_qr_gap]" type="number" min="0" max="20" step="0.5" class="small-text" value="<?php echo esc_attr($settings['stamp_qr_gap']); ?>">
+                                        <span>pt</span>
+                                        <p class="description"><?php echo esc_html__('Расстояние между текстом и QR-кодом: справа от текста или между текстом и QR снизу.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-qr-padding"><?php echo esc_html__('Отступ QR-кода от рамки', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-qr-padding" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_qr_padding]" type="number" min="0" max="12" step="0.5" class="small-text" value="<?php echo esc_attr($settings['stamp_qr_padding']); ?>">
+                                        <span>pt</span>
+                                        <p class="description"><?php echo esc_html__('Просвет между QR-кодом и рамкой: сверху и справа (положение справа) или снизу (под текстом). Не зависит от отступа текста — уменьшайте, чтобы поднять QR на уровень первой строки.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sign-docs-default-stamp-line-spacing"><?php echo esc_html__('Межстрочный интервал', 'sign-docs'); ?></label></th>
+                                    <td>
+                                        <input id="sign-docs-default-stamp-line-spacing" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_line_spacing]" type="number" min="1" max="2" step="0.05" class="small-text" value="<?php echo esc_attr($settings['stamp_line_spacing']); ?>">
+                                        <span>&times;</span>
+                                        <p class="description"><?php echo esc_html__('Множитель межстрочного расстояния относительно размера шрифта. Значение 1.25 — компактный текст, больше — просторнее.', 'sign-docs'); ?></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><?php echo esc_html__('Рамка штампа', 'sign-docs'); ?></th>
+                                    <td>
+                                        <label for="sign-docs-default-stamp-border-enabled">
+                                            <input id="sign-docs-default-stamp-border-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_border_enabled]" type="checkbox" value="1" <?php checked($settings['stamp_border_enabled'], '1'); ?>>
+                                            <?php echo esc_html__('Показывать рамку вокруг штампа', 'sign-docs'); ?>
+                                        </label>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sign-docs-builder__preview">
+                        <h2><?php echo esc_html__('Предпросмотр', 'sign-docs'); ?></h2>
+                        <p class="description"><?php echo esc_html__('Лист A4 и штамп в выбранном углу. Дата и контрольная строка показаны на примере, реальные значения подставляются при подписании.', 'sign-docs'); ?></p>
+                        <div class="sign-docs-builder__sheet">
+                            <canvas id="sign-docs-stamp-builder-canvas" aria-hidden="true"></canvas>
+                        </div>
+                        <div id="sign-docs-stamp-zoom" class="sign-docs-builder__zoom" hidden>
+                            <p class="description"><?php echo esc_html__('Увеличенный штамп', 'sign-docs'); ?></p>
+                            <div class="sign-docs-builder__zoom-inner">
+                                <canvas id="sign-docs-stamp-zoom-canvas" aria-hidden="true"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2><?php echo esc_html__('Остальные настройки', 'sign-docs'); ?></h2>
                 <table class="form-table" role="presentation">
                     <tbody>
                         <tr>
@@ -181,60 +535,6 @@ final class Sign_Docs_Settings
                                     </fieldset>
                                     <p class="description"><?php echo esc_html__('Администраторы имеют это право всегда. Отметьте редакторов, которым можно добавлять документы через Sign Docs.', 'sign-docs'); ?></p>
                                 <?php endif; ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-signer-name"><?php echo esc_html__('ФИО подписанта', 'sign-docs'); ?></label></th>
-                            <td><input id="sign-docs-default-signer-name" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_name]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_name']); ?>"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-signer-position"><?php echo esc_html__('Должность', 'sign-docs'); ?></label></th>
-                            <td><input id="sign-docs-default-signer-position" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_position]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_position']); ?>"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-signer-organization"><?php echo esc_html__('Организация', 'sign-docs'); ?></label></th>
-                            <td><input id="sign-docs-default-signer-organization" name="<?php echo esc_attr(self::OPTION_NAME); ?>[signer_organization]" type="text" class="regular-text" value="<?php echo esc_attr($settings['signer_organization']); ?>"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-stamp-corner"><?php echo esc_html__('Угол штампа', 'sign-docs'); ?></label></th>
-                            <td><?php self::render_corner_select(self::OPTION_NAME . '[stamp_corner]', 'sign-docs-default-stamp-corner', $settings['stamp_corner']); ?></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-stamp-color"><?php echo esc_html__('Цвет штампа', 'sign-docs'); ?></label></th>
-                            <td><input id="sign-docs-default-stamp-color" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_color]" type="color" value="<?php echo esc_attr($settings['stamp_color']); ?>"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-stamp-opacity"><?php echo esc_html__('Прозрачность', 'sign-docs'); ?></label></th>
-                            <td>
-                                <input id="sign-docs-default-stamp-opacity" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_opacity]" type="range" min="0.1" max="1" step="0.05" value="<?php echo esc_attr($settings['stamp_opacity']); ?>">
-                                <span><?php echo esc_html((string) round((float) $settings['stamp_opacity'] * 100)); ?>%</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="sign-docs-default-stamp-font-size"><?php echo esc_html__('Размер шрифта', 'sign-docs'); ?></label></th>
-                            <td>
-                                <input id="sign-docs-default-stamp-font-size" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_font_size]" type="number" min="6" max="12" step="0.1" class="small-text" value="<?php echo esc_attr($settings['stamp_font_size']); ?>">
-                                <span>pt</span>
-                                <p class="description"><?php echo esc_html__('Базовый размер шрифта в основном штампе. Для длинных ФИО или названий можно уменьшить значение.', 'sign-docs'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php echo esc_html__('Рамка штампа', 'sign-docs'); ?></th>
-                            <td>
-                                <label for="sign-docs-default-stamp-border-enabled">
-                                    <input id="sign-docs-default-stamp-border-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_border_enabled]" type="checkbox" value="1" <?php checked($settings['stamp_border_enabled'], '1'); ?>>
-                                    <?php echo esc_html__('Показывать рамку вокруг основного штампа', 'sign-docs'); ?>
-                                </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><?php echo esc_html__('Логотип сайта в QR-коде', 'sign-docs'); ?></th>
-                            <td>
-                                <label for="sign-docs-default-qr-logo-enabled">
-                                    <input id="sign-docs-default-qr-logo-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[qr_logo_enabled]" type="checkbox" value="1" <?php checked($settings['qr_logo_enabled'], '1'); ?>>
-                                    <?php echo esc_html__('Накладывать favicon или логотип сайта на модули QR-кода', 'sign-docs'); ?>
-                                </label>
-                                <p class="description"><?php echo esc_html__('Логотип не является частью QR-стандарта. Плагин не закрывает центр QR-кода, а использует favicon как полупрозрачную текстуру поверх темных модулей и снижает уровень коррекции до M, чтобы матрица была компактнее. Для максимальной надежности сканирования эту опцию можно отключить.', 'sign-docs'); ?></p>
                             </td>
                         </tr>
                         <tr>

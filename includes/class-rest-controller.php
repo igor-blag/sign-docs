@@ -202,6 +202,13 @@ final class Sign_Docs_REST_Controller
         $settings = Sign_Docs_Settings::get();
         $stamp_border_enabled = $request->get_param('stamp_border_enabled');
         $qr_logo_enabled = $request->get_param('qr_logo_enabled');
+        $stamp_rows = $request->get_param('stamp_rows');
+        $stamp_qr_enabled = $request->get_param('stamp_qr_enabled');
+        $stamp_qr_position = $request->get_param('stamp_qr_position');
+        $stamp_padding = $request->get_param('stamp_padding');
+        $stamp_qr_gap = $request->get_param('stamp_qr_gap');
+        $stamp_qr_padding = $request->get_param('stamp_qr_padding');
+        $stamp_line_spacing = $request->get_param('stamp_line_spacing');
         $document_category = sanitize_key((string) $request->get_param('document_category'));
         $save_mode = sanitize_key((string) $request->get_param('save_mode'));
         $save_unsigned = 'unsigned' === $save_mode || 'external-regulation' === $document_category;
@@ -238,6 +245,13 @@ final class Sign_Docs_REST_Controller
                 'stamp_opacity' => (string) ($request->get_param('stamp_opacity') ?: $settings['stamp_opacity']),
                 'stamp_font_size' => (string) ($request->get_param('stamp_font_size') ?: $settings['stamp_font_size']),
                 'stamp_border_enabled' => null === $stamp_border_enabled ? $settings['stamp_border_enabled'] : (string) $stamp_border_enabled,
+                'stamp_padding' => null === $stamp_padding ? $settings['stamp_padding'] : (string) $stamp_padding,
+                'stamp_qr_gap' => null === $stamp_qr_gap ? $settings['stamp_qr_gap'] : (string) $stamp_qr_gap,
+                'stamp_qr_padding' => null === $stamp_qr_padding ? $settings['stamp_qr_padding'] : (string) $stamp_qr_padding,
+                'stamp_line_spacing' => null === $stamp_line_spacing ? $settings['stamp_line_spacing'] : (string) $stamp_line_spacing,
+                'stamp_rows' => null === $stamp_rows || '' === (string) $stamp_rows ? $settings['stamp_rows'] : (string) $stamp_rows,
+                'stamp_qr_enabled' => null === $stamp_qr_enabled ? $settings['stamp_qr_enabled'] : (string) $stamp_qr_enabled,
+                'stamp_qr_position' => (string) ($stamp_qr_position ?: $settings['stamp_qr_position']),
                 'stamp_placement_mode' => (string) ($request->get_param('stamp_placement_mode') ?: 'corner'),
                 'stamp_manual_x' => (string) $request->get_param('stamp_manual_x'),
                 'stamp_manual_y' => (string) $request->get_param('stamp_manual_y'),
@@ -255,6 +269,10 @@ final class Sign_Docs_REST_Controller
         $post_id = (int) $post_id;
         $stored_stamp_border_enabled = Sign_Docs_Meta::get($post_id, 'stamp_border_enabled');
         $stored_qr_logo_enabled = Sign_Docs_Meta::get($post_id, 'qr_logo_enabled');
+        $stored_stamp_padding = Sign_Docs_Meta::get($post_id, 'stamp_padding');
+        $stored_stamp_qr_gap = Sign_Docs_Meta::get($post_id, 'stamp_qr_gap');
+        $stored_stamp_qr_padding = Sign_Docs_Meta::get($post_id, 'stamp_qr_padding');
+        $stored_stamp_line_spacing = Sign_Docs_Meta::get($post_id, 'stamp_line_spacing');
 
         return new WP_REST_Response(
             array(
@@ -278,6 +296,13 @@ final class Sign_Docs_REST_Controller
                 'stamp_opacity' => Sign_Docs_Meta::get($post_id, 'stamp_opacity') ?: '1',
                 'stamp_font_size' => Sign_Docs_Meta::get($post_id, 'stamp_font_size') ?: '8.4',
                 'stamp_border_enabled' => '' === $stored_stamp_border_enabled ? '1' : $stored_stamp_border_enabled,
+                'stamp_padding' => '' === $stored_stamp_padding ? '5' : $stored_stamp_padding,
+                'stamp_qr_gap' => '' === $stored_stamp_qr_gap ? '5' : $stored_stamp_qr_gap,
+                'stamp_qr_padding' => '' === $stored_stamp_qr_padding ? '5' : $stored_stamp_qr_padding,
+                'stamp_line_spacing' => '' === $stored_stamp_line_spacing ? '1.25' : $stored_stamp_line_spacing,
+                'stamp_rows' => Sign_Docs_Meta::get($post_id, 'stamp_rows') ?: 'header,meta,signer,org',
+                'stamp_qr_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled') ?: '1',
+                'stamp_qr_position' => Sign_Docs_Meta::get($post_id, 'stamp_qr_position') ?: 'right',
                 'stamp_placement_mode' => Sign_Docs_Meta::get($post_id, 'stamp_placement_mode') ?: 'corner',
                 'stamp_manual_x' => Sign_Docs_Meta::get($post_id, 'stamp_manual_x'),
                 'stamp_manual_y' => Sign_Docs_Meta::get($post_id, 'stamp_manual_y'),

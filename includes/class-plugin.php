@@ -111,6 +111,7 @@ final class Sign_Docs_Plugin
         add_action('admin_post_sign_docs_upload', array(Sign_Docs_Admin::class, 'handle_upload'));
         add_action('admin_post_sign_docs_archive', array(Sign_Docs_Admin::class, 'handle_archive'));
         add_action('admin_enqueue_scripts', array(Sign_Docs_Admin::class, 'enqueue_assets'));
+        add_action('admin_enqueue_scripts', array(Sign_Docs_Settings::class, 'enqueue_assets'));
         add_action('post_submitbox_misc_actions', array(Sign_Docs_Admin::class, 'submitbox_archive_action'));
         add_action('admin_head-post.php', array(Sign_Docs_Admin::class, 'hide_trash_action'));
         add_filter('post_row_actions', array(Sign_Docs_Admin::class, 'row_actions'), 10, 2);
