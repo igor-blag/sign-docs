@@ -119,8 +119,13 @@ final class Sign_Docs_Verification_Page
 
             <?php self::render_replacement_notices($replaces_post_id, $replaced_by_post_id); ?>
 
-            <?php if ('' !== $stamped_file_url) : ?>
-                <?php self::render_preview($stamped_file_url); ?>
+            <?php
+            $verification_settings = Sign_Docs_Settings::get();
+            $preview_enabled = '1' === (string) ($verification_settings['verification_preview_enabled'] ?? '1');
+            $preview_pages = isset($verification_settings['verification_preview_pages']) ? absint($verification_settings['verification_preview_pages']) : 0;
+            ?>
+            <?php if ($preview_enabled && '' !== $stamped_file_url) : ?>
+                <?php self::render_preview($stamped_file_url, $preview_pages); ?>
             <?php endif; ?>
 
             <dl class="sign-docs-verification__details">
@@ -158,13 +163,14 @@ final class Sign_Docs_Verification_Page
         return (string) ob_get_clean();
     }
 
-    private static function render_preview(string $pdf_url): void
+    private static function render_preview(string $pdf_url, int $pages): void
     {
         ?>
         <div
             class="sign-docs-verification__preview"
             data-sign-docs-preview
             data-pdf-url="<?php echo esc_url($pdf_url); ?>"
+            data-preview-pages="<?php echo esc_attr((string) $pages); ?>"
             hidden
         >
             <h3>Подписанный документ</h3>

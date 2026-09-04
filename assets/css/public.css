@@ -69,6 +69,11 @@
     background: #ffffff;
 }
 
+.sign-docs-verification__preview-more {
+    color: #646970;
+    margin: 4px 0 0;
+}
+
 .sign-docs-verification__row {
     display: grid;
     gap: 4px;

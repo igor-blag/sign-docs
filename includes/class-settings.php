@@ -55,6 +55,7 @@ final class Sign_Docs_Settings
             'button_outline_color' => '#32373c',
             'button_border_radius' => '9999',
             'ai_autofill_enabled' => '0',
+            'verification_preview_enabled' => '1',
         );
     }
 
@@ -131,6 +132,8 @@ final class Sign_Docs_Settings
         $button_outline_color = isset($value['button_outline_color']) ? sanitize_hex_color((string) $value['button_outline_color']) : '';
         $button_border_radius = isset($value['button_border_radius']) ? (int) $value['button_border_radius'] : 9999;
         $ai_autofill_enabled = ! empty($value['ai_autofill_enabled']) ? '1' : '0';
+        $verification_preview_enabled = ! empty($value['verification_preview_enabled']) ? '1' : '0';
+        $verification_preview_pages = isset($value['verification_preview_pages']) ? absint($value['verification_preview_pages']) : 0;
 
         if (! in_array($corner, array('top-left', 'top-right', 'bottom-left', 'bottom-right'), true)) {
             $corner = 'top-left';
@@ -166,6 +169,8 @@ final class Sign_Docs_Settings
             'button_outline_color' => $button_outline_color ?: '#32373c',
             'button_border_radius' => (string) min(9999, max(0, $button_border_radius)),
             'ai_autofill_enabled' => $ai_autofill_enabled,
+            'verification_preview_enabled' => $verification_preview_enabled,
+            'verification_preview_pages' => (string) min(100, $verification_preview_pages),
         );
     }
 
@@ -605,6 +610,21 @@ final class Sign_Docs_Settings
                                     <?php echo esc_html__('Автоматически предлагать реквизиты документа при выборе PDF', 'sign-docs'); ?>
                                 </label>
                                 <p class="description"><?php echo esc_html__('Используется настроенный AI connector WordPress. В модель отправляется только текст первой страницы PDF, а подпись и публикация остаются ручным действием администратора.', 'sign-docs'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php echo esc_html__('Предпросмотр документа', 'sign-docs'); ?></th>
+                            <td>
+                                <label for="sign-docs-verification-preview-enabled">
+                                    <input id="sign-docs-verification-preview-enabled" name="<?php echo esc_attr(self::OPTION_NAME); ?>[verification_preview_enabled]" type="checkbox" value="1" <?php checked($settings['verification_preview_enabled'], '1'); ?>>
+                                    <?php echo esc_html__('Показывать предпросмотр подписанного документа на странице проверки', 'sign-docs'); ?>
+                                </label>
+                                <p style="margin:8px 0 0;">
+                                    <label for="sign-docs-verification-preview-pages"><?php echo esc_html__('Число страниц предпросмотра', 'sign-docs'); ?></label>
+                                    <input id="sign-docs-verification-preview-pages" name="<?php echo esc_attr(self::OPTION_NAME); ?>[verification_preview_pages]" type="number" min="0" max="100" step="1" class="small-text" value="<?php echo esc_attr($settings['verification_preview_pages']); ?>">
+                                    <span><?php echo esc_html__('0 — все страницы', 'sign-docs'); ?></span>
+                                </p>
+                                <p class="description"><?php echo esc_html__('Ограничение ускоряет загрузку страницы для документов из многих страниц.', 'sign-docs'); ?></p>
                             </td>
                         </tr>
                         <tr>

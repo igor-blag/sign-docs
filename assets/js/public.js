@@ -118,6 +118,9 @@
             return;
         }
 
+        const pageLimit = parseInt(block.getAttribute('data-preview-pages') || '0', 10);
+        const limit = Number.isNaN(pageLimit) ? 0 : Math.max(0, pageLimit);
+
         block.hidden = false;
 
         setPreviewMessage(block, __('Загружаю предпросмотр…', 'sign-docs'));
@@ -139,10 +142,11 @@
                 wrap.className = 'sign-docs-verification__preview-scroll';
                 body.appendChild(wrap);
 
-                const defaultScale = 1.0;
-                for (let i = 0; i < doc.numPages; i += 1) {
+                const renderCount = limit > 0 ? Math.min(limit, doc.numPages) : doc.numPages;
+
+                for (let i = 0; i < renderCount; i += 1) {
                     const page = await doc.getPage(i + 1);
-                    const viewport = page.getViewport({ scale: defaultScale });
+                    const viewport = page.getViewport({ scale: 1.0 });
                     const canvas = document.createElement('canvas');
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
@@ -150,6 +154,13 @@
                     canvas.setAttribute('aria-label', (i + 1) + ' / ' + doc.numPages);
                     wrap.appendChild(canvas);
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                }
+
+                if (renderCount < doc.numPages) {
+                    const more = document.createElement('p');
+                    more.className = 'sign-docs-verification__preview-more';
+                    more.textContent = __('Показаны первые ' + renderCount + ' из ' + doc.numPages + ' страниц.', 'sign-docs');
+                    wrap.appendChild(more);
                 }
             } catch (error) {
                 setPreviewMessage(block, __('Не удалось показать предпросмотр документа.', 'sign-docs'), true);
