@@ -77,6 +77,10 @@ final class Sign_Docs_Document_Service
 
         $post_id = (int) $post_id;
         $timestamp = strtotime($signed_at) ?: time();
+        $signed_at_dt = date_create($signed_at, wp_timezone());
+        $signed_at_utc = $signed_at_dt
+            ? $signed_at_dt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')
+            : gmdate('Y-m-d H:i:s', $timestamp);
         $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp, $file_basename);
 
         if (! copy($source_path, $paths['original_path'])) {
@@ -118,6 +122,7 @@ final class Sign_Docs_Document_Service
             'stamped_file_hash' => $defer_stamped ? '' : Sign_Docs_Storage::hash_file($paths['stamped_path']),
             'sha256_hash' => $hash,
             'signed_at' => $signed_at,
+            'signed_at_utc' => $signed_at_utc,
             'signer_name' => isset($args['signer_name']) ? sanitize_text_field((string) $args['signer_name']) : '',
             'signer_position' => isset($args['signer_position']) ? sanitize_text_field((string) $args['signer_position']) : '',
             'signer_organization' => isset($args['signer_organization']) ? sanitize_text_field((string) $args['signer_organization']) : '',

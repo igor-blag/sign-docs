@@ -438,6 +438,11 @@ function get_bloginfo(string $show): string
     return 'Test Site';
 }
 
+function wp_timezone(): DateTimeZone
+{
+    return new DateTimeZone('UTC');
+}
+
 function get_option(string $option, $default = false)
 {
     return $default;

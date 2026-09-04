@@ -75,12 +75,12 @@
     function buildStampData() {
         var sample = config.sample || {};
         var now = new Date();
-        var day = String(now.getDate()).padStart(2, '0');
-        var month = String(now.getMonth() + 1).padStart(2, '0');
-        var year = now.getFullYear();
-        var hours = String(now.getHours()).padStart(2, '0');
-        var minutes = String(now.getMinutes()).padStart(2, '0');
-        var seconds = String(now.getSeconds()).padStart(2, '0');
+        var utcYear = String(now.getUTCFullYear());
+        var utcMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
+        var utcDay = String(now.getUTCDate()).padStart(2, '0');
+        var utcHours = String(now.getUTCHours()).padStart(2, '0');
+        var utcMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+        var utcSeconds = String(now.getUTCSeconds()).padStart(2, '0');
 
         return {
             stamp_font_size: settingValue('stamp_font_size') || '8.4',
@@ -97,7 +97,7 @@
             stamp_qr_size: settingValue('stamp_qr_size') || '54',
             stamp_qr_ec_level: selectedValue('stamp_qr_ec_level', 'h'),
             qr_logo_enabled: settingChecked('qr_logo_enabled') ? '1' : '0',
-            local_signed_at: year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds,
+            signed_at_utc: utcYear + '-' + utcMonth + '-' + utcDay + ' ' + utcHours + ':' + utcMinutes + ':' + utcSeconds,
             post_id: sample.post_id || '0000',
             sha256_hash: sample.sha256_hash || '',
             signer_name: settingValue('signer_name'),

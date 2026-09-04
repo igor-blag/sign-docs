@@ -1449,7 +1449,6 @@
             prepareData.append('replaces_post_id', field('replaces_post_id'));
 
             const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
-            prepared.local_signed_at = localSignedAt();
 
             setStatus('Встраиваю Golos Text, накладываю штамп и QR-код...', 'info');
             const stampedBytes = await stampPdf(file, prepared);

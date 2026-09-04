@@ -300,6 +300,7 @@ final class Sign_Docs_REST_Controller
                 'sha256_hash' => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
                 'original_file_url' => Sign_Docs_Meta::get($post_id, 'original_file_url'),
                 'signed_at' => Sign_Docs_Meta::get($post_id, 'signed_at'),
+                'signed_at_utc' => Sign_Docs_Meta::get($post_id, 'signed_at_utc'),
                 'title' => get_the_title($post_id),
                 'signer' => trim(Sign_Docs_Meta::get($post_id, 'signer_position') . ' ' . Sign_Docs_Meta::get($post_id, 'signer_name')),
                 'signer_name' => Sign_Docs_Meta::get($post_id, 'signer_name'),

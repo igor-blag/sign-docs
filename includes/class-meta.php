@@ -23,6 +23,7 @@ final class Sign_Docs_Meta
         'stamped_file_hash' => 'string',
         'sha256_hash' => 'string',
         'signed_at' => 'string',
+        'signed_at_utc' => 'string',
         'signer_name' => 'string',
         'signer_position' => 'string',
         'signer_organization' => 'string',

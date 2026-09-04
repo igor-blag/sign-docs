@@ -256,18 +256,19 @@
         return formatted;
     }
 
-    function compactSignedAt(value) {
+    function compactSignedAt(value, timezone) {
         const source = String(value || '').trim();
         if (!source) return '';
-        const d = new Date(source.replace(' ', 'T'));
-        if (isNaN(d.getTime())) return source;
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const yyyy = d.getFullYear();
-        const hh = String(d.getHours()).padStart(2, '0');
-        const mi = String(d.getMinutes()).padStart(2, '0');
-        const ss = String(d.getSeconds()).padStart(2, '0');
-        return dd + '.' + mm + '.' + yyyy + ' ' + hh + ':' + mi + ':' + ss;
+        let iso = source.replace(' ', 'T');
+        if (iso.indexOf('Z') < 0 && !/[+-]\d{2}:?\d{2}$/.test(iso)) iso += 'Z';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return source.replace(/(\d{1,2}:\d{2}):\d{2}(?=\s|$)/, '$1');
+        const opts = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+        if (timezone) opts.timeZone = timezone;
+        const parts = new Intl.DateTimeFormat('ru-RU', opts).formatToParts(d);
+        const v = {};
+        parts.forEach(function (p) { v[p.type] = p.value; });
+        return v.day + '.' + v.month + '.' + v.year + ' ' + v.hour + ':' + v.minute + ':' + v.second;
     }
 
     function wrapText(font, source, size, maxWidth, maxLines) {
@@ -382,7 +383,7 @@
 
         const fields = {
             header: 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ',
-            line1: compactSignedAt(data.signed_at) + ' (UTC)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash,
+            line1: compactSignedAt(data.signed_at_utc || data.signed_at, 'Europe/Moscow') + ' (МСК)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash,
             name: data.signer_name || data.signer || '',
             position: data.signer_position || '',
             org: data.organization || ''

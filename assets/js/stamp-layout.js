@@ -5,6 +5,8 @@
     var DEFAULT_ROWS = ['header', 'meta', 'signer', 'org'];
     var ROW_MAX_LINES = { header: 2, meta: 2, signer: 2, org: 3 };
     var HEADER_TEXT = 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ';
+    var STAMP_TIMEZONE = 'Europe/Moscow';
+    var STAMP_TIMEZONE_LABEL = 'МСК';
 
     function clampNumber(value, min, max, fallback) {
         if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -76,25 +78,45 @@
         return rows.length ? rows : DEFAULT_ROWS.slice();
     }
 
-    function compactSignedAt(value) {
+    function compactSignedAt(value, timezone) {
         var source = String(value || '').trim();
         if (!source) {
             return '';
         }
 
-        var date = new Date(source.replace(' ', 'T'));
+        var iso = source.replace(' ', 'T');
+        if (!/\d$/.test(iso) || (iso.indexOf('Z') < 0 && !/Z$/.test(iso) && !/[+-]\d{2}:?\d{2}$/.test(iso))) {
+            iso += 'Z';
+        }
+
+        var date = new Date(iso);
+        if (isNaN(date.getTime())) {
+            date = new Date(source.replace(' ', 'T'));
+        }
         if (isNaN(date.getTime())) {
             return source.replace(/(\d{1,2}:\d{2}):\d{2}(?=\s|$)/, '$1');
         }
 
-        var day = String(date.getDate()).padStart(2, '0');
-        var month = String(date.getMonth() + 1).padStart(2, '0');
-        var year = date.getFullYear();
-        var hours = String(date.getHours()).padStart(2, '0');
-        var minutes = String(date.getMinutes()).padStart(2, '0');
-        var seconds = String(date.getSeconds()).padStart(2, '0');
+        var options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        };
+        if (timezone) {
+            options.timeZone = timezone;
+        }
 
-        return day + '.' + month + '.' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+        var parts = new Intl.DateTimeFormat('ru-RU', options).formatToParts(date);
+        var values = {};
+        parts.forEach(function (part) {
+            values[part.type] = part.value;
+        });
+
+        return values.day + '.' + values.month + '.' + values.year + ' ' + values.hour + ':' + values.minute + ':' + values.second;
     }
 
     function shortHash(hash) {
@@ -104,14 +126,14 @@
     }
 
     function composeContent(data) {
-        var dateText = compactSignedAt(data.local_signed_at || data.signed_at || '');
+        var dateText = compactSignedAt(data.signed_at_utc || data.local_signed_at || data.signed_at || '', STAMP_TIMEZONE);
         var name = String(data.signer_name || data.signer || '').trim();
         var position = String(data.signer_position || '').trim();
 
         return {
             header: HEADER_TEXT,
             meta: dateText
-                + ' (UTC)  |  ID: ' + String(data.post_id || '')
+                + ' (' + STAMP_TIMEZONE_LABEL + ')  |  ID: ' + String(data.post_id || '')
                 + '  |  SHA-256: ' + shortHash(data.sha256_hash),
             signer: position && name ? position + ': ' + name : (position || name),
             org: String(data.organization || data.signer_organization || '').trim()
