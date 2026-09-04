@@ -68,6 +68,14 @@ final class Sign_Docs_Meta
         'stamp_manual_x' => 'string',
         'stamp_manual_y' => 'string',
         'qr_logo_enabled' => 'string',
+        'stamp_qr_size' => 'string',
+        'stamp_qr_ec_level' => 'string',
+        'stamp_page' => 'string',
+        'stamp_footer_enabled' => 'string',
+        'stamp_footer_border_enabled' => 'string',
+        'stamp_footer_font_size' => 'string',
+        'stamp_footer_opacity' => 'string',
+        'stamp_footer_position' => 'string',
     );
 
     private const REST_META_KEYS = array(

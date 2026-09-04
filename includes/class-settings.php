@@ -264,7 +264,7 @@ final class Sign_Docs_Settings
             'sign-docs-admin-settings',
             SIGN_DOCS_PLUGIN_URL . 'assets/css/admin-settings.css',
             array(),
-            file_exists($style_path) ? (string) filemtime($style_path) : SIGN_DOCS_VERSION
+            file_exists($style_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($style_path) : SIGN_DOCS_VERSION
         );
 
         $builder_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-stamp-builder.js';
@@ -272,7 +272,7 @@ final class Sign_Docs_Settings
             'sign-docs-admin-settings',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/admin-stamp-builder.js',
             array('sign-docs-stamp-layout', 'sign-docs-stamp-ui', 'sign-docs-qrcode'),
-            file_exists($builder_path) ? (string) filemtime($builder_path) : SIGN_DOCS_VERSION,
+            file_exists($builder_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($builder_path) : SIGN_DOCS_VERSION,
             true
         );
 
@@ -301,7 +301,7 @@ final class Sign_Docs_Settings
             'sign-docs-stamp-layout',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-layout.js',
             array(),
-            file_exists($layout_path) ? (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
+            file_exists($layout_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
             true
         );
 
@@ -310,7 +310,7 @@ final class Sign_Docs_Settings
             'sign-docs-stamp-ui',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-ui.js',
             array(),
-            file_exists($ui_path) ? (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
+            file_exists($ui_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
             true
         );
 

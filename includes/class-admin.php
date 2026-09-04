@@ -24,7 +24,7 @@ final class Sign_Docs_Admin
             'sign-docs-stamp-layout',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-layout.js',
             array(),
-            file_exists($layout_path) ? (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
+            file_exists($layout_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
             true
         );
 
@@ -33,7 +33,7 @@ final class Sign_Docs_Admin
             'sign-docs-stamp-ui',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-ui.js',
             array(),
-            file_exists($ui_path) ? (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
+            file_exists($ui_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($ui_path) : SIGN_DOCS_VERSION,
             true
         );
 
@@ -53,7 +53,7 @@ final class Sign_Docs_Admin
         $has_pdfjs = file_exists($pdfjs_path) && file_exists($pdfjs_worker_path);
 
         $admin_asset_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-upload.js';
-        $admin_version = file_exists($admin_asset_path) ? (string) filemtime($admin_asset_path) : SIGN_DOCS_VERSION;
+        $admin_version = file_exists($admin_asset_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($admin_asset_path) : SIGN_DOCS_VERSION;
 
         $dependencies = array('sign-docs-stamp-layout', 'sign-docs-stamp-ui');
         $config = array(

@@ -289,6 +289,9 @@ final class Sign_Docs_REST_Controller
         $stored_stamp_qr_gap = Sign_Docs_Meta::get($post_id, 'stamp_qr_gap');
         $stored_stamp_qr_padding = Sign_Docs_Meta::get($post_id, 'stamp_qr_padding');
         $stored_stamp_line_spacing = Sign_Docs_Meta::get($post_id, 'stamp_line_spacing');
+        $stored_stamp_qr_enabled = Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled');
+        $stored_stamp_footer_enabled = Sign_Docs_Meta::get($post_id, 'stamp_footer_enabled');
+        $stored_stamp_footer_border_enabled = Sign_Docs_Meta::get($post_id, 'stamp_footer_border_enabled');
 
         return new WP_REST_Response(
             array(
@@ -318,14 +321,14 @@ final class Sign_Docs_REST_Controller
                 'stamp_qr_size' => Sign_Docs_Meta::get($post_id, 'stamp_qr_size') ?: '54',
                 'stamp_qr_ec_level' => Sign_Docs_Meta::get($post_id, 'stamp_qr_ec_level') ?: 'h',
                 'stamp_page' => Sign_Docs_Meta::get($post_id, 'stamp_page') ?: 'first',
-                'stamp_footer_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_footer_enabled') ?: '1',
-                'stamp_footer_border_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_footer_border_enabled') ?: '1',
+                'stamp_footer_enabled' => '' === $stored_stamp_footer_enabled ? '1' : $stored_stamp_footer_enabled,
+                'stamp_footer_border_enabled' => '' === $stored_stamp_footer_border_enabled ? '1' : $stored_stamp_footer_border_enabled,
                 'stamp_footer_font_size' => Sign_Docs_Meta::get($post_id, 'stamp_footer_font_size') ?: '6.4',
                 'stamp_footer_opacity' => Sign_Docs_Meta::get($post_id, 'stamp_footer_opacity') ?: '1',
                 'stamp_footer_position' => Sign_Docs_Meta::get($post_id, 'stamp_footer_position') ?: 'bottom',
                 'stamp_line_spacing' => '' === $stored_stamp_line_spacing ? '1.25' : $stored_stamp_line_spacing,
                 'stamp_rows' => Sign_Docs_Meta::get($post_id, 'stamp_rows') ?: 'header,meta,signer,org',
-                'stamp_qr_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled') ?: '1',
+                'stamp_qr_enabled' => '' === $stored_stamp_qr_enabled ? '1' : $stored_stamp_qr_enabled,
                 'stamp_qr_position' => Sign_Docs_Meta::get($post_id, 'stamp_qr_position') ?: 'right',
                 'stamp_placement_mode' => Sign_Docs_Meta::get($post_id, 'stamp_placement_mode') ?: 'corner',
                 'stamp_manual_x' => Sign_Docs_Meta::get($post_id, 'stamp_manual_x'),

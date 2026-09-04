@@ -1302,7 +1302,7 @@
         const top = data.stamp_footer_position === 'top';
         const barHeight = borderEnabled ? 28 : Math.max(12, fontSize + 6);
         const width = size.width - margin * 2;
-        const y = top ? margin : size.height - margin - barHeight;
+        const y = top ? (size.height - margin - barHeight) : margin;
         const padX = borderEnabled ? 10 : 0;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
