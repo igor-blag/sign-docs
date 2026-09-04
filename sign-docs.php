@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sign Docs
  * Description: Fixes signed PDF documents with a server-side SHA-256 hash and a public verification page.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: Igor Blagoveshchensky
  * Requires at least: 6.5
  * Requires PHP: 8.1
@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('SIGN_DOCS_VERSION', '0.4.0');
+define('SIGN_DOCS_VERSION', '0.4.1');
 define('SIGN_DOCS_PLUGIN_FILE', __FILE__);
 define('SIGN_DOCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SIGN_DOCS_PLUGIN_URL', plugin_dir_url(__FILE__));
