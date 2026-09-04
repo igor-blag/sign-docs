@@ -57,6 +57,18 @@ final class Sign_Docs_Verification_Page
             file_exists($script_path) ? (string) filemtime($script_path) : SIGN_DOCS_VERSION,
             true
         );
+
+        $pdf_js_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.min.mjs';
+        $pdf_worker_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.worker.min.mjs';
+        wp_localize_script(
+            'sign-docs-public',
+            'SignDocsPreview',
+            array(
+                'module' => file_exists($pdf_js_path) ? SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs' : '',
+                'worker' => file_exists($pdf_worker_path) ? SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs' : '',
+                'hasPdfJs' => file_exists($pdf_js_path) && file_exists($pdf_worker_path),
+            )
+        );
     }
 
     public static function render_content(string $content): string
@@ -107,6 +119,10 @@ final class Sign_Docs_Verification_Page
 
             <?php self::render_replacement_notices($replaces_post_id, $replaced_by_post_id); ?>
 
+            <?php if ('' !== $stamped_file_url) : ?>
+                <?php self::render_preview($stamped_file_url); ?>
+            <?php endif; ?>
+
             <dl class="sign-docs-verification__details">
                 <?php self::render_row('Дата и время подписи', $signed_at); ?>
                 <?php self::render_row('Подписант', trim($signer_position . ' ' . $signer_name)); ?>
@@ -140,6 +156,23 @@ final class Sign_Docs_Verification_Page
         <?php
 
         return (string) ob_get_clean();
+    }
+
+    private static function render_preview(string $pdf_url): void
+    {
+        ?>
+        <div
+            class="sign-docs-verification__preview"
+            data-sign-docs-preview
+            data-pdf-url="<?php echo esc_url($pdf_url); ?>"
+            hidden
+        >
+            <h3>Подписанный документ</h3>
+            <div class="sign-docs-verification__preview-body" data-sign-docs-preview-body>
+                <p class="sign-docs-verification__preview-loading">Загружаю предпросмотр…</p>
+            </div>
+        </div>
+        <?php
     }
 
     private static function render_file_checker(string $original_hash, string $stamped_hash): void

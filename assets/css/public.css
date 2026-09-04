@@ -28,6 +28,47 @@
     margin: 0;
 }
 
+.sign-docs-verification__preview {
+    margin-bottom: 20px;
+}
+
+.sign-docs-verification__preview h3 {
+    margin: 0 0 8px;
+}
+
+.sign-docs-verification__preview-body {
+    overflow: auto;
+    max-height: 70vh;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #f6f7f7;
+    padding: 12px;
+}
+
+.sign-docs-verification__preview-loading {
+    color: #646970;
+    margin: 0;
+}
+
+.sign-docs-verification__preview-loading[data-status="error"] {
+    color: #b32d2e;
+}
+
+.sign-docs-verification__preview-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.sign-docs-verification__preview-page {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+}
+
 .sign-docs-verification__row {
     display: grid;
     gap: 4px;

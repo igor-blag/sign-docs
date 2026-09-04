@@ -86,4 +86,82 @@
             setCheckerResult(checker, __('Не удалось рассчитать SHA-256 выбранного файла.', 'sign-docs'), 'error');
         }
     });
+
+    function setPreviewMessage(block, message, isError) {
+        const body = block.querySelector('[data-sign-docs-preview-body]');
+
+        if (!body) {
+            return;
+        }
+
+        body.textContent = '';
+        const p = document.createElement('p');
+        p.className = 'sign-docs-verification__preview-loading';
+        if (isError) {
+            p.dataset.status = 'error';
+        }
+        p.textContent = message;
+        body.appendChild(p);
+    }
+
+    function renderPdfPreview(block, url) {
+        const config = window.SignDocsPreview || {};
+
+        if (!config.hasPdfJs || !config.module) {
+            block.remove();
+            return;
+        }
+
+        const body = block.querySelector('[data-sign-docs-preview-body]');
+
+        if (!body) {
+            return;
+        }
+
+        block.hidden = false;
+
+        setPreviewMessage(block, __('Загружаю предпросмотр…', 'sign-docs'));
+
+        (async function () {
+            try {
+                const pdfjs = await import(/* webpackIgnore: true */ config.module);
+                pdfjs.GlobalWorkerOptions.workerSrc = config.worker;
+
+                const buffer = await fetch(url).then(function (response) {
+                    return response.arrayBuffer();
+                });
+                const doc = await pdfjs.getDocument({ data: buffer }).promise;
+
+                body.textContent = '';
+                body.classList.add('is-loaded');
+
+                const wrap = document.createElement('div');
+                wrap.className = 'sign-docs-verification__preview-scroll';
+                body.appendChild(wrap);
+
+                const defaultScale = 1.0;
+                for (let i = 0; i < doc.numPages; i += 1) {
+                    const page = await doc.getPage(i + 1);
+                    const viewport = page.getViewport({ scale: defaultScale });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.className = 'sign-docs-verification__preview-page';
+                    canvas.setAttribute('aria-label', (i + 1) + ' / ' + doc.numPages);
+                    wrap.appendChild(canvas);
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                }
+            } catch (error) {
+                setPreviewMessage(block, __('Не удалось показать предпросмотр документа.', 'sign-docs'), true);
+            }
+        }());
+    }
+
+    document.querySelectorAll('[data-sign-docs-preview]').forEach(function (block) {
+        const url = block.getAttribute('data-pdf-url');
+
+        if (url) {
+            renderPdfPreview(block, url);
+        }
+    });
 }());
