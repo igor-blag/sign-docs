@@ -208,6 +208,14 @@ final class Sign_Docs_REST_Controller
         $stamp_padding = $request->get_param('stamp_padding');
         $stamp_qr_gap = $request->get_param('stamp_qr_gap');
         $stamp_qr_padding = $request->get_param('stamp_qr_padding');
+        $stamp_qr_size = $request->get_param('stamp_qr_size');
+        $stamp_qr_ec_level = $request->get_param('stamp_qr_ec_level');
+        $stamp_page = $request->get_param('stamp_page');
+        $stamp_footer_enabled = $request->get_param('stamp_footer_enabled');
+        $stamp_footer_border_enabled = $request->get_param('stamp_footer_border_enabled');
+        $stamp_footer_font_size = $request->get_param('stamp_footer_font_size');
+        $stamp_footer_opacity = $request->get_param('stamp_footer_opacity');
+        $stamp_footer_position = $request->get_param('stamp_footer_position');
         $stamp_line_spacing = $request->get_param('stamp_line_spacing');
         $document_category = sanitize_key((string) $request->get_param('document_category'));
         $save_mode = sanitize_key((string) $request->get_param('save_mode'));
@@ -248,6 +256,14 @@ final class Sign_Docs_REST_Controller
                 'stamp_padding' => null === $stamp_padding ? $settings['stamp_padding'] : (string) $stamp_padding,
                 'stamp_qr_gap' => null === $stamp_qr_gap ? $settings['stamp_qr_gap'] : (string) $stamp_qr_gap,
                 'stamp_qr_padding' => null === $stamp_qr_padding ? $settings['stamp_qr_padding'] : (string) $stamp_qr_padding,
+                'stamp_qr_size' => null === $stamp_qr_size ? $settings['stamp_qr_size'] : (string) $stamp_qr_size,
+                'stamp_qr_ec_level' => null === $stamp_qr_ec_level || '' === (string) $stamp_qr_ec_level ? $settings['stamp_qr_ec_level'] : (string) $stamp_qr_ec_level,
+                'stamp_page' => (string) ($stamp_page ?: $settings['stamp_page']),
+                'stamp_footer_enabled' => null === $stamp_footer_enabled ? $settings['stamp_footer_enabled'] : (string) $stamp_footer_enabled,
+                'stamp_footer_border_enabled' => null === $stamp_footer_border_enabled ? $settings['stamp_footer_border_enabled'] : (string) $stamp_footer_border_enabled,
+                'stamp_footer_font_size' => (string) ($stamp_footer_font_size ?: $settings['stamp_footer_font_size']),
+                'stamp_footer_opacity' => (string) ($stamp_footer_opacity ?: $settings['stamp_footer_opacity']),
+                'stamp_footer_position' => (string) ($stamp_footer_position ?: $settings['stamp_footer_position']),
                 'stamp_line_spacing' => null === $stamp_line_spacing ? $settings['stamp_line_spacing'] : (string) $stamp_line_spacing,
                 'stamp_rows' => null === $stamp_rows || '' === (string) $stamp_rows ? $settings['stamp_rows'] : (string) $stamp_rows,
                 'stamp_qr_enabled' => null === $stamp_qr_enabled ? $settings['stamp_qr_enabled'] : (string) $stamp_qr_enabled,
@@ -299,6 +315,14 @@ final class Sign_Docs_REST_Controller
                 'stamp_padding' => '' === $stored_stamp_padding ? '5' : $stored_stamp_padding,
                 'stamp_qr_gap' => '' === $stored_stamp_qr_gap ? '5' : $stored_stamp_qr_gap,
                 'stamp_qr_padding' => '' === $stored_stamp_qr_padding ? '5' : $stored_stamp_qr_padding,
+                'stamp_qr_size' => Sign_Docs_Meta::get($post_id, 'stamp_qr_size') ?: '54',
+                'stamp_qr_ec_level' => Sign_Docs_Meta::get($post_id, 'stamp_qr_ec_level') ?: 'h',
+                'stamp_page' => Sign_Docs_Meta::get($post_id, 'stamp_page') ?: 'first',
+                'stamp_footer_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_footer_enabled') ?: '1',
+                'stamp_footer_border_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_footer_border_enabled') ?: '1',
+                'stamp_footer_font_size' => Sign_Docs_Meta::get($post_id, 'stamp_footer_font_size') ?: '6.4',
+                'stamp_footer_opacity' => Sign_Docs_Meta::get($post_id, 'stamp_footer_opacity') ?: '1',
+                'stamp_footer_position' => Sign_Docs_Meta::get($post_id, 'stamp_footer_position') ?: 'bottom',
                 'stamp_line_spacing' => '' === $stored_stamp_line_spacing ? '1.25' : $stored_stamp_line_spacing,
                 'stamp_rows' => Sign_Docs_Meta::get($post_id, 'stamp_rows') ?: 'header,meta,signer,org',
                 'stamp_qr_enabled' => Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled') ?: '1',

@@ -103,12 +103,23 @@
         canvasContext.restore();
     }
 
-    function qrCanvas(text, color, icon) {
+    var EC_ORDER = { l: 1, m: 2, q: 3, h: 4 };
+    var EC_LEVELS = { 1: 'l', 2: 'm', 3: 'q', 4: 'h' };
+
+    function pickEcLevel(chosen, withIcon) {
+        var rank = EC_ORDER[String(chosen || 'h').toLowerCase()] || EC_ORDER.h;
+        var minimum = withIcon ? EC_ORDER.m : EC_ORDER.l;
+
+        return EC_LEVELS[Math.max(rank, minimum)];
+    }
+
+    function qrCanvas(text, color, icon, ecLevel) {
         if (typeof global.qrcode !== 'function') {
             return null;
         }
 
-        var qr = global.qrcode(0, icon ? 'M' : 'H');
+        var level = pickEcLevel(ecLevel, icon).toUpperCase();
+        var qr = global.qrcode(0, level);
         qr.addData(String(text || ''));
         qr.make();
 

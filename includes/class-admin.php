@@ -351,6 +351,14 @@ final class Sign_Docs_Admin
                 <input type="hidden" name="stamp_padding" value="<?php echo esc_attr($settings['stamp_padding']); ?>">
                 <input type="hidden" name="stamp_qr_gap" value="<?php echo esc_attr($settings['stamp_qr_gap']); ?>">
                 <input type="hidden" name="stamp_qr_padding" value="<?php echo esc_attr($settings['stamp_qr_padding']); ?>">
+                <input type="hidden" name="stamp_qr_size" value="<?php echo esc_attr($settings['stamp_qr_size']); ?>">
+                <input type="hidden" name="stamp_qr_ec_level" value="<?php echo esc_attr($settings['stamp_qr_ec_level']); ?>">
+                <input type="hidden" name="stamp_page" value="<?php echo esc_attr($settings['stamp_page']); ?>">
+                <input type="hidden" name="stamp_footer_enabled" value="<?php echo esc_attr($settings['stamp_footer_enabled']); ?>">
+                <input type="hidden" name="stamp_footer_border_enabled" value="<?php echo esc_attr($settings['stamp_footer_border_enabled']); ?>">
+                <input type="hidden" name="stamp_footer_font_size" value="<?php echo esc_attr($settings['stamp_footer_font_size']); ?>">
+                <input type="hidden" name="stamp_footer_opacity" value="<?php echo esc_attr($settings['stamp_footer_opacity']); ?>">
+                <input type="hidden" name="stamp_footer_position" value="<?php echo esc_attr($settings['stamp_footer_position']); ?>">
                 <input type="hidden" name="stamp_line_spacing" value="<?php echo esc_attr($settings['stamp_line_spacing']); ?>">
                 <input type="hidden" name="stamp_rows" value="<?php echo esc_attr($settings['stamp_rows']); ?>">
                 <input type="hidden" name="stamp_qr_enabled" value="<?php echo esc_attr($settings['stamp_qr_enabled']); ?>">
@@ -598,6 +606,14 @@ final class Sign_Docs_Admin
                 'stamp_rows' => $settings['stamp_rows'],
                 'stamp_qr_enabled' => $settings['stamp_qr_enabled'],
                 'stamp_qr_position' => $settings['stamp_qr_position'],
+                'stamp_qr_size' => $settings['stamp_qr_size'],
+                'stamp_qr_ec_level' => $settings['stamp_qr_ec_level'],
+                'stamp_page' => $settings['stamp_page'],
+                'stamp_footer_enabled' => $settings['stamp_footer_enabled'],
+                'stamp_footer_border_enabled' => $settings['stamp_footer_border_enabled'],
+                'stamp_footer_font_size' => $settings['stamp_footer_font_size'],
+                'stamp_footer_opacity' => $settings['stamp_footer_opacity'],
+                'stamp_footer_position' => $settings['stamp_footer_position'],
                 'qr_logo_enabled' => $settings['qr_logo_enabled'],
                 'source_filename' => $source_name,
                 'document_status' => 'unsigned',

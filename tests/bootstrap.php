@@ -271,6 +271,18 @@ function wp_basename(string $path): string
     return basename($path);
 }
 
+function wp_normalize_path(string $path): string
+{
+    $path = str_replace('\\', '/', $path);
+    $path = preg_replace('|(?<=.)/+|', '/', $path) ?: $path;
+
+    if (':' === substr($path, 1, 1)) {
+        $path = lcfirst($path);
+    }
+
+    return $path;
+}
+
 function wp_unslash($value)
 {
     return is_string($value) ? stripslashes($value) : $value;

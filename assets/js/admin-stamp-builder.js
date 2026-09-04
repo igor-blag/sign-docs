@@ -30,6 +30,12 @@
         return form ? form.querySelector('select[name="sign_docs_settings[' + name + ']"]') : null;
     }
 
+    function selectedValue(name, fallback) {
+        var select = selectValue(name);
+
+        return select ? select.value.trim() : (fallback || '');
+    }
+
     function settingValue(name) {
         var input = settingInput(name);
         return input ? input.value.trim() : '';
@@ -88,6 +94,8 @@
             stamp_border_enabled: settingChecked('stamp_border_enabled') ? '1' : '0',
             stamp_qr_enabled: settingChecked('stamp_qr_enabled') ? '1' : '0',
             stamp_qr_position: radioValue('stamp_qr_position') || 'right',
+            stamp_qr_size: settingValue('stamp_qr_size') || '54',
+            stamp_qr_ec_level: selectedValue('stamp_qr_ec_level', 'h'),
             qr_logo_enabled: settingChecked('qr_logo_enabled') ? '1' : '0',
             local_signed_at: year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds,
             post_id: sample.post_id || '0000',
@@ -126,7 +134,7 @@
 
         if (layout.qr && data.verification_url) {
             var icon = data.qr_logo_enabled !== '0' ? iconImage : null;
-            qrCanvas = window.SignDocsStampUI.qrCanvas(data.verification_url, color, icon);
+            qrCanvas = window.SignDocsStampUI.qrCanvas(data.verification_url, color, icon, data.stamp_qr_ec_level);
         }
 
         canvasContext.save();
@@ -326,6 +334,17 @@
         });
     }
 
+    function syncFooterOptions() {
+        var toggle = document.getElementById('sign-docs-stamp-footer-enabled');
+        var options = document.getElementById('sign-docs-footer-options');
+
+        if (!toggle || !options) {
+            return;
+        }
+
+        options.classList.toggle('is-hidden', !toggle.checked);
+    }
+
     function bindInputs() {
         if (!form) {
             return;
@@ -345,11 +364,16 @@
                     }
                 }
 
+                if (input.id === 'sign-docs-stamp-footer-enabled') {
+                    syncFooterOptions();
+                }
+
                 scheduleRender();
             });
         });
 
         window.addEventListener('resize', scheduleRender);
+        syncFooterOptions();
     }
 
     window.SignDocsStampUI.loadFont(config.fonts.regular).then(function () {

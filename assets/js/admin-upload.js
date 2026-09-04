@@ -62,6 +62,8 @@
             stamp_rows: field('stamp_rows') || 'header,meta,signer,org',
             stamp_qr_enabled: field('stamp_qr_enabled'),
             stamp_qr_position: field('stamp_qr_position') || 'right',
+            stamp_qr_size: field('stamp_qr_size') || '54',
+            stamp_qr_ec_level: field('stamp_qr_ec_level') || 'h',
             local_signed_at: localSignedAt(),
             post_id: '',
             sha256_hash: '',
@@ -1294,33 +1296,41 @@
         const PDFLib = window.PDFLib;
         const size = page.getSize();
         const margin = Math.min(30, Math.max(16, size.width * 0.04));
-        const y = size.height - margin - 28;
-        const stampWidth = size.width - margin * 2;
+        const borderEnabled = !(data.stamp_footer_border_enabled === '0' || data.stamp_footer_border_enabled === false);
+        const fontSize = clamp(parseFloat(data.stamp_footer_font_size) || 6.4, 5, 12);
+        const footerOpacity = clamp(parseFloat(data.stamp_footer_opacity) || 1, 0.1, 1);
+        const top = data.stamp_footer_position === 'top';
+        const barHeight = borderEnabled ? 28 : Math.max(12, fontSize + 6);
+        const width = size.width - margin * 2;
+        const y = top ? margin : size.height - margin - barHeight;
+        const padX = borderEnabled ? 10 : 0;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
-        const opacity = stampOpacity(data);
         const text = 'SHA-256 исходного PDF: ' + data.sha256_hash + '  Проверка: ' + data.verification_url;
 
-        page.drawRectangle({
-            x: margin,
-            y: y,
-            width: stampWidth,
-            height: 28,
-            borderColor: mainColor,
-            borderWidth: 0.5,
-            borderOpacity: opacity
-        });
+        if (borderEnabled) {
+            page.drawRectangle({
+                x: margin,
+                y: y,
+                width: width,
+                height: barHeight,
+                borderColor: mainColor,
+                borderWidth: 0.5,
+                borderOpacity: footerOpacity
+            });
+        }
+
         page.drawText(text, {
-            x: margin + 10,
-            y: y + 10,
-            size: 6.4,
+            x: margin + padX,
+            y: y + (borderEnabled ? 10 : 2),
+            size: fontSize,
             font: fonts.regular,
             color: mainColor,
-            opacity: opacity,
-            maxWidth: stampWidth - 20
+            opacity: footerOpacity,
+            maxWidth: width - padX * 2
         });
 
-        addUriLink(pdfDoc, page, [margin, y, margin + stampWidth, y + 28], data.verification_url);
+        addUriLink(pdfDoc, page, [margin, y, margin + width, y + barHeight], data.verification_url);
     }
 
     async function stampPdf(file, data) {
@@ -1338,7 +1348,7 @@
             const icon = qrLogoEnabled(data) && window.SignDocsUpload.siteIconUrl
                 ? await window.SignDocsStampUI.loadImage(window.SignDocsUpload.siteIconUrl)
                 : null;
-            const qrCanvas = window.SignDocsStampUI.qrCanvas(data.verification_url, hexToCss(data.stamp_color), icon);
+            const qrCanvas = window.SignDocsStampUI.qrCanvas(data.verification_url, hexToCss(data.stamp_color), icon, data.stamp_qr_ec_level);
 
             if (qrCanvas) {
                 qrImage = await pdfDoc.embedPng(dataUrlToBytes(qrCanvas.toDataURL('image/png')));
@@ -1346,11 +1356,18 @@
         }
 
         const pages = pdfDoc.getPages();
+        const last = pages.length - 1;
+        const stampMode = data.stamp_page === 'last' ? 'last' : (data.stamp_page === 'both' ? 'both' : 'first');
+        const stampFirst = stampMode === 'first' || stampMode === 'both';
+        const stampLast = stampMode === 'last' || stampMode === 'both';
+        const footerOn = !(data.stamp_footer_enabled === '0' || data.stamp_footer_enabled === false);
 
         pages.forEach(function (page, index) {
-            if (index === 0) {
+            if (stampFirst && index === 0) {
                 drawFirstPageStamp(pdfDoc, page, stampData, fonts, qrImage);
-            } else {
+            } else if (stampLast && index === last) {
+                drawFirstPageStamp(pdfDoc, page, stampData, fonts, qrImage);
+            } else if (footerOn) {
                 drawFooterStamp(pdfDoc, page, stampData, fonts);
             }
         });
@@ -1417,6 +1434,14 @@
             prepareData.append('stamp_rows', field('stamp_rows') || 'header,meta,signer,org');
             prepareData.append('stamp_qr_enabled', field('stamp_qr_enabled') === '0' ? '0' : '1');
             prepareData.append('stamp_qr_position', field('stamp_qr_position') || 'right');
+            prepareData.append('stamp_qr_size', field('stamp_qr_size') || '54');
+            prepareData.append('stamp_qr_ec_level', field('stamp_qr_ec_level') || 'h');
+            prepareData.append('stamp_page', field('stamp_page') || 'first');
+            prepareData.append('stamp_footer_enabled', field('stamp_footer_enabled') === '0' ? '0' : '1');
+            prepareData.append('stamp_footer_border_enabled', field('stamp_footer_border_enabled') === '0' ? '0' : '1');
+            prepareData.append('stamp_footer_font_size', field('stamp_footer_font_size') || '6.4');
+            prepareData.append('stamp_footer_opacity', field('stamp_footer_opacity') || '1');
+            prepareData.append('stamp_footer_position', field('stamp_footer_position') || 'bottom');
             prepareData.append('stamp_placement_mode', field('stamp_placement_mode') || 'corner');
             prepareData.append('stamp_manual_x', field('stamp_manual_x'));
             prepareData.append('stamp_manual_y', field('stamp_manual_y'));

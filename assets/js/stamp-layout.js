@@ -35,6 +35,10 @@
         return clampNumber(parseFloatOr(data.stamp_qr_padding, 5), 0, 12, 5);
     }
 
+    function qrSizeOf(data) {
+        return clampNumber(parseFloatOr(data.stamp_qr_size, 54), 20, 120, 54);
+    }
+
     function lineSpacingOf(data) {
         return clampNumber(parseFloatOr(data.stamp_line_spacing, 1.25), 1, 2, 1.25);
     }
@@ -161,7 +165,7 @@
         var textPad = paddingOf(data);
         var gap = qrGapOf(data);
         var qrMargin = qrMarginOf(data);
-        var qrSize = 54;
+        var qrSize = qrSizeOf(data);
         var qrEnabled = flagOn(data, 'stamp_qr_enabled', true);
         var qrBelow = qrEnabled && String(data.stamp_qr_position || 'right') === 'below';
         var content = composeContent(data);
