@@ -1200,6 +1200,11 @@
         };
     }
 
+    function stampCornerForLastPage(corner) {
+        const isRight = corner === 'top-right' || corner === 'bottom-right';
+        return isRight ? 'bottom-right' : 'bottom-left';
+    }
+
     function manualStampOrigin(pageSize, stampWidth, stampHeight, data) {
         if (data.stamp_placement_mode !== 'manual') {
             return null;
@@ -1218,7 +1223,7 @@
         };
     }
 
-    function drawFirstPageStamp(pdfDoc, page, data, fonts, qrImage) {
+    function drawFirstPageStamp(pdfDoc, page, data, fonts, qrImage, corner) {
         const PDFLib = window.PDFLib;
         const size = page.getSize();
         const regular = fonts.regular;
@@ -1237,7 +1242,7 @@
         }
 
         const origin = manualStampOrigin(size, layout.width, layout.height, data)
-            || stampOrigin(size, layout.width, layout.height, data.stamp_corner || 'top-left');
+            || stampOrigin(size, layout.width, layout.height, corner || data.stamp_corner || 'top-left');
         const x = origin.x;
         const y = origin.y;
         const color = hexToRgb(data.stamp_color);
@@ -1292,14 +1297,14 @@
         }
     }
 
-    function drawFooterStamp(pdfDoc, page, data, fonts) {
+    function drawFooterStamp(pdfDoc, page, data, fonts, position) {
         const PDFLib = window.PDFLib;
         const size = page.getSize();
         const margin = Math.min(30, Math.max(16, size.width * 0.04));
         const borderEnabled = !(data.stamp_footer_border_enabled === '0' || data.stamp_footer_border_enabled === false);
         const fontSize = clamp(parseFloat(data.stamp_footer_font_size) || 6.4, 5, 12);
         const footerOpacity = clamp(parseFloat(data.stamp_footer_opacity) || 1, 0.1, 1);
-        const top = data.stamp_footer_position === 'top';
+        const top = position === 'top';
         const barHeight = borderEnabled ? 28 : Math.max(12, fontSize + 6);
         const width = size.width - margin * 2;
         const y = top ? (size.height - margin - barHeight) : margin;
@@ -1366,9 +1371,14 @@
             if (stampFirst && index === 0) {
                 drawFirstPageStamp(pdfDoc, page, stampData, fonts, qrImage);
             } else if (stampLast && index === last) {
-                drawFirstPageStamp(pdfDoc, page, stampData, fonts, qrImage);
+                drawFirstPageStamp(pdfDoc, page, stampData, fonts, qrImage, stampCornerForLastPage(stampData.stamp_corner || 'top-left'));
             } else if (footerOn) {
-                drawFooterStamp(pdfDoc, page, stampData, fonts);
+                if (stampData.stamp_footer_position === 'both') {
+                    drawFooterStamp(pdfDoc, page, stampData, fonts, 'top');
+                    drawFooterStamp(pdfDoc, page, stampData, fonts, 'bottom');
+                } else {
+                    drawFooterStamp(pdfDoc, page, stampData, fonts, stampData.stamp_footer_position === 'top' ? 'top' : 'bottom');
+                }
             }
         });
 

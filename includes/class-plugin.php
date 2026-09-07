@@ -98,6 +98,8 @@ final class Sign_Docs_Plugin
         add_action('manage_sign-docs_posts_custom_column', array(Sign_Docs_Usage_Index::class, 'column_content'), 10, 2);
         add_action('restrict_manage_posts', array(Sign_Docs_Admin::class, 'taxonomy_filters'));
         add_action('restrict_manage_posts', array(Sign_Docs_Usage_Index::class, 'render_filter'));
+        add_filter('views_edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'views_array'));
+        add_action('pre_get_posts', array(Sign_Docs_Admin::class, 'apply_status_filter'));
         add_action('pre_get_posts', array(Sign_Docs_Usage_Index::class, 'apply_filter'));
         add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'meta_boxes'));
         add_action('add_meta_boxes_' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Usage_Index::class, 'add_meta_box'));
@@ -110,6 +112,7 @@ final class Sign_Docs_Plugin
         add_action('admin_menu', array(Sign_Docs_Admin::class, 'remove_taxonomy_menus'), 999);
         add_action('admin_post_sign_docs_upload', array(Sign_Docs_Admin::class, 'handle_upload'));
         add_action('admin_post_sign_docs_archive', array(Sign_Docs_Admin::class, 'handle_archive'));
+        add_action('admin_post_sign_docs_delete', array(Sign_Docs_Admin::class, 'handle_delete'));
         add_action('admin_enqueue_scripts', array(Sign_Docs_Admin::class, 'enqueue_assets'));
         add_action('admin_enqueue_scripts', array(Sign_Docs_Settings::class, 'enqueue_assets'));
         add_action('post_submitbox_misc_actions', array(Sign_Docs_Admin::class, 'submitbox_archive_action'));
@@ -117,7 +120,9 @@ final class Sign_Docs_Plugin
         add_filter('post_row_actions', array(Sign_Docs_Admin::class, 'row_actions'), 10, 2);
         add_filter('bulk_actions-edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'bulk_actions'));
         add_filter('handle_bulk_actions-edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'handle_bulk_archive'), 10, 3);
+        add_filter('handle_bulk_actions-edit-' . Sign_Docs_Post_Type::POST_TYPE, array(Sign_Docs_Admin::class, 'handle_bulk_delete'), 10, 3);
         add_action('admin_notices', array(Sign_Docs_Admin::class, 'bulk_archive_notice'));
+        add_action('admin_notices', array(Sign_Docs_Admin::class, 'deleted_notice'));
         add_filter('pre_trash_post', array(Sign_Docs_Admin::class, 'archive_instead_of_trash'), 10, 2);
         add_filter('pre_delete_post', array(Sign_Docs_Admin::class, 'archive_instead_of_delete'), 10, 3);
         add_action('rest_api_init', array(Sign_Docs_REST_Controller::class, 'register_routes'));

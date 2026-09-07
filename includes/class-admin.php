@@ -13,6 +13,16 @@ if (! defined('ABSPATH')) {
 
 final class Sign_Docs_Admin
 {
+    private const STATUS_FILTER_KEY = 'sign_docs_status_filter';
+    private const ARCHIVED_STATUSES = array('archived', 'archive', 'deleted');
+
+    private static bool $permanent_delete_in_progress = false;
+
+    public static function is_permanent_delete_in_progress(): bool
+    {
+        return self::$permanent_delete_in_progress;
+    }
+
     public static function enqueue_assets(string $hook_suffix): void
     {
         if ('sign-docs_page_sign-docs-upload' !== $hook_suffix) {
@@ -684,6 +694,107 @@ final class Sign_Docs_Admin
         }
     }
 
+    public static function apply_status_filter(WP_Query $query): void
+    {
+        if (! is_admin() || ! $query->is_main_query()) {
+            return;
+        }
+
+        if (Sign_Docs_Post_Type::POST_TYPE !== $query->get('post_type')) {
+            return;
+        }
+
+        $filter = isset($_GET[self::STATUS_FILTER_KEY]) ? sanitize_key((string) wp_unslash($_GET[self::STATUS_FILTER_KEY])) : '';
+
+        if ('all' === $filter) {
+            return;
+        }
+
+        if ('archived' === $filter) {
+            $query->set(
+                'meta_query',
+                array(
+                    array(
+                        'key' => 'document_status',
+                        'value' => self::ARCHIVED_STATUSES,
+                        'compare' => 'IN',
+                    ),
+                )
+            );
+            return;
+        }
+
+        $query->set(
+            'meta_query',
+            array(
+                'relation' => 'AND',
+                array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => 'document_status',
+                        'compare' => 'NOT EXISTS',
+                    ),
+                    array(
+                        'key' => 'document_status',
+                        'value' => self::ARCHIVED_STATUSES,
+                        'compare' => 'NOT IN',
+                    ),
+                ),
+            )
+        );
+    }
+
+    /**
+     * @param array<string,string> $views
+     * @return array<string,string>
+     */
+    public static function views_array(array $views): array
+    {
+        $screen = get_current_screen();
+
+        if (! $screen || Sign_Docs_Post_Type::POST_TYPE !== $screen->post_type) {
+            return $views;
+        }
+
+        $counts = self::status_view_counts();
+        $current = isset($_GET[self::STATUS_FILTER_KEY]) ? sanitize_key((string) wp_unslash($_GET[self::STATUS_FILTER_KEY])) : '';
+        $base = admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE);
+
+        $tabs = array(
+            'active' => array(
+                'url' => $base,
+                'label' => __('Актуальные', 'sign-docs'),
+                'count' => $counts['active'],
+            ),
+            'archived' => array(
+                'url' => add_query_arg(self::STATUS_FILTER_KEY, 'archived', $base),
+                'label' => __('Архив', 'sign-docs'),
+                'count' => $counts['archived'],
+            ),
+            'all' => array(
+                'url' => add_query_arg(self::STATUS_FILTER_KEY, 'all', $base),
+                'label' => __('Все', 'sign-docs'),
+                'count' => $counts['all'],
+            ),
+        );
+
+        $is_current = 'all' === $current ? 'all' : ('archived' === $current ? 'archived' : 'active');
+        $views = array();
+
+        foreach ($tabs as $key => $tab) {
+            $class = $is_current === $key ? 'current' : '';
+            $views[$key] = sprintf(
+                '<a href="%1$s" class="%2$s">%3$s <span class="count">(%4$s)</span></a>',
+                esc_url($tab['url']),
+                esc_attr($class),
+                esc_html($tab['label']),
+                esc_html((string) $tab['count'])
+            );
+        }
+
+        return $views;
+    }
+
     public static function taxonomy_filters(string $post_type): void
     {
         if (Sign_Docs_Post_Type::POST_TYPE !== $post_type) {
@@ -892,6 +1003,15 @@ final class Sign_Docs_Admin
             );
         }
 
+        if (self::is_archived_status($document_status) && current_user_can('delete_post', (int) $post->ID)) {
+            $actions['delete_forever'] = sprintf(
+                '<a href="%1$s" class="submitdelete" onclick="return confirm(\'%2$s\');">%3$s</a>',
+                esc_url(self::delete_url((int) $post->ID)),
+                esc_js(__('Удалить документ навсегда? Действие необратимо.', 'sign-docs')),
+                esc_html__('Удалить навсегда', 'sign-docs')
+            );
+        }
+
         return $actions;
     }
 
@@ -903,6 +1023,11 @@ final class Sign_Docs_Admin
     {
         unset($actions['trash'], $actions['delete']);
         $actions['archive'] = __('Архивировать', 'sign-docs');
+
+        $status_filter = isset($_GET[self::STATUS_FILTER_KEY]) ? sanitize_key((string) wp_unslash($_GET[self::STATUS_FILTER_KEY])) : '';
+        if ('archived' === $status_filter) {
+            $actions['delete_forever'] = __('Удалить навсегда', 'sign-docs');
+        }
 
         return $actions;
     }
@@ -979,6 +1104,13 @@ final class Sign_Docs_Admin
                 <?php echo esc_html__('Архивировать документ', 'sign-docs'); ?>
             </a>
         </div>
+        <?php if (self::is_archived_status($document_status) && current_user_can('delete_post', (int) $post->ID)) : ?>
+            <div class="misc-pub-section">
+                <a class="submitdelete delete-forever" href="<?php echo esc_url(self::delete_url((int) $post->ID)); ?>" onclick="return confirm('<?php echo esc_js(__('Удалить документ навсегда? Действие необратимо.', 'sign-docs')); ?>');">
+                    <?php echo esc_html__('Удалить навсегда', 'sign-docs'); ?>
+                </a>
+            </div>
+        <?php endif; ?>
         <?php
     }
 
@@ -1013,6 +1145,105 @@ final class Sign_Docs_Admin
         exit;
     }
 
+    public static function handle_delete(): void
+    {
+        $post_id = isset($_GET['post_id']) ? absint($_GET['post_id']) : 0;
+
+        if ($post_id <= 0 || Sign_Docs_Post_Type::POST_TYPE !== get_post_type($post_id) || ! current_user_can('delete_post', $post_id)) {
+            wp_die(esc_html__('You are not allowed to delete this document.', 'sign-docs'));
+        }
+
+        if (! self::is_archived_status(Sign_Docs_Meta::get($post_id, 'document_status'))) {
+            wp_die(esc_html__('Only archived documents can be deleted.', 'sign-docs'));
+        }
+
+        check_admin_referer('sign_docs_delete_' . (string) $post_id);
+        self::permanently_delete($post_id);
+
+        wp_safe_redirect(
+            add_query_arg(
+                array('deleted' => $post_id),
+                admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE)
+            )
+        );
+        exit;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function permanently_delete(int $post_id): bool
+    {
+        if ($post_id <= 0) {
+            return false;
+        }
+
+        self::$permanent_delete_in_progress = true;
+
+        try {
+            $deleted = wp_delete_post($post_id, true);
+        } finally {
+            self::$permanent_delete_in_progress = false;
+        }
+
+        if (! $deleted) {
+            return false;
+        }
+
+        Sign_Docs_Storage::delete_document_files($post_id);
+
+        return true;
+    }
+
+    /**
+     * @param string $redirect
+     * @param string $doaction
+     * @param list<int> $post_ids
+     */
+    public static function handle_bulk_delete(string $redirect, string $doaction, array $post_ids): string
+    {
+        if ('delete_forever' !== $doaction) {
+            return $redirect;
+        }
+
+        $deleted = 0;
+
+        foreach ($post_ids as $post_id) {
+            $post_id = absint($post_id);
+
+            if ($post_id <= 0 || Sign_Docs_Post_Type::POST_TYPE !== get_post_type($post_id) || ! current_user_can('delete_post', $post_id)) {
+                continue;
+            }
+
+            if (! self::is_archived_status(Sign_Docs_Meta::get($post_id, 'document_status'))) {
+                continue;
+            }
+
+            if (self::permanently_delete($post_id)) {
+                $deleted++;
+            }
+        }
+
+        return add_query_arg('bulk_deleted', $deleted, $redirect);
+    }
+
+    public static function deleted_notice(): void
+    {
+        $screen = get_current_screen();
+
+        if (! $screen || Sign_Docs_Post_Type::POST_TYPE !== $screen->post_type) {
+            return;
+        }
+
+        $single = isset($_GET['deleted']) ? absint($_GET['deleted']) : 0;
+        $bulk = isset($_GET['bulk_deleted']) ? absint($_GET['bulk_deleted']) : 0;
+        $count = $bulk > 0 ? $bulk : $single;
+
+        if ($count > 0) {
+            echo '<div class="notice notice-success"><p>' . esc_html(sprintf(/* translators: %d = number of documents */ _n('Deleted %d document.', 'Deleted %d documents.', $count, 'sign-docs'), $count)) . '</p></div>';
+        }
+    }
+
     /**
      * @param mixed $trash
      * @return mixed
@@ -1023,7 +1254,7 @@ final class Sign_Docs_Admin
             return $trash;
         }
 
-        if (Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
+        if (self::$permanent_delete_in_progress || Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
             return $trash;
         }
 
@@ -1042,7 +1273,7 @@ final class Sign_Docs_Admin
             return $delete;
         }
 
-        if (Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
+        if (self::$permanent_delete_in_progress || Sign_Docs_Document_Service::is_rollback_delete_in_progress()) {
             return $delete;
         }
 
@@ -1305,11 +1536,58 @@ final class Sign_Docs_Admin
         );
     }
 
+    private static function delete_url(int $post_id): string
+    {
+        return wp_nonce_url(
+            admin_url('admin-post.php?action=sign_docs_delete&post_id=' . (string) $post_id),
+            'sign_docs_delete_' . (string) $post_id
+        );
+    }
+
     private static function replace_url(int $post_id): string
     {
         return add_query_arg(
             array('replaces' => $post_id),
             admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-upload')
+        );
+    }
+
+    private static function is_archived_status(string $status): bool
+    {
+        return in_array($status, self::ARCHIVED_STATUSES, true);
+    }
+
+    /**
+     * @return array{all:int,active:int,archived:int}
+     */
+    private static function status_view_counts(): array
+    {
+        global $wpdb;
+
+        $placeholders = implode(',', array_fill(0, count(self::ARCHIVED_STATUSES), '%s'));
+        $all = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status NOT IN ('trash', 'auto-draft')",
+                Sign_Docs_Post_Type::POST_TYPE
+            )
+        );
+
+        $archived = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*)
+                 FROM {$wpdb->posts} p
+                 INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = 'document_status'
+                 WHERE p.post_type = %s
+                   AND p.post_status NOT IN ('trash', 'auto-draft')
+                   AND pm.meta_value IN ($placeholders)",
+                array_merge(array(Sign_Docs_Post_Type::POST_TYPE), self::ARCHIVED_STATUSES)
+            )
+        );
+
+        return array(
+            'all' => $all,
+            'active' => max(0, $all - $archived),
+            'archived' => $archived,
         );
     }
 

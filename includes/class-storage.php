@@ -95,6 +95,56 @@ final class Sign_Docs_Storage
         return is_string($hash) ? $hash : '';
     }
 
+    /**
+     * Remove every stored directory that belongs to a document.
+     */
+    public static function delete_document_files(int $post_id): void
+    {
+        if ($post_id <= 0) {
+            return;
+        }
+
+        $directory = glob(wp_normalize_path(self::paths()['base_dir']) . '/*/*/' . $post_id);
+
+        if (! is_array($directory)) {
+            return;
+        }
+
+        $directory = array_values(array_unique($directory));
+        rsort($directory);
+
+        foreach ($directory as $path) {
+            self::delete_directory($path);
+        }
+    }
+
+    private static function delete_directory(string $path): void
+    {
+        if (! is_dir($path)) {
+            return;
+        }
+
+        $items = scandir($path);
+        if (! is_array($items)) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ('.' === $item || '..' === $item) {
+                continue;
+            }
+
+            $child = $path . '/' . $item;
+            if (is_dir($child)) {
+                self::delete_directory($child);
+            } else {
+                unlink($child);
+            }
+        }
+
+        rmdir($path);
+    }
+
     private static function write_index_file(string $directory): void
     {
         $index = trailingslashit($directory) . 'index.php';

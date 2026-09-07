@@ -167,7 +167,7 @@ final class Sign_Docs_Document_Service
             'stamp_footer_border_enabled' => array_key_exists('stamp_footer_border_enabled', $args) ? (! empty($args['stamp_footer_border_enabled']) && '0' !== (string) $args['stamp_footer_border_enabled'] ? '1' : '0') : '1',
             'stamp_footer_font_size' => isset($args['stamp_footer_font_size']) ? (string) round(min(12, max(5, (float) $args['stamp_footer_font_size'])), 1) : '6.4',
             'stamp_footer_opacity' => isset($args['stamp_footer_opacity']) ? (string) min(1, max(0.1, (float) $args['stamp_footer_opacity'])) : '1',
-            'stamp_footer_position' => isset($args['stamp_footer_position']) && 'top' === sanitize_key((string) $args['stamp_footer_position']) ? 'top' : 'bottom',
+            'stamp_footer_position' => isset($args['stamp_footer_position']) && in_array(sanitize_key((string) $args['stamp_footer_position']), array('top', 'bottom', 'both'), true) ? sanitize_key((string) $args['stamp_footer_position']) : 'bottom',
             'stamp_line_spacing' => isset($args['stamp_line_spacing']) ? (string) round(min(2, max(1, (float) $args['stamp_line_spacing'])), 2) : '1.25',
             'stamp_rows' => array_key_exists('stamp_rows', $args) ? Sign_Docs_Settings::sanitize_stamp_rows($args['stamp_rows']) : 'header,meta,signer,org',
             'stamp_qr_enabled' => array_key_exists('stamp_qr_enabled', $args) ? (! empty($args['stamp_qr_enabled']) && '0' !== (string) $args['stamp_qr_enabled'] ? '1' : '0') : '1',

@@ -124,7 +124,7 @@ final class Sign_Docs_Settings
         $stamp_footer_font_size = isset($value['stamp_footer_font_size']) ? (float) $value['stamp_footer_font_size'] : 6.4;
         $stamp_footer_opacity = isset($value['stamp_footer_opacity']) ? (float) $value['stamp_footer_opacity'] : 1.0;
         $stamp_footer_position = isset($value['stamp_footer_position']) ? sanitize_key((string) $value['stamp_footer_position']) : 'bottom';
-        if (! in_array($stamp_footer_position, array('top', 'bottom'), true)) {
+        if (! in_array($stamp_footer_position, array('top', 'bottom', 'both'), true)) {
             $stamp_footer_position = 'bottom';
         }
         $button_primary_color = isset($value['button_primary_color']) ? sanitize_hex_color((string) $value['button_primary_color']) : '';
@@ -585,6 +585,7 @@ final class Sign_Docs_Settings
                                         <select id="sign-docs-default-stamp-footer-position" name="<?php echo esc_attr(self::OPTION_NAME); ?>[stamp_footer_position]">
                                             <option value="bottom" <?php selected($settings['stamp_footer_position'], 'bottom'); ?>><?php echo esc_html__('Низ страницы', 'sign-docs'); ?></option>
                                             <option value="top" <?php selected($settings['stamp_footer_position'], 'top'); ?>><?php echo esc_html__('Верх страницы', 'sign-docs'); ?></option>
+                                            <option value="both" <?php selected($settings['stamp_footer_position'], 'both'); ?>><?php echo esc_html__('Сверху и снизу', 'sign-docs'); ?></option>
                                         </select>
                                     </div>
                                     <div class="sign-docs-footer-grid__item">

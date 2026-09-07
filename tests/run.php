@@ -216,6 +216,34 @@ run_test(
 );
 
 run_test(
+    'admin delete filters archive junk docs but permanent delete removes them',
+    static function (): void {
+        $post = wp_insert_post(
+            array(
+                'post_type' => Sign_Docs_Post_Type::POST_TYPE,
+                'post_status' => 'publish',
+                'post_title' => 'Junk',
+            ),
+            true
+        );
+
+        $intercepted = Sign_Docs_Admin::archive_instead_of_delete('continue', $GLOBALS['sign_docs_test_posts'][$post], true);
+        assert_same($intercepted, false, 'Default delete should be intercepted and archive the document.');
+        assert_same(Sign_Docs_Meta::get($post, 'document_status'), 'archived', 'Default delete should archive the document.');
+
+        $property = new ReflectionProperty(Sign_Docs_Admin::class, 'permanent_delete_in_progress');
+        $property->setValue(null, true);
+        $bypass = Sign_Docs_Admin::archive_instead_of_delete('continue', $GLOBALS['sign_docs_test_posts'][$post], true);
+        $property->setValue(null, false);
+        assert_same($bypass, 'continue', 'Permanent delete should pass through the admin delete filter.');
+
+        $deleted = Sign_Docs_Admin::permanently_delete($post);
+        assert_true($deleted, 'permanently_delete should report success.');
+        assert_true(empty($GLOBALS['sign_docs_test_posts'][$post]), 'Permanent delete should remove the post record.');
+    }
+);
+
+run_test(
     'REST permissions require upload capability and edit access on complete',
     static function (): void {
         $GLOBALS['sign_docs_test_current_caps'] = array();
