@@ -4,7 +4,7 @@
 // It is derived from languages/sign-docs-ru_RU.po.
 
 return array(
-    "Project-Id-Version" => "Sign Docs 0.5.0",
+    "Project-Id-Version" => "Sign Docs 0.5.1",
     "Report-Msgid-Bugs-To" => "https://github.com/igor-blag/sign-docs/issues",
     "POT-Creation-Date" => "2026-09-08 09:51",
     "PO-Revision-Date" => "2026-09-08 09:51",
