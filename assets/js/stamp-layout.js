@@ -4,9 +4,17 @@
     var ROW_KEYS = ['header', 'meta', 'signer', 'org'];
     var DEFAULT_ROWS = ['header', 'meta', 'signer', 'org'];
     var ROW_MAX_LINES = { header: 2, meta: 2, signer: 2, org: 3 };
-    var HEADER_TEXT = 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ';
     var STAMP_TIMEZONE = 'Europe/Moscow';
-    var STAMP_TIMEZONE_LABEL = 'МСК';
+
+    var __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function (text) { return text; };
+
+    function headerText() {
+        return __('The document is signed with a simple electronic signature', 'sign-docs').toUpperCase();
+    }
+
+    function timezoneLabel() {
+        return __('MSK', 'sign-docs');
+    }
 
     function clampNumber(value, min, max, fallback) {
         if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -131,9 +139,9 @@
         var position = String(data.signer_position || '').trim();
 
         return {
-            header: HEADER_TEXT,
+            header: headerText(),
             meta: dateText
-                + ' (' + STAMP_TIMEZONE_LABEL + ')  |  ID: ' + String(data.post_id || '')
+                + ' (' + timezoneLabel() + ')  |  ID: ' + String(data.post_id || '')
                 + '  |  SHA-256: ' + shortHash(data.sha256_hash),
             signer: position && name ? position + ': ' + name : (position || name),
             org: String(data.organization || data.signer_organization || '').trim()

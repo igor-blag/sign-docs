@@ -1,6 +1,20 @@
 (function () {
     'use strict';
 
+    const __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function (text) { return text; };
+    const sprintf = window.wp && window.wp.i18n && window.wp.i18n.sprintf ? window.wp.i18n.sprintf : function (format) {
+        const args = Array.prototype.slice.call(arguments, 1);
+        let index = 0;
+        return String(format).replace(/%%|%(\d+)\$([sd])|%([sd])/g, function (match, pos, kind, plain) {
+            if (match === '%%') {
+                return '%';
+            }
+            const argIndex = pos ? parseInt(pos, 10) - 1 : index++;
+            const value = args[argIndex];
+            return value === undefined || value === null ? '' : String(value);
+        });
+    };
+
     const form = document.getElementById('sign-docs-upload-form');
     const statusBox = document.getElementById('sign-docs-upload-status');
 
@@ -150,7 +164,7 @@
         const wrapper = document.getElementById('sign-docs-preview-frame-wrap');
 
         if (!preview || !wrapper) {
-            throw new Error('Preview container not found.');
+            throw new Error(__('Preview container not found.', 'sign-docs'));
         }
 
         const pdfjs = await loadPdfJs();
@@ -299,13 +313,13 @@
         }
 
         if (!file) {
-            title.textContent = 'Перетащите PDF сюда';
-            text.textContent = 'или щелкните, чтобы выбрать файл';
+            title.textContent = __('Drop PDF here', 'sign-docs');
+            text.textContent = __('or click to choose a file', 'sign-docs');
             return;
         }
 
-        title.textContent = file.name || 'PDF выбран';
-        text.textContent = 'Файл будет загружен после отправки формы';
+        title.textContent = file.name || __('PDF selected', 'sign-docs');
+        text.textContent = __('The file will be uploaded after submitting the form.', 'sign-docs');
     }
 
     function handleSelectedFile(file) {
@@ -322,7 +336,7 @@
 
         const config = window.SignDocsUpload.pdfJs || {};
         if (!window.SignDocsUpload.hasPdfJs || !config.module || !config.worker) {
-            throw new Error('PDF.js не найден в assets/vendor.');
+            throw new Error(__('PDF.js was not found in assets/vendor.', 'sign-docs'));
         }
 
         pdfJsModule = await import(config.module);
@@ -475,18 +489,18 @@
         const initialValues = rememberFieldValues();
 
         try {
-            setStatus('Читаю текст первой страницы для автозаполнения...', 'info');
+            setStatus(__('Reading the first page text for autofill...', 'sign-docs'), 'info');
             const firstPageText = await extractFirstPageText(file);
             if (runId !== metadataSuggestionRun) {
                 return;
             }
 
             if (firstPageText.length < 40) {
-                setStatus('В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения.', 'warning');
+                setStatus(__('The first page does not have enough text layer for AI autofill.', 'sign-docs'), 'warning');
                 return;
             }
 
-            setStatus('Подбираю реквизиты документа через AI...', 'info');
+            setStatus(__('Suggesting document details with AI...', 'sign-docs'), 'info');
             const data = new FormData();
             data.append('first_page_text', firstPageText.slice(0, 12000));
             data.append('source_filename', file.name || '');
@@ -501,12 +515,12 @@
             const warnings = Array.isArray(suggestion.warnings) ? suggestion.warnings.filter(Boolean) : [];
             const confidence = typeof suggestion.confidence === 'number' ? Math.round(suggestion.confidence * 100) : null;
             const message = confidence !== null
-                ? 'AI предложил реквизиты документа. Уверенность: ' + confidence + '%.'
-                : 'AI предложил реквизиты документа.';
-            setStatus(warnings.length ? message + ' Проверьте: ' + warnings.join('; ') : message, warnings.length ? 'warning' : 'success');
+                ? sprintf(__('AI suggested document details. Confidence: %1$d%%.', 'sign-docs'), confidence)
+                : __('AI suggested document details.', 'sign-docs');
+            setStatus(warnings.length ? message + ' ' + sprintf(__('Check: %1$s', 'sign-docs'), warnings.join('; ')) : message, warnings.length ? 'warning' : 'success');
         } catch (error) {
             if (runId === metadataSuggestionRun) {
-                setStatus(error.message || 'Не удалось выполнить AI-автозаполнение.', 'warning');
+                setStatus(error.message || __('Could not run AI autofill.', 'sign-docs'), 'warning');
             }
         }
     }
@@ -653,21 +667,37 @@
         const academicStart = academicYearStart(base);
         const calendarYear = base.getFullYear();
 
+        function completedAcademicYear(shortYear) {
+            return sprintf(__('for the completed %1$s academic year', 'sign-docs'), shortYear);
+        }
+
+        function upcomingAcademicYear(shortYear) {
+            return sprintf(__('for the %1$s academic year', 'sign-docs'), shortYear);
+        }
+
+        function completedCalendarYear(value) {
+            return sprintf(__('for the completed year %1$s', 'sign-docs'), value);
+        }
+
+        function upcomingCalendarYear(value) {
+            return sprintf(__('for the year %1$s', 'sign-docs'), value);
+        }
+
         return [
             {
-                label: 'Учебный',
+                label: __('Academic', 'sign-docs'),
                 items: [
-                    { label: shortAcademicYear(academicStart - 1), value: 'за ' + shortAcademicYear(academicStart - 1) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart), value: 'на ' + shortAcademicYear(academicStart) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart + 1), value: 'на ' + shortAcademicYear(academicStart + 1) + ' учебный год' }
+                    { label: shortAcademicYear(academicStart - 1), value: completedAcademicYear(shortAcademicYear(academicStart - 1)) },
+                    { label: shortAcademicYear(academicStart), value: upcomingAcademicYear(shortAcademicYear(academicStart)) },
+                    { label: shortAcademicYear(academicStart + 1), value: upcomingAcademicYear(shortAcademicYear(academicStart + 1)) }
                 ]
             },
             {
-                label: 'Календарный',
+                label: __('Calendar', 'sign-docs'),
                 items: [
-                    { label: String(calendarYear - 1), value: 'за ' + String(calendarYear - 1) + ' год' },
-                    { label: String(calendarYear), value: 'на ' + String(calendarYear) + ' год' },
-                    { label: String(calendarYear + 1), value: 'на ' + String(calendarYear + 1) + ' год' }
+                    { label: String(calendarYear - 1), value: completedCalendarYear(calendarYear - 1) },
+                    { label: String(calendarYear), value: upcomingCalendarYear(calendarYear) },
+                    { label: String(calendarYear + 1), value: upcomingCalendarYear(calendarYear + 1) }
                 ]
             }
         ];
@@ -959,7 +989,7 @@
 
         if (pickButton) {
             setElementHidden(pickButton, unsignedOnly);
-            pickButton.textContent = active ? 'Отменить выбор места' : 'Выбрать место штампа';
+            pickButton.textContent = active ? __('Cancel picking', 'sign-docs') : __('Pick stamp position', 'sign-docs');
         }
 
         if (resetButton) {
@@ -969,8 +999,8 @@
         if (status) {
             setElementHidden(status, unsignedOnly);
             status.textContent = isManual
-                ? 'Место выбрано вручную. Можно выбрать заново.'
-                : (active ? 'Наведите прямоугольник на нужное место и щелкните.' : 'Используется угол из настроек.');
+                ? __('Manual position selected. You can pick it again.', 'sign-docs')
+                : (active ? __('Move the rectangle to the desired place and click.', 'sign-docs') : __('The corner from settings is used.', 'sign-docs'));
         }
     }
 
@@ -1042,7 +1072,7 @@
         const payload = await response.json();
 
         if (!response.ok) {
-            throw new Error(payload.message || 'Request failed.');
+            throw new Error(payload.message || __('Request failed.', 'sign-docs'));
         }
 
         return payload;
@@ -1051,7 +1081,7 @@
     async function fetchBytes(url) {
         const response = await fetch(url, { credentials: 'same-origin' });
         if (!response.ok) {
-            throw new Error('Не удалось загрузить файл шрифта.');
+            throw new Error(__('Could not load the font file.', 'sign-docs'));
         }
 
         return await response.arrayBuffer();
@@ -1148,7 +1178,7 @@
     async function embedGolosFonts(pdfDoc) {
         const fontkit = window.fontkit || window.Fontkit;
         if (!fontkit) {
-            throw new Error('Не загружен fontkit для встраивания шрифта.');
+            throw new Error(__('Fontkit is not loaded for embedding fonts.', 'sign-docs'));
         }
 
         pdfDoc.registerFontkit(fontkit);
@@ -1311,7 +1341,7 @@
         const padX = borderEnabled ? 10 : 0;
         const color = hexToRgb(data.stamp_color);
         const mainColor = PDFLib.rgb(color.r, color.g, color.b);
-        const text = 'SHA-256 исходного PDF: ' + data.sha256_hash + '  Проверка: ' + data.verification_url;
+        const text = sprintf(__('SHA-256 of the original PDF: %1$s  Verify: %2$s', 'sign-docs'), data.sha256_hash, data.verification_url);
 
         if (borderEnabled) {
             page.drawRectangle({
@@ -1405,7 +1435,7 @@
 
         if (!window.SignDocsUpload.hasVendor || !window.PDFLib || !window.qrcode || !(window.fontkit || window.Fontkit)) {
             event.preventDefault();
-            setStatus('Не загружены локальные JS-библиотеки или шрифт Golos Text. Проверьте assets/vendor.', 'error');
+            setStatus(__('Local JS libraries or the Golos Text font are not loaded. Check assets/vendor.', 'sign-docs'), 'error');
             return;
         }
 
@@ -1417,7 +1447,7 @@
                 submitButton.disabled = true;
             }
 
-            setStatus('Загружаю исходный PDF и считаю серверный SHA-256...', 'info');
+            setStatus(__('Uploading the original PDF and calculating the server SHA-256...', 'sign-docs'), 'info');
 
             const prepareData = new FormData();
             prepareData.append('original_pdf', file, file.name);
@@ -1460,11 +1490,11 @@
 
             const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
 
-            setStatus('Встраиваю Golos Text, накладываю штамп и QR-код...', 'info');
+            setStatus(__('Embedding Golos Text, adding the stamp and QR code...', 'sign-docs'), 'info');
             const stampedBytes = await stampPdf(file, prepared);
             const stampedBlob = new Blob([stampedBytes], { type: 'application/pdf' });
 
-            setStatus('Сохраняю публичную PDF-копию с отметкой...', 'info');
+            setStatus(__('Saving the public PDF copy with the stamp...', 'sign-docs'), 'info');
             const completeData = new FormData();
             completeData.append('post_id', prepared.post_id);
             completeData.append('stamped_pdf', stampedBlob, 'stamped.pdf');
@@ -1475,7 +1505,7 @@
                 window.location.assign(returnUrl);
                 return;
             }
-            setStatusLink('Документ подписан и зарегистрирован.', completed.verification_url, 'Открыть страницу проверки', 'success');
+            setStatusLink(__('The document is signed and registered.', 'sign-docs'), completed.verification_url, __('Open verification page', 'sign-docs'), 'success');
             form.reset();
             titleManuallyEdited = false;
             clearPdfPreview();
@@ -1483,7 +1513,7 @@
                 submitButton.disabled = false;
             }
         } catch (error) {
-            setStatus(error.message || 'Не удалось подписать документ.', 'error');
+            setStatus(error.message || __('Could not sign the document.', 'sign-docs'), 'error');
             const submitButton = form.querySelector('[type="submit"]');
             if (submitButton) {
                 submitButton.disabled = false;

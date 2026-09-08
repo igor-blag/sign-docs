@@ -171,7 +171,7 @@ final class Sign_Docs_Usage_Index
     {
         add_meta_box(
             'sign-docs-usage-data',
-            __('Используется в записях', 'sign-docs'),
+            __('Used in posts', 'sign-docs'),
             array(self::class, 'render_meta_box'),
             Sign_Docs_Post_Type::POST_TYPE,
             'side',
@@ -216,7 +216,7 @@ final class Sign_Docs_Usage_Index
     {
         $rows = self::usage_rows((int) $post->ID, 50);
         if (empty($rows)) {
-            echo '<p>' . esc_html__('Блок документа пока не размещен ни в одной записи или странице.', 'sign-docs') . '</p>';
+            echo '<p>' . esc_html__('The document block is not placed in any post or page yet.', 'sign-docs') . '</p>';
             return;
         }
 
@@ -267,7 +267,7 @@ final class Sign_Docs_Usage_Index
             static function (array $row): array {
                 $title = (string) ($row['post_title'] ?? '');
                 if ('' === trim($title)) {
-                    $title = __('(без названия)', 'sign-docs');
+                    $title = __('(no title)', 'sign-docs');
                 }
 
                 return array(

@@ -1,0 +1,41 @@
+{
+  "translation-revision-date": "2026-09-08 10:50:54+0000",
+  "generator": "Sign Docs tools/i18n/build.py",
+  "domain": "sign-docs",
+  "locale_data": {
+    "sign-docs": {
+      "": {
+        "domain": "sign-docs",
+        "lang": "ru_RU",
+        "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+      },
+      "SHA-256 calculation is not available in this browser.": [
+        "В этом браузере недоступен расчёт SHA-256."
+      ],
+      "Calculating SHA-256 of the selected file...": [
+        "Считаю SHA-256 выбранного файла..."
+      ],
+      "The file matches the control original copy.": [
+        "Файл совпадает с контрольной исходной копией."
+      ],
+      "The file matches the public PDF copy with the stamp.": [
+        "Файл совпадает с публичной PDF-копией с отметкой."
+      ],
+      "The file does not match the control original copy or the public stamped copy.": [
+        "Файл не совпадает с контрольной исходной копией или публичной копией с отметкой."
+      ],
+      "Could not calculate the SHA-256 of the selected file.": [
+        "Не удалось рассчитать SHA-256 выбранного файла."
+      ],
+      "Loading preview…": [
+        "Загружаю предпросмотр…"
+      ],
+      "Showing the first %1$d of %2$d pages.": [
+        "Показаны первые %1$d из %2$d страниц."
+      ],
+      "Could not display the document preview.": [
+        "Не удалось показать предпросмотр документа."
+      ]
+    }
+  }
+}

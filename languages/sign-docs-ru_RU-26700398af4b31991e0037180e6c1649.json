@@ -1,0 +1,314 @@
+{
+  "translation-revision-date": "2026-09-08 10:50:54+0000",
+  "generator": "Sign Docs tools/i18n/build.py",
+  "domain": "sign-docs",
+  "locale_data": {
+    "sign-docs": {
+      "": {
+        "domain": "sign-docs",
+        "lang": "ru_RU",
+        "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+      },
+      "PDF.js is not available.": [
+        "PDF.js недоступен."
+      ],
+      "Any status": [
+        "Любой статус"
+      ],
+      "Active": [
+        "Действующий"
+      ],
+      "Unsigned": [
+        "Без подписи"
+      ],
+      "Needs public copy": [
+        "Ожидает публичную копию"
+      ],
+      "Archived": [
+        "Архив"
+      ],
+      "Replaced": [
+        "Заменён"
+      ],
+      "Text link": [
+        "Текстовая ссылка"
+      ],
+      "Button": [
+        "Кнопка"
+      ],
+      "Card": [
+        "Карточка"
+      ],
+      "Signed document": [
+        "Подписанный документ"
+      ],
+      "Request failed.": [
+        "Запрос не выполнен."
+      ],
+      "Could not load a local asset.": [
+        "Не удалось загрузить локальный ресурс."
+      ],
+      "for the completed %1$s academic year": [
+        "за %1$s учебный год"
+      ],
+      "for the %1$s academic year": [
+        "на %1$s учебный год"
+      ],
+      "for the completed year %1$s": [
+        "за %1$s год"
+      ],
+      "for the year %1$s": [
+        "на %1$s год"
+      ],
+      "Academic": [
+        "Учебный"
+      ],
+      "Calendar": [
+        "Календарный"
+      ],
+      "The document is signed with a simple electronic signature": [
+        "Документ подписан простой электронной подписью"
+      ],
+      "%1$s (MSK)  |  ID: %2$s  |  SHA-256: %3$s": [
+        "%1$s (МСК)  |  ID: %2$s  |  SHA-256: %3$s"
+      ],
+      "Could not load documents.": [
+        "Не удалось загрузить документы."
+      ],
+      "Select signed document": [
+        "Выберите подписанный документ"
+      ],
+      "Search": [
+        "Поиск"
+      ],
+      "Status": [
+        "Статус"
+      ],
+      "Category": [
+        "Категория"
+      ],
+      "Any category": [
+        "Любая категория"
+      ],
+      "Document type": [
+        "Вид документа"
+      ],
+      "Any type": [
+        "Любой тип"
+      ],
+      "Department": [
+        "Структурное подразделение"
+      ],
+      "Any department": [
+        "Любое подразделение"
+      ],
+      "No documents found.": [
+        "Документы не найдены."
+      ],
+      "Previous": [
+        "Назад"
+      ],
+      "Next": [
+        "Далее"
+      ],
+      "Cancel": [
+        "Отмена"
+      ],
+      "Signing...": [
+        "Подписываю..."
+      ],
+      "Save and sign document": [
+        "Сохранить и подписать документ"
+      ],
+      "Saving...": [
+        "Сохраняю..."
+      ],
+      "Save without signature": [
+        "Сохранить без подписи"
+      ],
+      "Selected PDF preview": [
+        "Предпросмотр выбранного PDF"
+      ],
+      "Choose a PDF to preview the first page.": [
+        "Выберите PDF, чтобы увидеть предпросмотр первой страницы."
+      ],
+      "Choose a PDF file.": [
+        "Выберите PDF-файл."
+      ],
+      "Local PDF libraries or fonts are missing.": [
+        "Отсутствуют локальные PDF-библиотеки или шрифты."
+      ],
+      "Saving original PDF and calculating server SHA-256...": [
+        "Сохраняю исходный PDF и считаю серверный SHA-256..."
+      ],
+      "Adding stamp and QR code...": [
+        "Накладываю штамп и QR-код..."
+      ],
+      "Saving public PDF copy...": [
+        "Сохраняю публичную PDF-копию..."
+      ],
+      "Could not sign the document.": [
+        "Не удалось подписать документ."
+      ],
+      "Replace document": [
+        "Заменить документ"
+      ],
+      "Add document": [
+        "Добавить документ"
+      ],
+      "The new document will mark the selected document as replaced after signing completes.": [
+        "Новый документ отметит выбранный документ как заменённый после завершения подписания."
+      ],
+      "Drop PDF here": [
+        "Перетащите PDF сюда"
+      ],
+      "The file will be uploaded after submitting the form.": [
+        "Файл будет загружен после отправки формы."
+      ],
+      "or click to choose a file": [
+        "или щелкните, чтобы выбрать файл"
+      ],
+      "Choose category": [
+        "Выберите категорию"
+      ],
+      "Choose type": [
+        "Выберите тип"
+      ],
+      "Institution": [
+        "Институция"
+      ],
+      "Auto-filled from settings": [
+        "Заполняется автоматически из настроек"
+      ],
+      "Institution directory": [
+        "Справочник институций"
+      ],
+      "Choose from directory": [
+        "Выбрать из справочника"
+      ],
+      "Or enter a new short authority name": [
+        "Или введите новое краткое наименование органа"
+      ],
+      "Enter the name in the genitive case": [
+        "Вводите в родительном падеже"
+      ],
+      "Document date": [
+        "Дата документа"
+      ],
+      "Document number": [
+        "Номер документа"
+      ],
+      "183-R": [
+        "183-р"
+      ],
+      "Title": [
+        "Название"
+      ],
+      "+ Add institution to title": [
+        "+ Добавить институцию к названию"
+      ],
+      "Sentence case": [
+        "Как предложение"
+      ],
+      "Year / Period": [
+        "Год / период"
+      ],
+      "Preview": [
+        "Предпросмотр"
+      ],
+      "Cancel picking": [
+        "Отменить выбор места"
+      ],
+      "Pick stamp position": [
+        "Выбрать место штампа"
+      ],
+      "Reset": [
+        "Сбросить"
+      ],
+      "Signing parameters": [
+        "Параметры подписания"
+      ],
+      "First page size:": [
+        "Размер первой страницы:"
+      ],
+      "Manual stamp position is selected.": [
+        "Выбрано ручное место штампа."
+      ],
+      "Default stamp corner from settings is used.": [
+        "Используется угол по умолчанию из настроек."
+      ],
+      "Comment": [
+        "Комментарий"
+      ],
+      "Internal admin note. Not shown on the verification page or in the document block.": [
+        "Внутренняя заметка администратора. Не показывается на странице проверки и в блоке документа."
+      ],
+      "Sign Docs – Document": [
+        "Документы"
+      ],
+      "sign": [
+        "подпись"
+      ],
+      "document": [
+        "документ"
+      ],
+      "PDF": [
+        "PDF"
+      ],
+      "signed document": [
+        "подписанный документ"
+      ],
+      "Could not load selected document.": [
+        "Не удалось загрузить выбранный документ."
+      ],
+      "Upload replacement PDF": [
+        "Загрузить PDF для замены"
+      ],
+      "Remove document": [
+        "Удалить документ из блока"
+      ],
+      "Document": [
+        "Документ"
+      ],
+      "Display": [
+        "Отображение"
+      ],
+      "Style": [
+        "Стиль"
+      ],
+      "Show status, date and version": [
+        "Показывать статус, дату и версию"
+      ],
+      "Show download button": [
+        "Показывать кнопку скачивания"
+      ],
+      "Show signature details button": [
+        "Показывать кнопку сведений о подписи"
+      ],
+      "Embed stamped PDF": [
+        "Встроить PDF с отметкой"
+      ],
+      "Open verification page in a new tab": [
+        "Открывать страницу проверки в новой вкладке"
+      ],
+      "Use document title": [
+        "Использовать название документа"
+      ],
+      "Download": [
+        "Скачать"
+      ],
+      "Signature": [
+        "Подпись"
+      ],
+      "Stamped PDF": [
+        "PDF с отметкой"
+      ],
+      "Add a signed document or choose an existing Sign Docs record.": [
+        "Добавьте подписанный документ или выберите существующую запись Sign Docs."
+      ],
+      "Choose uploaded": [
+        "Выбрать загруженный"
+      ]
+    }
+  }
+}

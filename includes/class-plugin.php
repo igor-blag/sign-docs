@@ -46,6 +46,7 @@ final class Sign_Docs_Plugin
 
     public static function activate(): void
     {
+        load_plugin_textdomain('sign-docs', false, dirname(plugin_basename(SIGN_DOCS_PLUGIN_FILE)) . '/languages');
         Sign_Docs_Post_Type::register();
         Sign_Docs_Taxonomies::register();
         Sign_Docs_Verification_Page::register_rewrite_rules();

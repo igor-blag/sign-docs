@@ -1,0 +1,1194 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Sign Docs 0.5.0\n"
+"Report-Msgid-Bugs-To: https://github.com/igor-blag/sign-docs/issues\n"
+"POT-Creation-Date: 2026-09-08 09:51\n"
+"PO-Revision-Date: 2026-09-08 09:51\n"
+"Last-Translator: Sign Docs <support@example.com>\n"
+"Language-Team: Russian\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+# RU translations for the Sign Docs plugin.
+
+msgid "Add document"
+msgstr "Добавить документ"
+
+msgid "Sign Docs Settings"
+msgstr "Настройки Sign Docs"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Title matrix"
+msgstr "Матрица названий"
+
+msgid "You are not allowed to upload files."
+msgstr "Вам не разрешено загружать файлы."
+
+msgid "The document was saved without a signature."
+msgstr "Документ сохранен без подписи."
+
+msgid "The document is signed and registered."
+msgstr "Документ подписан и зарегистрирован."
+
+msgid "Open verification page"
+msgstr "Открыть страницу проверки"
+
+msgid "Signer details, organization and stamp parameters are taken from the"
+msgstr "Реквизиты подписанта, организация и параметры штампа берутся со страницы"
+
+msgid "Sign Docs settings"
+msgstr "настроек Sign Docs"
+
+msgid "The new document will replace:"
+msgstr "Новый документ заменит:"
+
+msgid "After a successful signature the previous record receives the \"Replaced\" status."
+msgstr "После успешной подписи предыдущая запись получит статус «Заменён»."
+
+msgid "Save and sign document"
+msgstr "Сохранить и подписать документ"
+
+msgid "Save without signature"
+msgstr "Сохранить без подписи"
+
+msgid "Source PDF"
+msgstr "Исходный PDF"
+
+msgid "Drop PDF here"
+msgstr "Перетащите PDF сюда"
+
+msgid "or click to choose a file"
+msgstr "или щелкните, чтобы выбрать файл"
+
+msgid "The source file is stored unchanged; the SHA-256 is calculated on the server."
+msgstr "Исходный файл сохраняется без изменений, SHA-256 вычисляется на сервере."
+
+msgid "Category"
+msgstr "Категория"
+
+msgid "Document type"
+msgstr "Вид документа"
+
+msgid "Institution"
+msgstr "Институция"
+
+msgid "Choose from directory"
+msgstr "Выбрать из справочника"
+
+msgid "Or enter a new short authority name"
+msgstr "Или введите новое краткое наименование органа"
+
+msgid "Enter the name in the genitive case"
+msgstr "Вводите в родительном падеже"
+
+msgid "Choose an existing institution from the directory or type a new one in the field below."
+msgstr "Можно выбрать существующую институцию из справочника или вписать новую в поле ниже."
+
+msgid "Date and number"
+msgstr "Дата и номер"
+
+msgid "183-R"
+msgstr "183-р"
+
+msgid "Title"
+msgstr "Название"
+
+msgid "The title of the WordPress record."
+msgstr "Название записи в WordPress."
+
+msgid "Add institution name"
+msgstr "Добавить наименование учреждения"
+
+msgid "Sentence case"
+msgstr "Как предложение"
+
+msgid "Year / period"
+msgstr "Год / период"
+
+msgid "Year autofill"
+msgstr "Автозаполнение года"
+
+msgid "Click a period button to add it to the title."
+msgstr "Нажмите на кнопку периода, чтобы добавить его в название."
+
+msgid "Preview"
+msgstr "Предпросмотр"
+
+msgid "A local copy of the selected PDF is shown. The file is uploaded only after the form is submitted."
+msgstr "Показывается локальная копия выбранного PDF. Файл будет загружен только после отправки формы."
+
+msgid "Pick stamp position"
+msgstr "Выбрать место штампа"
+
+msgid "Reset position"
+msgstr "Сбросить место"
+
+msgid "The corner from settings is used."
+msgstr "Используется угол из настроек."
+
+msgid "Preview of the selected PDF"
+msgstr "Просмотр выбранного PDF"
+
+msgid "Comment"
+msgstr "Комментарий"
+
+msgid "Internal note for the administrator"
+msgstr "Внутреннее описание для администратора"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Current"
+msgstr "Актуальные"
+
+msgid "Archived"
+msgstr "Архив"
+
+msgid "All"
+msgstr "Все"
+
+msgid "Document data"
+msgstr "Данные документа"
+
+msgid "Files and verification"
+msgstr "Файлы и проверка"
+
+msgid "Stamp parameters"
+msgstr "Параметры штампа"
+
+msgid "Document date"
+msgstr "Дата документа"
+
+msgid "Document number"
+msgstr "Номер документа"
+
+msgid "Subject"
+msgstr "О чем документ"
+
+msgid "Version"
+msgstr "Версия"
+
+msgid "Replaces"
+msgstr "Заменяет документ"
+
+msgid "Replaced by"
+msgstr "Заменён документом"
+
+msgid "Replacement comment"
+msgstr "Комментарий к замене"
+
+msgid "Signing date and time"
+msgstr "Дата и время подписи"
+
+msgid "Signer"
+msgstr "Подписант"
+
+msgid "Position"
+msgstr "Должность"
+
+msgid "Organization"
+msgstr "Организация"
+
+msgid "User"
+msgstr "Пользователь"
+
+msgid "Verification page"
+msgstr "Страница проверки"
+
+msgid "Public PDF copy"
+msgstr "Публичная PDF-копия"
+
+msgid "Open the stamped PDF"
+msgstr "Открыть PDF с отметкой"
+
+msgid "Original control copy"
+msgstr "Исходная контрольная копия"
+
+msgid "Open the original PDF"
+msgstr "Открыть исходный PDF"
+
+msgid "SHA-256 of the original PDF"
+msgstr "SHA-256 исходного PDF"
+
+msgid "SHA-256 of the public PDF copy"
+msgstr "SHA-256 публичной PDF-копии"
+
+msgid "Original file name"
+msgstr "Имя исходного файла"
+
+msgid "File size"
+msgstr "Размер файла"
+
+msgid "Public copy saved"
+msgstr "Публичная копия сохранена"
+
+msgid "Saved by"
+msgstr "Кто сохранил публичную копию"
+
+msgid "Corner"
+msgstr "Угол"
+
+msgid "Color"
+msgstr "Цвет"
+
+msgid "Opacity"
+msgstr "Прозрачность"
+
+msgid "Font size"
+msgstr "Размер шрифта"
+
+msgid "Padding from the border"
+msgstr "Отступ от рамки"
+
+msgid "QR gap"
+msgstr "Отступ до QR"
+
+msgid "QR padding"
+msgstr "Отступ QR от рамки"
+
+msgid "Line spacing"
+msgstr "Межстрочный интервал"
+
+msgid "Border"
+msgstr "Рамка"
+
+msgid "Rows"
+msgstr "Строки"
+
+msgid "QR code"
+msgstr "QR-код"
+
+msgid "QR position"
+msgstr "QR положение"
+
+msgid "QR-code data"
+msgstr "Данные QR-кода"
+
+msgid "Placement"
+msgstr "Расположение"
+
+msgid "Logo in QR"
+msgstr "Логотип в QR"
+
+msgid "Below the text"
+msgstr "Под текстом"
+
+msgid "Right of the text"
+msgstr "Справа от текста"
+
+msgid "Replace"
+msgstr "Заменить"
+
+msgid "Archive"
+msgstr "Архивировать"
+
+msgid "Delete the document forever? This action cannot be undone."
+msgstr "Удалить документ навсегда? Действие необратимо."
+
+msgid "Delete forever"
+msgstr "Удалить навсегда"
+
+msgid "Archived %d document."
+msgid_plural "Archived %d documents."
+msgstr[0] "В архив перемещено %d документ."
+msgstr[1] "В архив перемещено %d документа."
+msgstr[2] "В архив перемещено %d документов."
+
+msgid "Replace with a new PDF"
+msgstr "Заменить новым PDF"
+
+msgid "Archive document"
+msgstr "Архивировать документ"
+
+msgid "You are not allowed to archive this document."
+msgstr "Вам не разрешено архивировать этот документ."
+
+msgid "You are not allowed to delete this document."
+msgstr "Вам не разрешено удалять этот документ."
+
+msgid "Only archived documents can be deleted."
+msgstr "Удалять можно только архивные документы."
+
+msgid "Deleted %d document."
+msgid_plural "Deleted %d documents."
+msgstr[0] "Удалено %d документ."
+msgstr[1] "Удалено %d документа."
+msgstr[2] "Удалено %d документов."
+
+msgid "Local act"
+msgstr "Локальный акт"
+
+msgid "External regulatory document"
+msgstr "Внешний нормативный документ"
+
+msgid "Other document"
+msgstr "Прочий документ"
+
+msgid "Order"
+msgstr "Приказ"
+
+msgid "Regulation"
+msgstr "Положение"
+
+msgid "Directive"
+msgstr "Распоряжение"
+
+msgid "Resolution"
+msgstr "Постановление"
+
+msgid "Federal law"
+msgstr "Федеральный закон"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "Corner from settings"
+msgstr "Угол из настроек"
+
+msgid "Manually: %1$s, %2$s"
+msgstr "Вручную: %1$s, %2$s"
+
+msgid "Active"
+msgstr "Действующий"
+
+msgid "Unsigned"
+msgstr "Без подписи"
+
+msgid "Replaced"
+msgstr "Заменён"
+
+msgid "Draft"
+msgstr "Черновик"
+
+msgid "Needs public copy"
+msgstr "Ожидает публичную копию"
+
+msgid "Choose a PDF file."
+msgstr "Выберите PDF-файл."
+
+msgid "The file upload failed."
+msgstr "Не удалось загрузить файл."
+
+msgid "The uploaded PDF is not readable."
+msgstr "Загруженный PDF не читается."
+
+msgid "Only PDF files can be signed."
+msgstr "Подписывать можно только PDF-файлы."
+
+msgid "Failed to save the original PDF."
+msgstr "Не удалось сохранить исходный PDF."
+
+msgid "Failed to save the public PDF copy."
+msgstr "Не удалось сохранить публичную PDF-копию."
+
+msgid "Signing the PDF requires browser processing. Enable JavaScript and check the bundled PDF libraries in assets/vendor."
+msgstr "Подписание PDF требует браузерной обработки. Включите JavaScript и проверьте bundled PDF-библиотеки в assets/vendor."
+
+msgid "Failed to calculate SHA-256 for the original PDF."
+msgstr "Не удалось вычислить SHA-256 исходного PDF."
+
+msgid "The document could not be signed."
+msgstr "Не удалось подписать документ."
+
+msgid "Sign Docs"
+msgstr "Документы"
+
+msgid "Document signing and metadata helpers."
+msgstr "Помощники для подписания документов и заполнения реквизитов."
+
+msgid "Suggest signed document metadata"
+msgstr "Подсказать реквизиты подписанного документа"
+
+msgid "Suggests document category, type, institution, date, number, subject, and titles from the first page text of an educational organization PDF."
+msgstr "Предлагает категорию, вид, институцию, дату, номер, предмет и названия документа по тексту первой страницы PDF образовательной организации."
+
+msgid "The first page text is too short for reliable AI suggestions."
+msgstr "Текст первой страницы слишком короток для надёжных AI-подсказок."
+
+msgid "The WordPress AI Client is not available."
+msgstr "AI-клиент WordPress недоступен."
+
+msgid "No approved AI connector with text generation support is available."
+msgstr "Нет одобренного AI-коннектора с поддержкой генерации текста."
+
+msgid "The AI response could not be parsed as JSON."
+msgstr "Ответ AI не удалось разобрать как JSON."
+
+msgid "Text extracted from the first page of the PDF."
+msgstr "Текст, извлечённый с первой страницы PDF."
+
+msgid "Original uploaded PDF file name."
+msgstr "Имя загруженного исходного PDF-файла."
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "This document is not currently in force. Use the verification page to check its status."
+msgstr "Документ не является действующим. Используйте страницу проверки для уточнения статуса."
+
+msgid "Signature"
+msgstr "Подпись"
+
+msgid "The document is signed with a simple electronic signature"
+msgstr "Документ подписан простой электронной подписью"
+
+msgid "Record ID:"
+msgstr "ID записи:"
+
+msgid "Signature date:"
+msgstr "Дата подписи:"
+
+msgid "Signed by"
+msgstr "Подписал"
+
+msgid "SHA-256"
+msgstr "SHA-256"
+
+msgid "Original"
+msgstr "Оригинал"
+
+msgid "Verify"
+msgstr "Проверка"
+
+msgid "Source PDF is not readable."
+msgstr "Исходный PDF не читается."
+
+msgid "Signing requires browser PDF processing. Enable JavaScript and make sure the bundled PDF libraries are available."
+msgstr "Подписание PDF требует браузерной обработки. Включите JavaScript и убедитесь, что встроенные PDF-библиотеки доступны."
+
+msgid "Invalid signed document."
+msgstr "Некорректный подписанный документ."
+
+msgid "Stamped PDF is not readable."
+msgstr "PDF с отметкой не читается."
+
+msgid "This document is not waiting for a public PDF copy."
+msgstr "Этот документ не ожидает публичную PDF-копию."
+
+msgid "Original PDF is missing."
+msgstr "Исходный PDF отсутствует."
+
+msgid "Original PDF hash does not match the stored document hash."
+msgstr "Хеш исходного PDF не совпадает с сохранённым хешем документа."
+
+msgid "Document verification data is incomplete."
+msgstr "Данные проверки документа неполны."
+
+msgid "Failed to calculate SHA-256 for the public PDF copy."
+msgstr "Не удалось вычислить SHA-256 публичной PDF-копии."
+
+msgid "Documents"
+msgstr "Документы"
+
+msgid "Document"
+msgstr "Документ"
+
+msgid "Document card"
+msgstr "Карточка документа"
+
+msgid "New document"
+msgstr "Новый документ"
+
+msgid "Search documents"
+msgstr "Искать документы"
+
+msgid "No documents found"
+msgstr "Документы не найдены"
+
+msgid "Stamped PDF is missing."
+msgstr "PDF с отметкой отсутствует."
+
+msgid "Header \"Document signed…\""
+msgstr "Заголовок «Документ подписан…»"
+
+msgid "Date, ID and SHA-256"
+msgstr "Дата, ID и SHA-256"
+
+msgid "Signer position and name"
+msgstr "Должность и ФИО подписанта"
+
+msgid "Organization (department)"
+msgstr "Организация (подразделение)"
+
+msgid "Low (L) — large modules"
+msgstr "Низкая (L) — крупные модули"
+
+msgid "Medium (M)"
+msgstr "Средняя (M)"
+
+msgid "High (Q)"
+msgstr "Высокая (Q)"
+
+msgid "Maximum (H) — small modules"
+msgstr "Максимальная (H) — мелкие модули"
+
+msgid "MIME type"
+msgstr "Тип MIME"
+
+msgid "You are not allowed to manage options."
+msgstr "Вам не разрешено управлять настройками."
+
+msgid "Permanent stamp details are stored here. They are filled in when a PDF is uploaded and saved in the meta of the individual document."
+msgstr "Здесь хранятся постоянные реквизиты штампа. Они будут подставляться при загрузке PDF и фиксироваться в meta конкретного документа."
+
+msgid "Reference lists"
+msgstr "Справочники"
+
+msgid "The classifiers open in the standard WordPress screens."
+msgstr "Классификаторы открываются в стандартных экранах WordPress."
+
+msgid "Document categories"
+msgstr "Категории документов"
+
+msgid "Document types"
+msgstr "Типы документов"
+
+msgid "Departments"
+msgstr "Структурные подразделения"
+
+msgid "Issuing authorities"
+msgstr "Издавшие органы"
+
+msgid "Stamp builder"
+msgstr "Конструктор штампа"
+
+msgid "Assemble the stamp placed on the first page when a PDF is signed. The rows with the date, ID, SHA-256 and verification link are filled in automatically for every document."
+msgstr "Соберите штамп, который накладывается на первую страницу при подписании PDF. Строки с датой, ID, SHA-256 и ссылкой проверки заполняются для каждого документа автоматически."
+
+msgid "Signer details"
+msgstr "Реквизиты подписанта"
+
+msgid "Full name"
+msgstr "ФИО"
+
+msgid "Organization (default)"
+msgstr "Организация (по умолчанию)"
+
+msgid "These details are placed into the \"Signer\" and \"Organization\" rows."
+msgstr "Эти реквизиты попадают в строки «Подписант» и «Организация»."
+
+msgid "Stamp rows"
+msgstr "Строки штампа"
+
+msgid "Move up"
+msgstr "Выше"
+
+msgid "Move down"
+msgstr "Ниже"
+
+msgid "Select the rows to display and reorder them with the arrows. Disabled rows stay in the list and return to their place when re-enabled."
+msgstr "Отметьте строки, которые должны отображаться, и расставьте их стрелками в нужном порядке. Выключенные строки остаются в списке и возвращаются на место при повторном включении."
+
+msgid "Verification QR code"
+msgstr "QR-код проверки"
+
+msgid "Show a QR code linking to the verification page"
+msgstr "Показывать QR-код со ссылкой на страницу проверки"
+
+msgid "If the stamp has neither text rows nor a QR code, nothing is placed on the first page."
+msgstr "Если штамп остаётся без текстовых строк и без QR, на первую страницу ничего не накладывается."
+
+msgid "QR code position"
+msgstr "Положение QR-кода"
+
+msgid "Overlay the site favicon/logo on the QR code modules"
+msgstr "Накладывать favicon/логотип сайта на модули QR-кода"
+
+msgid "Size (width), pt"
+msgstr "Размер (ширина), pt"
+
+msgid "Density (number of modules)"
+msgstr "Плотность (число квадратиков)"
+
+msgid "Gap to the text, pt"
+msgstr "Зазор до текста, pt"
+
+msgid "Padding from the border, pt"
+msgstr "Отступ от рамки, pt"
+
+msgid "The size sets the physical width of the QR code on the sheet. Density changes the number of modules for the same link: higher makes modules finer with more reliable error correction, lower makes them coarser and easier to print. With a logo the density never drops below medium (M)."
+msgstr "Размер задаёт физическую ширину QR-кода на листе. Плотность меняет число модулей одной и той же ссылки: выше — мельче модули и надёжнее коррекция, ниже — крупнее и «проще» для печати. При логотипе плотность не опускается ниже средней (M)."
+
+msgid "Stamp corner on the sheet"
+msgstr "Угол штампа на листе"
+
+msgid "Stamp color"
+msgstr "Цвет штампа"
+
+msgid "Base font size of the main stamp. Lower it for long names or titles."
+msgstr "Базовый размер шрифта в основном штампе. Для длинных ФИО или названий можно уменьшить значение."
+
+msgid "Text padding from the border"
+msgstr "Отступ текста от рамки"
+
+msgid "Space between the border and the text rows. It does not affect the QR code."
+msgstr "Поле между рамкой и текстовыми строками. На QR-код не влияет."
+
+msgid "Line distance multiplier relative to the font size. 1.25 is compact text, larger values give more breathing room."
+msgstr "Множитель межстрочного расстояния относительно размера шрифта. Значение 1.25 — компактный текст, больше — просторнее."
+
+msgid "Stamp border"
+msgstr "Рамка штампа"
+
+msgid "Show a border around the stamp"
+msgstr "Показывать рамку вокруг штампа"
+
+msgid "An A4 sheet with the stamp in the selected corner. The date and the control line are examples; real values are inserted when signing."
+msgstr "Лист A4 и штамп в выбранном углу. Дата и контрольная строка показаны на примере, реальные значения подставляются при подписании."
+
+msgid "Zoomed stamp"
+msgstr "Увеличенный штамп"
+
+msgid "Other settings"
+msgstr "Остальные настройки"
+
+msgid "Public copy"
+msgstr "Формирование копии"
+
+msgid "Stamp page"
+msgstr "Штамп на странице"
+
+msgid "First"
+msgstr "Первая"
+
+msgid "Last"
+msgstr "Последняя"
+
+msgid "First and last"
+msgstr "Первая и последняя"
+
+msgid "Print the verification link on the remaining pages"
+msgstr "Печатать ссылку проверки на остальных страницах"
+
+msgid "Bottom of the page"
+msgstr "Низ страницы"
+
+msgid "Top of the page"
+msgstr "Верх страницы"
+
+msgid "Top and bottom"
+msgstr "Сверху и снизу"
+
+msgid "Font size, pt"
+msgstr "Размер шрифта, pt"
+
+msgid "The main stamp with the QR code is placed on the selected page. In the \"First and last\" mode the same stamp is placed on the first and last pages. When the verification link is printed, the remaining pages show a compact line with the SHA-256 and the verification address."
+msgstr "Основной штамп с QR-кодом накладывается на выбранную страницу. В режиме «Первая и последняя» одинаковый штамп ставится на первую и последнюю страницы. Если ссылка проверки печатается, на остальных страницах показывается компактная строка с SHA-256 и адресом проверки."
+
+msgid "Document autofill"
+msgstr "Автозаполнение реквизитов"
+
+msgid "Automatically suggest document details when a PDF is selected"
+msgstr "Автоматически предлагать реквизиты документа при выборе PDF"
+
+msgid "Uses the configured WordPress AI connector. Only the first-page text of the PDF is sent to the model; signing and publishing remain manual administrator actions."
+msgstr "Используется настроенный AI connector WordPress. В модель отправляется только текст первой страницы PDF, а подпись и публикация остаются ручным действием администратора."
+
+msgid "Document preview"
+msgstr "Предпросмотр документа"
+
+msgid "Show a preview of the signed document on the verification page"
+msgstr "Показывать предпросмотр подписанного документа на странице проверки"
+
+msgid "Number of preview pages"
+msgstr "Число страниц предпросмотра"
+
+msgid "0 — all pages"
+msgstr "0 — все страницы"
+
+msgid "The limit speeds up page loading for documents with many pages."
+msgstr "Ограничение ускоряет загрузку страницы для документов из многих страниц."
+
+msgid "Document upload permissions"
+msgstr "Права на загрузку документов"
+
+msgid "No users with the editor role were found."
+msgstr "Пользователи с ролью редактора не найдены."
+
+msgid "Editors allowed to upload Sign Docs documents"
+msgstr "Редакторы, которым разрешена загрузка документов Sign Docs"
+
+msgid "Administrators always have this right. Select the editors who may add documents through Sign Docs."
+msgstr "Администраторы имеют это право всегда. Отметьте редакторов, которым можно добавлять документы через Sign Docs."
+
+msgid "Block primary button color"
+msgstr "Цвет основной кнопки блока"
+
+msgid "Block primary button text color"
+msgstr "Цвет текста основной кнопки"
+
+msgid "Block outline button color"
+msgstr "Цвет контурной кнопки блока"
+
+msgid "Block button border radius"
+msgstr "Скругление кнопок блока"
+
+msgid "A value of 9999 makes the buttons fully rounded, like the pill style of the \"Buttons\" block."
+msgstr "Значение 9999 делает кнопки округлыми, как pill-вариант блока «Кнопки»."
+
+msgid "Save settings"
+msgstr "Сохранить настройки"
+
+msgid "Top left"
+msgstr "Верхний левый"
+
+msgid "Top right"
+msgstr "Верхний правый"
+
+msgid "Bottom left"
+msgstr "Нижний левый"
+
+msgid "Bottom right"
+msgstr "Нижний правый"
+
+msgid "Document category"
+msgstr "Категория документа"
+
+msgid "Department"
+msgstr "Структурное подразделение"
+
+msgid "Issuing authority"
+msgstr "Издавший орган"
+
+msgid "Search %s"
+msgstr "Найти %s"
+
+msgid "All %s"
+msgstr "Все %s"
+
+msgid "Edit %s"
+msgstr "Изменить %s"
+
+msgid "Update %s"
+msgstr "Обновить %s"
+
+msgid "Add new %s"
+msgstr "Добавить новый %s"
+
+msgid "Local acts"
+msgstr "Локальные акты"
+
+msgid "Rules"
+msgstr "Правила"
+
+msgid "Program"
+msgstr "Программа"
+
+msgid "External regulatory documents"
+msgstr "Внешние нормативные документы"
+
+msgid "Other documents"
+msgstr "Прочие документы"
+
+msgid "Other"
+msgstr "Иное"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Number"
+msgstr "Номер"
+
+msgid "Document subject"
+msgstr "Предмет документа"
+
+msgid "Document title templates"
+msgstr "Шаблоны названий документов"
+
+msgid "Settings define which details form the short and full title when a PDF is uploaded."
+msgstr "Настройки определяют, из каких реквизитов собирается краткое и полное название при загрузке PDF."
+
+msgid "Components"
+msgstr "Компоненты"
+
+msgid "Quotes"
+msgstr "Кавычки"
+
+msgid "Separator"
+msgstr "Разделитель"
+
+msgid "Enabled"
+msgstr "Активно"
+
+msgid "Any"
+msgstr "Любая"
+
+msgid "None"
+msgstr "Не использовать строку"
+
+msgid "Topic"
+msgstr "Тема"
+
+msgid "Row order is taken from the order of checkboxes in the table. An empty row with the \"None\" type is ignored."
+msgstr "Порядок компонентов сейчас берётся из порядка галочек в таблице. Пустая строка с типом «Не использовать строку» игнорируется."
+
+msgid "Save matrix"
+msgstr "Сохранить матрицу"
+
+msgid "Used in"
+msgstr "Используется в"
+
+msgid "Not used"
+msgstr "Не используется"
+
+msgid "Usage: all"
+msgstr "Использование: все"
+
+msgid "Usage: used"
+msgstr "Использование: используется"
+
+msgid "Usage: not used"
+msgstr "Использование: не используется"
+
+msgid "Usage: broken links"
+msgstr "Использование: битые ссылки"
+
+msgid "Used in posts"
+msgstr "Используется в записях"
+
+msgid "The document block is not placed in any post or page yet."
+msgstr "Блок документа пока не размещён ни в одной записи или странице."
+
+msgid "(no title)"
+msgstr "(без названия)"
+
+msgid "Document verification"
+msgstr "Проверка документа"
+
+msgid "Document verification page"
+msgstr "Страница проверки документа"
+
+msgid "Date and time of signing"
+msgstr "Дата и время подписи"
+
+msgid "SHA-256 of the original file"
+msgstr "SHA-256 исходного файла"
+
+msgid "Open PDF"
+msgstr "Открыть PDF"
+
+msgid "Verification is performed against the SHA-256 of the original PDF and the record on the site."
+msgstr "Контрольная проверка выполняется по SHA-256 исходного PDF и записи на сайте."
+
+msgid "Signed document"
+msgstr "Подписанный документ"
+
+msgid "Loading preview…"
+msgstr "Загружаю предпросмотр…"
+
+msgid "Verify a PDF file"
+msgstr "Проверить PDF-файл"
+
+msgid "The file is checked in the browser. It is not uploaded to the site."
+msgstr "Файл проверяется в браузере. Он не загружается на сайт."
+
+msgid "Choose a PDF"
+msgstr "Выбрать PDF"
+
+msgid "This document was replaced by a new edition:"
+msgstr "Этот документ заменён новой редакцией:"
+
+msgid "This document replaces the previous edition:"
+msgstr "Этот документ заменяет предыдущую редакцию:"
+
+msgid "The document is not published yet"
+msgstr "Документ ещё не опубликован"
+
+msgid "The public copy of the document has not been created yet."
+msgstr "Публичная копия документа ещё не сформирована."
+
+msgid "Preview container not found."
+msgstr "Контейнер предпросмотра не найден."
+
+msgid "PDF selected"
+msgstr "PDF выбран"
+
+msgid "The file will be uploaded after submitting the form."
+msgstr "Файл будет загружен после отправки формы."
+
+msgid "PDF.js was not found in assets/vendor."
+msgstr "PDF.js не найден в assets/vendor."
+
+msgid "Reading the first page text for autofill..."
+msgstr "Читаю текст первой страницы для автозаполнения..."
+
+msgid "The first page does not have enough text layer for AI autofill."
+msgstr "В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения."
+
+msgid "Suggesting document details with AI..."
+msgstr "Подбираю реквизиты документа через AI..."
+
+msgid "AI suggested document details. Confidence: %1$d%%."
+msgstr "AI предложил реквизиты документа. Уверенность: %1$d%%."
+
+msgid "AI suggested document details."
+msgstr "AI предложил реквизиты документа."
+
+msgid "Check: %1$s"
+msgstr "Проверьте: %1$s"
+
+msgid "Could not run AI autofill."
+msgstr "Не удалось выполнить AI-автозаполнение."
+
+msgid "for the completed %1$s academic year"
+msgstr "за %1$s учебный год"
+
+msgid "for the %1$s academic year"
+msgstr "на %1$s учебный год"
+
+msgid "for the completed year %1$s"
+msgstr "за %1$s год"
+
+msgid "for the year %1$s"
+msgstr "на %1$s год"
+
+msgid "Academic"
+msgstr "Учебный"
+
+msgid "Calendar"
+msgstr "Календарный"
+
+msgid "Cancel picking"
+msgstr "Отменить выбор места"
+
+msgid "Manual position selected. You can pick it again."
+msgstr "Место выбрано вручную. Можно выбрать заново."
+
+msgid "Move the rectangle to the desired place and click."
+msgstr "Наведите прямоугольник на нужное место и щелкните."
+
+msgid "Request failed."
+msgstr "Запрос не выполнен."
+
+msgid "Could not load the font file."
+msgstr "Не удалось загрузить файл шрифта."
+
+msgid "Fontkit is not loaded for embedding fonts."
+msgstr "Не загружен fontkit для встраивания шрифта."
+
+msgid "SHA-256 of the original PDF: %1$s  Verify: %2$s"
+msgstr "SHA-256 исходного PDF: %1$s  Проверка: %2$s"
+
+msgid "Local JS libraries or the Golos Text font are not loaded. Check assets/vendor."
+msgstr "Не загружены локальные JS-библиотеки или шрифт Golos Text. Проверьте assets/vendor."
+
+msgid "Uploading the original PDF and calculating the server SHA-256..."
+msgstr "Загружаю исходный PDF и считаю серверный SHA-256..."
+
+msgid "Embedding Golos Text, adding the stamp and QR code..."
+msgstr "Встраиваю Golos Text, накладываю штамп и QR-код..."
+
+msgid "Saving the public PDF copy with the stamp..."
+msgstr "Сохраняю публичную PDF-копию с отметкой..."
+
+msgid "Could not sign the document."
+msgstr "Не удалось подписать документ."
+
+msgid "PDF.js is not available."
+msgstr "PDF.js недоступен."
+
+msgid "Any status"
+msgstr "Любой статус"
+
+msgid "Text link"
+msgstr "Текстовая ссылка"
+
+msgid "Button"
+msgstr "Кнопка"
+
+msgid "Card"
+msgstr "Карточка"
+
+msgid "Could not load a local asset."
+msgstr "Не удалось загрузить локальный ресурс."
+
+msgid "%1$s (MSK)  |  ID: %2$s  |  SHA-256: %3$s"
+msgstr "%1$s (МСК)  |  ID: %2$s  |  SHA-256: %3$s"
+
+msgid "Could not load documents."
+msgstr "Не удалось загрузить документы."
+
+msgid "Select signed document"
+msgstr "Выберите подписанный документ"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "Any category"
+msgstr "Любая категория"
+
+msgid "Any type"
+msgstr "Любой тип"
+
+msgid "Any department"
+msgstr "Любое подразделение"
+
+msgid "No documents found."
+msgstr "Документы не найдены."
+
+msgid "Previous"
+msgstr "Назад"
+
+msgid "Next"
+msgstr "Далее"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Signing..."
+msgstr "Подписываю..."
+
+msgid "Saving..."
+msgstr "Сохраняю..."
+
+msgid "Selected PDF preview"
+msgstr "Предпросмотр выбранного PDF"
+
+msgid "Choose a PDF to preview the first page."
+msgstr "Выберите PDF, чтобы увидеть предпросмотр первой страницы."
+
+msgid "Local PDF libraries or fonts are missing."
+msgstr "Отсутствуют локальные PDF-библиотеки или шрифты."
+
+msgid "Saving original PDF and calculating server SHA-256..."
+msgstr "Сохраняю исходный PDF и считаю серверный SHA-256..."
+
+msgid "Adding stamp and QR code..."
+msgstr "Накладываю штамп и QR-код..."
+
+msgid "Saving public PDF copy..."
+msgstr "Сохраняю публичную PDF-копию..."
+
+msgid "Replace document"
+msgstr "Заменить документ"
+
+msgid "The new document will mark the selected document as replaced after signing completes."
+msgstr "Новый документ отметит выбранный документ как заменённый после завершения подписания."
+
+msgid "Choose category"
+msgstr "Выберите категорию"
+
+msgid "Choose type"
+msgstr "Выберите тип"
+
+msgid "Auto-filled from settings"
+msgstr "Заполняется автоматически из настроек"
+
+msgid "Institution directory"
+msgstr "Справочник институций"
+
+msgid "+ Add institution to title"
+msgstr "+ Добавить институцию к названию"
+
+msgid "Year / Period"
+msgstr "Год / период"
+
+msgid "Reset"
+msgstr "Сбросить"
+
+msgid "Signing parameters"
+msgstr "Параметры подписания"
+
+msgid "First page size:"
+msgstr "Размер первой страницы:"
+
+msgid "Manual stamp position is selected."
+msgstr "Выбрано ручное место штампа."
+
+msgid "Default stamp corner from settings is used."
+msgstr "Используется угол по умолчанию из настроек."
+
+msgid "Internal admin note. Not shown on the verification page or in the document block."
+msgstr "Внутренняя заметка администратора. Не показывается на странице проверки и в блоке документа."
+
+msgid "Sign Docs – Document"
+msgstr "Документы"
+
+msgid "sign"
+msgstr "подпись"
+
+msgid "document"
+msgstr "документ"
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "signed document"
+msgstr "подписанный документ"
+
+msgid "Could not load selected document."
+msgstr "Не удалось загрузить выбранный документ."
+
+msgid "Upload replacement PDF"
+msgstr "Загрузить PDF для замены"
+
+msgid "Remove document"
+msgstr "Удалить документ из блока"
+
+msgid "Display"
+msgstr "Отображение"
+
+msgid "Style"
+msgstr "Стиль"
+
+msgid "Show status, date and version"
+msgstr "Показывать статус, дату и версию"
+
+msgid "Show download button"
+msgstr "Показывать кнопку скачивания"
+
+msgid "Show signature details button"
+msgstr "Показывать кнопку сведений о подписи"
+
+msgid "Embed stamped PDF"
+msgstr "Встроить PDF с отметкой"
+
+msgid "Open verification page in a new tab"
+msgstr "Открывать страницу проверки в новой вкладке"
+
+msgid "Use document title"
+msgstr "Использовать название документа"
+
+msgid "Stamped PDF"
+msgstr "PDF с отметкой"
+
+msgid "Add a signed document or choose an existing Sign Docs record."
+msgstr "Добавьте подписанный документ или выберите существующую запись Sign Docs."
+
+msgid "Choose uploaded"
+msgstr "Выбрать загруженный"
+
+msgid "SHA-256 calculation is not available in this browser."
+msgstr "В этом браузере недоступен расчёт SHA-256."
+
+msgid "Calculating SHA-256 of the selected file..."
+msgstr "Считаю SHA-256 выбранного файла..."
+
+msgid "The file matches the control original copy."
+msgstr "Файл совпадает с контрольной исходной копией."
+
+msgid "The file matches the public PDF copy with the stamp."
+msgstr "Файл совпадает с публичной PDF-копией с отметкой."
+
+msgid "The file does not match the control original copy or the public stamped copy."
+msgstr "Файл не совпадает с контрольной исходной копией или публичной копией с отметкой."
+
+msgid "Could not calculate the SHA-256 of the selected file."
+msgstr "Не удалось рассчитать SHA-256 выбранного файла."
+
+msgid "Showing the first %1$d of %2$d pages."
+msgstr "Показаны первые %1$d из %2$d страниц."
+
+msgid "Could not display the document preview."
+msgstr "Не удалось показать предпросмотр документа."
+
+msgid "MSK"
+msgstr "МСК"

@@ -1,0 +1,1744 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Sign Docs 0.5.0\n"
+"Report-Msgid-Bugs-To: https://github.com/igor-blag/sign-docs/issues\n"
+"POT-Creation-Date: 2026-09-08 10:29\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/class-admin.php:115
+#: includes/class-admin.php:116
+#: includes/class-admin.php:176
+#: includes/class-post-type.php:26
+#: includes/class-post-type.php:27
+#: assets/js/document-block.js:1036
+#: assets/js/document-block.js:1407
+msgid "Add document"
+msgstr ""
+
+#: includes/class-admin.php:129
+#: includes/class-settings.php:359
+msgid "Sign Docs Settings"
+msgstr ""
+
+#: includes/class-admin.php:130
+msgid "Settings"
+msgstr ""
+
+#: includes/class-admin.php:138
+#: includes/class-admin.php:139
+msgid "Title matrix"
+msgstr ""
+
+#: includes/class-admin.php:163
+#: includes/class-admin.php:564
+msgid "You are not allowed to upload files."
+msgstr ""
+
+#: includes/class-admin.php:181
+msgid "The document was saved without a signature."
+msgstr ""
+
+#: includes/class-admin.php:181
+#: assets/js/admin-upload.js:1508
+msgid "The document is signed and registered."
+msgstr ""
+
+#: includes/class-admin.php:183
+#: includes/class-admin.php:917
+#: includes/class-post-type.php:30
+#: assets/js/admin-upload.js:1508
+msgid "Open verification page"
+msgstr ""
+
+#: includes/class-admin.php:197
+msgid "Signer details, organization and stamp parameters are taken from the"
+msgstr ""
+
+#: includes/class-admin.php:198
+msgid "Sign Docs settings"
+msgstr ""
+
+#: includes/class-admin.php:205
+msgid "The new document will replace:"
+msgstr ""
+
+#: includes/class-admin.php:209
+msgid "After a successful signature the previous record receives the \"Replaced\" status."
+msgstr ""
+
+#: includes/class-admin.php:387
+#: includes/class-admin.php:526
+#: assets/js/document-block.js:874
+msgid "Save and sign document"
+msgstr ""
+
+#: includes/class-admin.php:388
+#: includes/class-admin.php:527
+#: assets/js/document-block.js:875
+msgid "Save without signature"
+msgstr ""
+
+#: includes/class-admin.php:397
+msgid "Source PDF"
+msgstr ""
+
+#: includes/class-admin.php:402
+#: assets/js/admin-upload.js:316
+#: assets/js/document-block.js:1060
+msgid "Drop PDF here"
+msgstr ""
+
+#: includes/class-admin.php:403
+#: assets/js/admin-upload.js:317
+#: assets/js/document-block.js:1061
+msgid "or click to choose a file"
+msgstr ""
+
+#: includes/class-admin.php:407
+msgid "The source file is stored unchanged; the SHA-256 is calculated on the server."
+msgstr ""
+
+#: includes/class-admin.php:412
+#: includes/class-admin.php:887
+#: includes/class-title-template.php:196
+#: assets/js/document-block.js:568
+#: assets/js/document-block.js:1064
+msgid "Category"
+msgstr ""
+
+#: includes/class-admin.php:424
+#: includes/class-admin.php:888
+#: includes/class-taxonomies.php:28
+#: includes/class-title-template.php:24
+#: includes/class-title-template.php:197
+#: assets/js/document-block.js:569
+#: assets/js/document-block.js:1065
+msgid "Document type"
+msgstr ""
+
+#: includes/class-admin.php:444
+#: includes/class-admin.php:889
+#: assets/js/document-block.js:1069
+msgid "Institution"
+msgstr ""
+
+#: includes/class-admin.php:448
+#: assets/js/document-block.js:1083
+msgid "Choose from directory"
+msgstr ""
+
+#: includes/class-admin.php:454
+#: assets/js/document-block.js:1087
+msgid "Or enter a new short authority name"
+msgstr ""
+
+#: includes/class-admin.php:456
+#: assets/js/document-block.js:1092
+msgid "Enter the name in the genitive case"
+msgstr ""
+
+#: includes/class-admin.php:462
+msgid "Choose an existing institution from the directory or type a new one in the field below."
+msgstr ""
+
+#: includes/class-admin.php:467
+msgid "Date and number"
+msgstr ""
+
+#: includes/class-admin.php:472
+#: assets/js/document-block.js:1100
+msgid "183-R"
+msgstr ""
+
+#: includes/class-admin.php:478
+#: includes/class-admin.php:885
+#: assets/js/document-block.js:1103
+msgid "Title"
+msgstr ""
+
+#: includes/class-admin.php:483
+msgid "The title of the WordPress record."
+msgstr ""
+
+#: includes/class-admin.php:485
+msgid "Add institution name"
+msgstr ""
+
+#: includes/class-admin.php:489
+#: assets/js/document-block.js:1115
+msgid "Sentence case"
+msgstr ""
+
+#: includes/class-admin.php:494
+#: includes/class-admin.php:893
+#: includes/class-title-template.php:28
+msgid "Year / period"
+msgstr ""
+
+#: includes/class-admin.php:496
+msgid "Year autofill"
+msgstr ""
+
+#: includes/class-admin.php:497
+msgid "Click a period button to add it to the title."
+msgstr ""
+
+#: includes/class-admin.php:505
+#: includes/class-settings.php:543
+#: assets/js/document-block.js:1146
+msgid "Preview"
+msgstr ""
+
+#: includes/class-admin.php:506
+msgid "A local copy of the selected PDF is shown. The file is uploaded only after the form is submitted."
+msgstr ""
+
+#: includes/class-admin.php:508
+#: assets/js/admin-upload.js:992
+#: assets/js/document-block.js:1150
+msgid "Pick stamp position"
+msgstr ""
+
+#: includes/class-admin.php:509
+msgid "Reset position"
+msgstr ""
+
+#: includes/class-admin.php:510
+#: assets/js/admin-upload.js:1003
+msgid "The corner from settings is used."
+msgstr ""
+
+#: includes/class-admin.php:514
+msgid "Preview of the selected PDF"
+msgstr ""
+
+#: includes/class-admin.php:531
+#: includes/class-admin.php:886
+#: assets/js/document-block.js:1175
+msgid "Comment"
+msgstr ""
+
+#: includes/class-admin.php:532
+msgid "Internal note for the administrator"
+msgstr ""
+
+#: includes/class-admin.php:676
+#: includes/class-admin.php:894
+#: includes/class-verification-page.php:136
+#: assets/js/document-block.js:567
+msgid "Status"
+msgstr ""
+
+#: includes/class-admin.php:768
+msgid "Current"
+msgstr ""
+
+#: includes/class-admin.php:773
+#: includes/class-admin.php:1522
+#: includes/class-admin.php:1523
+#: includes/class-admin.php:1525
+#: includes/class-blocks.php:433
+#: includes/class-blocks.php:434
+#: includes/class-blocks.php:436
+#: includes/class-rest-controller.php:400
+#: includes/class-rest-controller.php:401
+#: includes/class-rest-controller.php:403
+#: includes/class-verification-page.php:265
+#: includes/class-verification-page.php:266
+#: includes/class-verification-page.php:268
+#: assets/js/document-block.js:80
+msgid "Archived"
+msgstr ""
+
+#: includes/class-admin.php:778
+msgid "All"
+msgstr ""
+
+#: includes/class-admin.php:853
+msgid "Document data"
+msgstr ""
+
+#: includes/class-admin.php:862
+msgid "Files and verification"
+msgstr ""
+
+#: includes/class-admin.php:871
+msgid "Stamp parameters"
+msgstr ""
+
+#: includes/class-admin.php:890
+#: assets/js/document-block.js:1099
+msgid "Document date"
+msgstr ""
+
+#: includes/class-admin.php:891
+#: assets/js/document-block.js:1100
+msgid "Document number"
+msgstr ""
+
+#: includes/class-admin.php:892
+msgid "Subject"
+msgstr ""
+
+#: includes/class-admin.php:895
+#: includes/class-verification-page.php:137
+msgid "Version"
+msgstr ""
+
+#: includes/class-admin.php:896
+msgid "Replaces"
+msgstr ""
+
+#: includes/class-admin.php:897
+msgid "Replaced by"
+msgstr ""
+
+#: includes/class-admin.php:898
+msgid "Replacement comment"
+msgstr ""
+
+#: includes/class-admin.php:899
+msgid "Signing date and time"
+msgstr ""
+
+#: includes/class-admin.php:900
+#: includes/class-verification-page.php:134
+msgid "Signer"
+msgstr ""
+
+#: includes/class-admin.php:901
+#: includes/class-settings.php:396
+#: includes/class-settings.php:585
+msgid "Position"
+msgstr ""
+
+#: includes/class-admin.php:902
+#: includes/class-verification-page.php:135
+msgid "Organization"
+msgstr ""
+
+#: includes/class-admin.php:903
+msgid "User"
+msgstr ""
+
+#: includes/class-admin.php:917
+msgid "Verification page"
+msgstr ""
+
+#: includes/class-admin.php:918
+msgid "Public PDF copy"
+msgstr ""
+
+#: includes/class-admin.php:918
+#: includes/class-verification-page.php:144
+msgid "Open the stamped PDF"
+msgstr ""
+
+#: includes/class-admin.php:919
+msgid "Original control copy"
+msgstr ""
+
+#: includes/class-admin.php:919
+#: includes/class-verification-page.php:154
+msgid "Open the original PDF"
+msgstr ""
+
+#: includes/class-admin.php:920
+msgid "SHA-256 of the original PDF"
+msgstr ""
+
+#: includes/class-admin.php:921
+msgid "SHA-256 of the public PDF copy"
+msgstr ""
+
+#: includes/class-admin.php:922
+msgid "QR-code data"
+msgstr ""
+
+#: includes/class-admin.php:923
+msgid "Original file name"
+msgstr ""
+
+#: includes/class-admin.php:924
+msgid "File size"
+msgstr ""
+
+#: includes/class-admin.php:925
+msgid "MIME type"
+msgstr ""
+
+#: includes/class-admin.php:926
+msgid "Public copy saved"
+msgstr ""
+
+#: includes/class-admin.php:927
+msgid "Saved by"
+msgstr ""
+
+#: includes/class-admin.php:938
+msgid "Corner"
+msgstr ""
+
+#: includes/class-admin.php:939
+msgid "Color"
+msgstr ""
+
+#: includes/class-admin.php:940
+#: includes/class-settings.php:499
+#: includes/class-settings.php:597
+msgid "Opacity"
+msgstr ""
+
+#: includes/class-admin.php:941
+#: includes/class-settings.php:506
+msgid "Font size"
+msgstr ""
+
+#: includes/class-admin.php:942
+msgid "Padding from the border"
+msgstr ""
+
+#: includes/class-admin.php:943
+msgid "QR gap"
+msgstr ""
+
+#: includes/class-admin.php:944
+msgid "QR padding"
+msgstr ""
+
+#: includes/class-admin.php:945
+#: includes/class-settings.php:522
+msgid "Line spacing"
+msgstr ""
+
+#: includes/class-admin.php:946
+#: includes/class-settings.php:581
+msgid "Border"
+msgstr ""
+
+#: includes/class-admin.php:947
+msgid "Rows"
+msgstr ""
+
+#: includes/class-admin.php:948
+msgid "QR code"
+msgstr ""
+
+#: includes/class-admin.php:949
+msgid "QR position"
+msgstr ""
+
+#: includes/class-admin.php:950
+msgid "Placement"
+msgstr ""
+
+#: includes/class-admin.php:951
+msgid "Logo in QR"
+msgstr ""
+
+#: includes/class-admin.php:975
+#: includes/class-settings.php:453
+msgid "Below the text"
+msgstr ""
+
+#: includes/class-admin.php:975
+#: includes/class-settings.php:449
+msgid "Right of the text"
+msgstr ""
+
+#: includes/class-admin.php:996
+msgid "Replace"
+msgstr ""
+
+#: includes/class-admin.php:1004
+#: includes/class-admin.php:1027
+msgid "Archive"
+msgstr ""
+
+#: includes/class-admin.php:1012
+#: includes/class-admin.php:1111
+msgid "Delete the document forever? This action cannot be undone."
+msgstr ""
+
+#: includes/class-admin.php:1013
+#: includes/class-admin.php:1031
+#: includes/class-admin.php:1112
+msgid "Delete forever"
+msgstr ""
+
+#: includes/class-admin.php:1075
+msgid "Archived %d document."
+msgid_plural "Archived %d documents."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-admin.php:1097
+msgid "Replace with a new PDF"
+msgstr ""
+
+#: includes/class-admin.php:1106
+msgid "Archive document"
+msgstr ""
+
+#: includes/class-admin.php:1135
+msgid "You are not allowed to archive this document."
+msgstr ""
+
+#: includes/class-admin.php:1155
+msgid "You are not allowed to delete this document."
+msgstr ""
+
+#: includes/class-admin.php:1159
+msgid "Only archived documents can be deleted."
+msgstr ""
+
+#: includes/class-admin.php:1245
+msgid "Deleted %d document."
+msgid_plural "Deleted %d documents."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-admin.php:1395
+#: includes/class-taxonomies.php:81
+msgid "Local act"
+msgstr ""
+
+#: includes/class-admin.php:1396
+#: includes/class-taxonomies.php:82
+msgid "External regulatory document"
+msgstr ""
+
+#: includes/class-admin.php:1397
+#: includes/class-taxonomies.php:83
+msgid "Other document"
+msgstr ""
+
+#: includes/class-admin.php:1409
+#: includes/class-taxonomies.php:91
+#: includes/class-taxonomies.php:96
+msgid "Order"
+msgstr ""
+
+#: includes/class-admin.php:1409
+#: includes/class-taxonomies.php:92
+msgid "Regulation"
+msgstr ""
+
+#: includes/class-admin.php:1409
+#: includes/class-taxonomies.php:97
+msgid "Directive"
+msgstr ""
+
+#: includes/class-admin.php:1409
+#: includes/class-taxonomies.php:98
+msgid "Resolution"
+msgstr ""
+
+#: includes/class-admin.php:1409
+#: includes/class-taxonomies.php:99
+msgid "Federal law"
+msgstr ""
+
+#: includes/class-admin.php:1502
+msgid "No"
+msgstr ""
+
+#: includes/class-admin.php:1502
+msgid "Yes"
+msgstr ""
+
+#: includes/class-admin.php:1508
+msgid "Corner from settings"
+msgstr ""
+
+#: includes/class-admin.php:1514
+msgid "Manually: %1$s, %2$s"
+msgstr ""
+
+#: includes/class-admin.php:1520
+#: includes/class-admin.php:1530
+#: includes/class-blocks.php:431
+#: includes/class-blocks.php:441
+#: includes/class-rest-controller.php:398
+#: includes/class-rest-controller.php:408
+#: includes/class-verification-page.php:263
+#: includes/class-verification-page.php:273
+#: assets/js/document-block.js:77
+#: assets/js/document-block.js:1024
+msgid "Active"
+msgstr ""
+
+#: includes/class-admin.php:1521
+#: includes/class-blocks.php:432
+#: includes/class-rest-controller.php:399
+#: includes/class-verification-page.php:264
+#: assets/js/document-block.js:78
+#: assets/js/document-block.js:996
+msgid "Unsigned"
+msgstr ""
+
+#: includes/class-admin.php:1524
+#: includes/class-blocks.php:435
+#: includes/class-rest-controller.php:402
+#: includes/class-verification-page.php:267
+#: assets/js/document-block.js:81
+msgid "Replaced"
+msgstr ""
+
+#: includes/class-admin.php:1526
+#: includes/class-blocks.php:437
+#: includes/class-rest-controller.php:404
+#: includes/class-verification-page.php:269
+msgid "Draft"
+msgstr ""
+
+#: includes/class-admin.php:1527
+#: includes/class-blocks.php:438
+#: includes/class-rest-controller.php:405
+#: includes/class-verification-page.php:270
+#: assets/js/document-block.js:79
+msgid "Needs public copy"
+msgstr ""
+
+#: includes/class-admin.php:1620
+#: includes/class-rest-controller.php:225
+#: assets/js/document-block.js:947
+msgid "Choose a PDF file."
+msgstr ""
+
+#: includes/class-admin.php:1621
+#: includes/class-rest-controller.php:230
+#: includes/class-rest-controller.php:357
+msgid "The file upload failed."
+msgstr ""
+
+#: includes/class-admin.php:1622
+msgid "The uploaded PDF is not readable."
+msgstr ""
+
+#: includes/class-admin.php:1623
+#: includes/class-document-service.php:35
+#: includes/class-document-service.php:234
+msgid "Only PDF files can be signed."
+msgstr ""
+
+#: includes/class-admin.php:1624
+#: includes/class-document-service.php:88
+msgid "Failed to save the original PDF."
+msgstr ""
+
+#: includes/class-admin.php:1625
+#: includes/class-document-service.php:276
+msgid "Failed to save the public PDF copy."
+msgstr ""
+
+#: includes/class-admin.php:1626
+msgid "Signing the PDF requires browser processing. Enable JavaScript and check the bundled PDF libraries in assets/vendor."
+msgstr ""
+
+#: includes/class-admin.php:1627
+#: includes/class-document-service.php:94
+msgid "Failed to calculate SHA-256 for the original PDF."
+msgstr ""
+
+#: includes/class-admin.php:1630
+msgid "The document could not be signed."
+msgstr ""
+
+#: includes/class-ai-metadata.php:28
+#: includes/class-post-type.php:33
+msgid "Sign Docs"
+msgstr ""
+
+#: includes/class-ai-metadata.php:29
+msgid "Document signing and metadata helpers."
+msgstr ""
+
+#: includes/class-ai-metadata.php:43
+msgid "Suggest signed document metadata"
+msgstr ""
+
+#: includes/class-ai-metadata.php:44
+msgid "Suggests document category, type, institution, date, number, subject, and titles from the first page text of an educational organization PDF."
+msgstr ""
+
+#: includes/class-ai-metadata.php:87
+msgid "The first page text is too short for reliable AI suggestions."
+msgstr ""
+
+#: includes/class-ai-metadata.php:95
+msgid "The WordPress AI Client is not available."
+msgstr ""
+
+#: includes/class-ai-metadata.php:121
+msgid "No approved AI connector with text generation support is available."
+msgstr ""
+
+#: includes/class-ai-metadata.php:135
+msgid "The AI response could not be parsed as JSON."
+msgstr ""
+
+#: includes/class-ai-metadata.php:182
+msgid "Text extracted from the first page of the PDF."
+msgstr ""
+
+#: includes/class-ai-metadata.php:186
+msgid "Original uploaded PDF file name."
+msgstr ""
+
+#: includes/class-blocks.php:273
+#: includes/class-blocks.php:397
+#: assets/js/document-block.js:1388
+msgid "Download"
+msgstr ""
+
+#: includes/class-blocks.php:277
+msgid "This document is not currently in force. Use the verification page to check its status."
+msgstr ""
+
+#: includes/class-blocks.php:286
+#: assets/js/document-block.js:1393
+msgid "Signature"
+msgstr ""
+
+#: includes/class-blocks.php:346
+#: assets/js/document-block.js:402
+#: assets/js/stamp-layout.js:12
+msgid "The document is signed with a simple electronic signature"
+msgstr ""
+
+#: includes/class-blocks.php:352
+msgid "Record ID:"
+msgstr ""
+
+#: includes/class-blocks.php:359
+msgid "Signature date:"
+msgstr ""
+
+#: includes/class-blocks.php:367
+msgid "Signed by"
+msgstr ""
+
+#: includes/class-blocks.php:386
+msgid "SHA-256"
+msgstr ""
+
+#: includes/class-blocks.php:400
+msgid "Original"
+msgstr ""
+
+#: includes/class-blocks.php:404
+msgid "Verify"
+msgstr ""
+
+#: includes/class-document-service.php:30
+msgid "Source PDF is not readable."
+msgstr ""
+
+#: includes/class-document-service.php:105
+msgid "Signing requires browser PDF processing. Enable JavaScript and make sure the bundled PDF libraries are available."
+msgstr ""
+
+#: includes/class-document-service.php:226
+#: includes/class-rest-controller.php:347
+msgid "Invalid signed document."
+msgstr ""
+
+#: includes/class-document-service.php:230
+msgid "Stamped PDF is not readable."
+msgstr ""
+
+#: includes/class-document-service.php:240
+msgid "This document is not waiting for a public PDF copy."
+msgstr ""
+
+#: includes/class-document-service.php:255
+msgid "Original PDF is missing."
+msgstr ""
+
+#: includes/class-document-service.php:262
+msgid "Original PDF hash does not match the stored document hash."
+msgstr ""
+
+#: includes/class-document-service.php:270
+msgid "Document verification data is incomplete."
+msgstr ""
+
+#: includes/class-document-service.php:281
+msgid "Failed to calculate SHA-256 for the public PDF copy."
+msgstr ""
+
+#: includes/class-post-type.php:24
+msgid "Documents"
+msgstr ""
+
+#: includes/class-post-type.php:25
+#: assets/js/document-block.js:1317
+msgid "Document"
+msgstr ""
+
+#: includes/class-post-type.php:28
+msgid "Document card"
+msgstr ""
+
+#: includes/class-post-type.php:29
+msgid "New document"
+msgstr ""
+
+#: includes/class-post-type.php:31
+msgid "Search documents"
+msgstr ""
+
+#: includes/class-post-type.php:32
+msgid "No documents found"
+msgstr ""
+
+#: includes/class-rest-controller.php:352
+msgid "Stamped PDF is missing."
+msgstr ""
+
+#: includes/class-settings.php:183
+msgid "Header \"Document signed…\""
+msgstr ""
+
+#: includes/class-settings.php:184
+msgid "Date, ID and SHA-256"
+msgstr ""
+
+#: includes/class-settings.php:185
+msgid "Signer position and name"
+msgstr ""
+
+#: includes/class-settings.php:186
+msgid "Organization (department)"
+msgstr ""
+
+#: includes/class-settings.php:196
+msgid "Low (L) — large modules"
+msgstr ""
+
+#: includes/class-settings.php:197
+msgid "Medium (M)"
+msgstr ""
+
+#: includes/class-settings.php:198
+msgid "High (Q)"
+msgstr ""
+
+#: includes/class-settings.php:199
+msgid "Maximum (H) — small modules"
+msgstr ""
+
+#: includes/class-settings.php:349
+#: includes/class-title-template.php:179
+msgid "You are not allowed to manage options."
+msgstr ""
+
+#: includes/class-settings.php:361
+msgid "Permanent stamp details are stored here. They are filled in when a PDF is uploaded and saved in the meta of the individual document."
+msgstr ""
+
+#: includes/class-settings.php:364
+msgid "Reference lists"
+msgstr ""
+
+#: includes/class-settings.php:365
+msgid "The classifiers open in the standard WordPress screens."
+msgstr ""
+
+#: includes/class-settings.php:367
+#: includes/class-taxonomies.php:20
+msgid "Document categories"
+msgstr ""
+
+#: includes/class-settings.php:368
+#: includes/class-taxonomies.php:27
+msgid "Document types"
+msgstr ""
+
+#: includes/class-settings.php:369
+#: includes/class-taxonomies.php:34
+msgid "Departments"
+msgstr ""
+
+#: includes/class-settings.php:370
+#: includes/class-taxonomies.php:41
+msgid "Issuing authorities"
+msgstr ""
+
+#: includes/class-settings.php:378
+msgid "Stamp builder"
+msgstr ""
+
+#: includes/class-settings.php:380
+msgid "Assemble the stamp placed on the first page when a PDF is signed. The rows with the date, ID, SHA-256 and verification link are filled in automatically for every document."
+msgstr ""
+
+#: includes/class-settings.php:386
+msgid "Signer details"
+msgstr ""
+
+#: includes/class-settings.php:390
+msgid "Full name"
+msgstr ""
+
+#: includes/class-settings.php:402
+msgid "Organization (default)"
+msgstr ""
+
+#: includes/class-settings.php:406
+msgid "These details are placed into the \"Signer\" and \"Organization\" rows."
+msgstr ""
+
+#: includes/class-settings.php:410
+msgid "Stamp rows"
+msgstr ""
+
+#: includes/class-settings.php:427
+msgid "Move up"
+msgstr ""
+
+#: includes/class-settings.php:428
+msgid "Move down"
+msgstr ""
+
+#: includes/class-settings.php:433
+msgid "Select the rows to display and reorder them with the arrows. Disabled rows stay in the list and return to their place when re-enabled."
+msgstr ""
+
+#: includes/class-settings.php:437
+msgid "Verification QR code"
+msgstr ""
+
+#: includes/class-settings.php:441
+msgid "Show a QR code linking to the verification page"
+msgstr ""
+
+#: includes/class-settings.php:443
+msgid "If the stamp has neither text rows nor a QR code, nothing is placed on the first page."
+msgstr ""
+
+#: includes/class-settings.php:446
+msgid "QR code position"
+msgstr ""
+
+#: includes/class-settings.php:459
+msgid "Overlay the site favicon/logo on the QR code modules"
+msgstr ""
+
+#: includes/class-settings.php:464
+msgid "Size (width), pt"
+msgstr ""
+
+#: includes/class-settings.php:468
+msgid "Density (number of modules)"
+msgstr ""
+
+#: includes/class-settings.php:476
+msgid "Gap to the text, pt"
+msgstr ""
+
+#: includes/class-settings.php:480
+msgid "Padding from the border, pt"
+msgstr ""
+
+#: includes/class-settings.php:486
+msgid "The size sets the physical width of the QR code on the sheet. Density changes the number of modules for the same link: higher makes modules finer with more reliable error correction, lower makes them coarser and easier to print. With a logo the density never drops below medium (M)."
+msgstr ""
+
+#: includes/class-settings.php:491
+msgid "Stamp corner on the sheet"
+msgstr ""
+
+#: includes/class-settings.php:495
+msgid "Stamp color"
+msgstr ""
+
+#: includes/class-settings.php:510
+msgid "Base font size of the main stamp. Lower it for long names or titles."
+msgstr ""
+
+#: includes/class-settings.php:514
+msgid "Text padding from the border"
+msgstr ""
+
+#: includes/class-settings.php:518
+msgid "Space between the border and the text rows. It does not affect the QR code."
+msgstr ""
+
+#: includes/class-settings.php:526
+msgid "Line distance multiplier relative to the font size. 1.25 is compact text, larger values give more breathing room."
+msgstr ""
+
+#: includes/class-settings.php:530
+msgid "Stamp border"
+msgstr ""
+
+#: includes/class-settings.php:534
+msgid "Show a border around the stamp"
+msgstr ""
+
+#: includes/class-settings.php:544
+msgid "An A4 sheet with the stamp in the selected corner. The date and the control line are examples; real values are inserted when signing."
+msgstr ""
+
+#: includes/class-settings.php:549
+msgid "Zoomed stamp"
+msgstr ""
+
+#: includes/class-settings.php:557
+msgid "Other settings"
+msgstr ""
+
+#: includes/class-settings.php:561
+msgid "Public copy"
+msgstr ""
+
+#: includes/class-settings.php:564
+msgid "Stamp page"
+msgstr ""
+
+#: includes/class-settings.php:566
+msgid "First"
+msgstr ""
+
+#: includes/class-settings.php:567
+msgid "Last"
+msgstr ""
+
+#: includes/class-settings.php:568
+msgid "First and last"
+msgstr ""
+
+#: includes/class-settings.php:574
+msgid "Print the verification link on the remaining pages"
+msgstr ""
+
+#: includes/class-settings.php:587
+msgid "Bottom of the page"
+msgstr ""
+
+#: includes/class-settings.php:588
+msgid "Top of the page"
+msgstr ""
+
+#: includes/class-settings.php:589
+msgid "Top and bottom"
+msgstr ""
+
+#: includes/class-settings.php:593
+msgid "Font size, pt"
+msgstr ""
+
+#: includes/class-settings.php:603
+msgid "The main stamp with the QR code is placed on the selected page. In the \"First and last\" mode the same stamp is placed on the first and last pages. When the verification link is printed, the remaining pages show a compact line with the SHA-256 and the verification address."
+msgstr ""
+
+#: includes/class-settings.php:608
+msgid "Document autofill"
+msgstr ""
+
+#: includes/class-settings.php:612
+msgid "Automatically suggest document details when a PDF is selected"
+msgstr ""
+
+#: includes/class-settings.php:614
+msgid "Uses the configured WordPress AI connector. Only the first-page text of the PDF is sent to the model; signing and publishing remain manual administrator actions."
+msgstr ""
+
+#: includes/class-settings.php:618
+msgid "Document preview"
+msgstr ""
+
+#: includes/class-settings.php:622
+msgid "Show a preview of the signed document on the verification page"
+msgstr ""
+
+#: includes/class-settings.php:625
+msgid "Number of preview pages"
+msgstr ""
+
+#: includes/class-settings.php:627
+msgid "0 — all pages"
+msgstr ""
+
+#: includes/class-settings.php:629
+msgid "The limit speeds up page loading for documents with many pages."
+msgstr ""
+
+#: includes/class-settings.php:633
+msgid "Document upload permissions"
+msgstr ""
+
+#: includes/class-settings.php:636
+msgid "No users with the editor role were found."
+msgstr ""
+
+#: includes/class-settings.php:639
+msgid "Editors allowed to upload Sign Docs documents"
+msgstr ""
+
+#: includes/class-settings.php:652
+msgid "Administrators always have this right. Select the editors who may add documents through Sign Docs."
+msgstr ""
+
+#: includes/class-settings.php:657
+msgid "Block primary button color"
+msgstr ""
+
+#: includes/class-settings.php:661
+msgid "Block primary button text color"
+msgstr ""
+
+#: includes/class-settings.php:665
+msgid "Block outline button color"
+msgstr ""
+
+#: includes/class-settings.php:669
+msgid "Block button border radius"
+msgstr ""
+
+#: includes/class-settings.php:673
+msgid "A value of 9999 makes the buttons fully rounded, like the pill style of the \"Buttons\" block."
+msgstr ""
+
+#: includes/class-settings.php:678
+msgid "Save settings"
+msgstr ""
+
+#: includes/class-settings.php:687
+msgid "Top left"
+msgstr ""
+
+#: includes/class-settings.php:688
+msgid "Top right"
+msgstr ""
+
+#: includes/class-settings.php:689
+msgid "Bottom left"
+msgstr ""
+
+#: includes/class-settings.php:690
+msgid "Bottom right"
+msgstr ""
+
+#: includes/class-taxonomies.php:21
+msgid "Document category"
+msgstr ""
+
+#: includes/class-taxonomies.php:35
+#: assets/js/document-block.js:570
+msgid "Department"
+msgstr ""
+
+#: includes/class-taxonomies.php:42
+#: includes/class-title-template.php:29
+msgid "Issuing authority"
+msgstr ""
+
+#: includes/class-taxonomies.php:59
+msgid "Search %s"
+msgstr ""
+
+#: includes/class-taxonomies.php:60
+msgid "All %s"
+msgstr ""
+
+#: includes/class-taxonomies.php:61
+msgid "Edit %s"
+msgstr ""
+
+#: includes/class-taxonomies.php:62
+msgid "Update %s"
+msgstr ""
+
+#: includes/class-taxonomies.php:63
+msgid "Add new %s"
+msgstr ""
+
+#: includes/class-taxonomies.php:90
+msgid "Local acts"
+msgstr ""
+
+#: includes/class-taxonomies.php:93
+msgid "Rules"
+msgstr ""
+
+#: includes/class-taxonomies.php:94
+msgid "Program"
+msgstr ""
+
+#: includes/class-taxonomies.php:95
+msgid "External regulatory documents"
+msgstr ""
+
+#: includes/class-taxonomies.php:100
+msgid "Other documents"
+msgstr ""
+
+#: includes/class-taxonomies.php:101
+msgid "Other"
+msgstr ""
+
+#: includes/class-title-template.php:25
+msgid "Date"
+msgstr ""
+
+#: includes/class-title-template.php:26
+msgid "Number"
+msgstr ""
+
+#: includes/class-title-template.php:27
+msgid "Document subject"
+msgstr ""
+
+#: includes/class-title-template.php:188
+msgid "Document title templates"
+msgstr ""
+
+#: includes/class-title-template.php:189
+msgid "Settings define which details form the short and full title when a PDF is uploaded."
+msgstr ""
+
+#: includes/class-title-template.php:198
+msgid "Components"
+msgstr ""
+
+#: includes/class-title-template.php:199
+msgid "Quotes"
+msgstr ""
+
+#: includes/class-title-template.php:200
+msgid "Separator"
+msgstr ""
+
+#: includes/class-title-template.php:201
+msgid "Enabled"
+msgstr ""
+
+#: includes/class-title-template.php:220
+msgid "Any"
+msgstr ""
+
+#: includes/class-title-template.php:228
+msgid "None"
+msgstr ""
+
+#: includes/class-title-template.php:245
+msgid "Topic"
+msgstr ""
+
+#: includes/class-title-template.php:258
+msgid "Row order is taken from the order of checkboxes in the table. An empty row with the \"None\" type is ignored."
+msgstr ""
+
+#: includes/class-title-template.php:259
+msgid "Save matrix"
+msgstr ""
+
+#: includes/class-usage-index.php:95
+msgid "Used in"
+msgstr ""
+
+#: includes/class-usage-index.php:109
+msgid "Not used"
+msgstr ""
+
+#: includes/class-usage-index.php:138
+msgid "Usage: all"
+msgstr ""
+
+#: includes/class-usage-index.php:139
+msgid "Usage: used"
+msgstr ""
+
+#: includes/class-usage-index.php:140
+msgid "Usage: not used"
+msgstr ""
+
+#: includes/class-usage-index.php:141
+msgid "Usage: broken links"
+msgstr ""
+
+#: includes/class-usage-index.php:174
+msgid "Used in posts"
+msgstr ""
+
+#: includes/class-usage-index.php:219
+msgid "The document block is not placed in any post or page yet."
+msgstr ""
+
+#: includes/class-usage-index.php:270
+msgid "(no title)"
+msgstr ""
+
+#: includes/class-verification-page.php:115
+#: includes/class-verification-page.php:234
+msgid "Document verification"
+msgstr ""
+
+#: includes/class-verification-page.php:117
+#: includes/class-verification-page.php:236
+msgid "Document verification page"
+msgstr ""
+
+#: includes/class-verification-page.php:133
+msgid "Date and time of signing"
+msgstr ""
+
+#: includes/class-verification-page.php:138
+msgid "SHA-256 of the original file"
+msgstr ""
+
+#: includes/class-verification-page.php:149
+msgid "Open PDF"
+msgstr ""
+
+#: includes/class-verification-page.php:159
+msgid "Verification is performed against the SHA-256 of the original PDF and the record on the site."
+msgstr ""
+
+#: includes/class-verification-page.php:177
+#: assets/js/document-block.js:95
+#: assets/js/document-block.js:1233
+#: assets/js/document-block.js:1376
+msgid "Signed document"
+msgstr ""
+
+#: includes/class-verification-page.php:179
+#: assets/js/public.js:138
+msgid "Loading preview…"
+msgstr ""
+
+#: includes/class-verification-page.php:198
+msgid "Verify a PDF file"
+msgstr ""
+
+#: includes/class-verification-page.php:199
+msgid "The file is checked in the browser. It is not uploaded to the site."
+msgstr ""
+
+#: includes/class-verification-page.php:201
+msgid "Choose a PDF"
+msgstr ""
+
+#: includes/class-verification-page.php:214
+msgid "This document was replaced by a new edition:"
+msgstr ""
+
+#: includes/class-verification-page.php:223
+msgid "This document replaces the previous edition:"
+msgstr ""
+
+#: includes/class-verification-page.php:237
+msgid "The document is not published yet"
+msgstr ""
+
+#: includes/class-verification-page.php:239
+msgid "The public copy of the document has not been created yet."
+msgstr ""
+
+#: assets/js/admin-upload.js:167
+msgid "Preview container not found."
+msgstr ""
+
+#: assets/js/admin-upload.js:321
+msgid "PDF selected"
+msgstr ""
+
+#: assets/js/admin-upload.js:322
+#: assets/js/document-block.js:1061
+msgid "The file will be uploaded after submitting the form."
+msgstr ""
+
+#: assets/js/admin-upload.js:339
+msgid "PDF.js was not found in assets/vendor."
+msgstr ""
+
+#: assets/js/admin-upload.js:492
+msgid "Reading the first page text for autofill..."
+msgstr ""
+
+#: assets/js/admin-upload.js:499
+msgid "The first page does not have enough text layer for AI autofill."
+msgstr ""
+
+#: assets/js/admin-upload.js:503
+msgid "Suggesting document details with AI..."
+msgstr ""
+
+#: assets/js/admin-upload.js:518
+msgid "AI suggested document details. Confidence: %1$d%%."
+msgstr ""
+
+#: assets/js/admin-upload.js:519
+msgid "AI suggested document details."
+msgstr ""
+
+#: assets/js/admin-upload.js:520
+msgid "Check: %1$s"
+msgstr ""
+
+#: assets/js/admin-upload.js:523
+msgid "Could not run AI autofill."
+msgstr ""
+
+#: assets/js/admin-upload.js:671
+#: assets/js/document-block.js:232
+msgid "for the completed %1$s academic year"
+msgstr ""
+
+#: assets/js/admin-upload.js:675
+#: assets/js/document-block.js:236
+msgid "for the %1$s academic year"
+msgstr ""
+
+#: assets/js/admin-upload.js:679
+#: assets/js/document-block.js:240
+msgid "for the completed year %1$s"
+msgstr ""
+
+#: assets/js/admin-upload.js:683
+#: assets/js/document-block.js:244
+msgid "for the year %1$s"
+msgstr ""
+
+#: assets/js/admin-upload.js:688
+#: assets/js/document-block.js:249
+msgid "Academic"
+msgstr ""
+
+#: assets/js/admin-upload.js:696
+#: assets/js/document-block.js:257
+msgid "Calendar"
+msgstr ""
+
+#: assets/js/admin-upload.js:992
+#: assets/js/document-block.js:1150
+msgid "Cancel picking"
+msgstr ""
+
+#: assets/js/admin-upload.js:1002
+msgid "Manual position selected. You can pick it again."
+msgstr ""
+
+#: assets/js/admin-upload.js:1003
+msgid "Move the rectangle to the desired place and click."
+msgstr ""
+
+#: assets/js/admin-upload.js:1075
+#: assets/js/document-block.js:136
+msgid "Request failed."
+msgstr ""
+
+#: assets/js/admin-upload.js:1084
+msgid "Could not load the font file."
+msgstr ""
+
+#: assets/js/admin-upload.js:1181
+msgid "Fontkit is not loaded for embedding fonts."
+msgstr ""
+
+#: assets/js/admin-upload.js:1344
+msgid "SHA-256 of the original PDF: %1$s  Verify: %2$s"
+msgstr ""
+
+#: assets/js/admin-upload.js:1438
+msgid "Local JS libraries or the Golos Text font are not loaded. Check assets/vendor."
+msgstr ""
+
+#: assets/js/admin-upload.js:1450
+msgid "Uploading the original PDF and calculating the server SHA-256..."
+msgstr ""
+
+#: assets/js/admin-upload.js:1493
+msgid "Embedding Golos Text, adding the stamp and QR code..."
+msgstr ""
+
+#: assets/js/admin-upload.js:1497
+msgid "Saving the public PDF copy with the stamp..."
+msgstr ""
+
+#: assets/js/admin-upload.js:1516
+#: assets/js/document-block.js:1029
+msgid "Could not sign the document."
+msgstr ""
+
+#: assets/js/document-block.js:31
+msgid "PDF.js is not available."
+msgstr ""
+
+#: assets/js/document-block.js:76
+msgid "Any status"
+msgstr ""
+
+#: assets/js/document-block.js:85
+msgid "Text link"
+msgstr ""
+
+#: assets/js/document-block.js:86
+msgid "Button"
+msgstr ""
+
+#: assets/js/document-block.js:87
+msgid "Card"
+msgstr ""
+
+#: assets/js/document-block.js:145
+msgid "Could not load a local asset."
+msgstr ""
+
+#: assets/js/document-block.js:403
+msgid "%1$s (MSK)  |  ID: %2$s  |  SHA-256: %3$s"
+msgstr ""
+
+#: assets/js/document-block.js:538
+msgid "Could not load documents."
+msgstr ""
+
+#: assets/js/document-block.js:559
+msgid "Select signed document"
+msgstr ""
+
+#: assets/js/document-block.js:566
+msgid "Search"
+msgstr ""
+
+#: assets/js/document-block.js:568
+msgid "Any category"
+msgstr ""
+
+#: assets/js/document-block.js:569
+msgid "Any type"
+msgstr ""
+
+#: assets/js/document-block.js:570
+msgid "Any department"
+msgstr ""
+
+#: assets/js/document-block.js:574
+msgid "No documents found."
+msgstr ""
+
+#: assets/js/document-block.js:595
+msgid "Previous"
+msgstr ""
+
+#: assets/js/document-block.js:597
+msgid "Next"
+msgstr ""
+
+#: assets/js/document-block.js:873
+msgid "Cancel"
+msgstr ""
+
+#: assets/js/document-block.js:874
+msgid "Signing..."
+msgstr ""
+
+#: assets/js/document-block.js:875
+msgid "Saving..."
+msgstr ""
+
+#: assets/js/document-block.js:924
+msgid "Selected PDF preview"
+msgstr ""
+
+#: assets/js/document-block.js:938
+msgid "Choose a PDF to preview the first page."
+msgstr ""
+
+#: assets/js/document-block.js:952
+msgid "Local PDF libraries or fonts are missing."
+msgstr ""
+
+#: assets/js/document-block.js:960
+msgid "Saving original PDF and calculating server SHA-256..."
+msgstr ""
+
+#: assets/js/document-block.js:1006
+msgid "Adding stamp and QR code..."
+msgstr ""
+
+#: assets/js/document-block.js:1013
+msgid "Saving public PDF copy..."
+msgstr ""
+
+#: assets/js/document-block.js:1036
+#: assets/js/document-block.js:1307
+#: assets/js/document-block.js:1318
+msgid "Replace document"
+msgstr ""
+
+#: assets/js/document-block.js:1042
+msgid "The new document will mark the selected document as replaced after signing completes."
+msgstr ""
+
+#: assets/js/document-block.js:1064
+msgid "Choose category"
+msgstr ""
+
+#: assets/js/document-block.js:1065
+msgid "Choose type"
+msgstr ""
+
+#: assets/js/document-block.js:1074
+msgid "Auto-filled from settings"
+msgstr ""
+
+#: assets/js/document-block.js:1081
+msgid "Institution directory"
+msgstr ""
+
+#: assets/js/document-block.js:1112
+msgid "+ Add institution to title"
+msgstr ""
+
+#: assets/js/document-block.js:1119
+msgid "Year / Period"
+msgstr ""
+
+#: assets/js/document-block.js:1151
+msgid "Reset"
+msgstr ""
+
+#: assets/js/document-block.js:1165
+msgid "Signing parameters"
+msgstr ""
+
+#: assets/js/document-block.js:1168
+msgid "First page size:"
+msgstr ""
+
+#: assets/js/document-block.js:1169
+msgid "Manual stamp position is selected."
+msgstr ""
+
+#: assets/js/document-block.js:1169
+msgid "Default stamp corner from settings is used."
+msgstr ""
+
+#: assets/js/document-block.js:1180
+msgid "Internal admin note. Not shown on the verification page or in the document block."
+msgstr ""
+
+#: assets/js/document-block.js:1190
+#: assets/js/document-block.js:1402
+msgid "Sign Docs – Document"
+msgstr ""
+
+#: assets/js/document-block.js:1194
+msgid "sign"
+msgstr ""
+
+#: assets/js/document-block.js:1195
+msgid "document"
+msgstr ""
+
+#: assets/js/document-block.js:1196
+msgid "PDF"
+msgstr ""
+
+#: assets/js/document-block.js:1197
+msgid "signed document"
+msgstr ""
+
+#: assets/js/document-block.js:1262
+msgid "Could not load selected document."
+msgstr ""
+
+#: assets/js/document-block.js:1308
+#: assets/js/document-block.js:1319
+msgid "Upload replacement PDF"
+msgstr ""
+
+#: assets/js/document-block.js:1309
+#: assets/js/document-block.js:1320
+msgid "Remove document"
+msgstr ""
+
+#: assets/js/document-block.js:1324
+msgid "Display"
+msgstr ""
+
+#: assets/js/document-block.js:1326
+msgid "Style"
+msgstr ""
+
+#: assets/js/document-block.js:1333
+msgid "Show status, date and version"
+msgstr ""
+
+#: assets/js/document-block.js:1338
+msgid "Show download button"
+msgstr ""
+
+#: assets/js/document-block.js:1343
+msgid "Show signature details button"
+msgstr ""
+
+#: assets/js/document-block.js:1348
+msgid "Embed stamped PDF"
+msgstr ""
+
+#: assets/js/document-block.js:1353
+msgid "Open verification page in a new tab"
+msgstr ""
+
+#: assets/js/document-block.js:1357
+msgid "Use document title"
+msgstr ""
+
+#: assets/js/document-block.js:1398
+msgid "Stamped PDF"
+msgstr ""
+
+#: assets/js/document-block.js:1402
+msgid "Add a signed document or choose an existing Sign Docs record."
+msgstr ""
+
+#: assets/js/document-block.js:1408
+msgid "Choose uploaded"
+msgstr ""
+
+#: assets/js/public.js:75
+msgid "SHA-256 calculation is not available in this browser."
+msgstr ""
+
+#: assets/js/public.js:79
+msgid "Calculating SHA-256 of the selected file..."
+msgstr ""
+
+#: assets/js/public.js:87
+msgid "The file matches the control original copy."
+msgstr ""
+
+#: assets/js/public.js:92
+msgid "The file matches the public PDF copy with the stamp."
+msgstr ""
+
+#: assets/js/public.js:96
+msgid "The file does not match the control original copy or the public stamped copy."
+msgstr ""
+
+#: assets/js/public.js:98
+msgid "Could not calculate the SHA-256 of the selected file."
+msgstr ""
+
+#: assets/js/public.js:174
+msgid "Showing the first %1$d of %2$d pages."
+msgstr ""
+
+#: assets/js/public.js:178
+msgid "Could not display the document preview."
+msgstr ""
+
+#: assets/js/stamp-layout.js:16
+msgid "MSK"
+msgstr ""

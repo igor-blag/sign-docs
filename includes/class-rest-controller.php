@@ -395,16 +395,16 @@ final class Sign_Docs_REST_Controller
     private static function status_label(string $status): string
     {
         $labels = array(
-            'active' => __('Действующий', 'sign-docs'),
-            'unsigned' => __('Без подписи', 'sign-docs'),
-            'archive' => __('Архив', 'sign-docs'),
-            'archived' => __('Архив', 'sign-docs'),
-            'replaced' => __('Заменен', 'sign-docs'),
-            'deleted' => __('Архив', 'sign-docs'),
-            'draft' => __('Черновик', 'sign-docs'),
-            'needs_public_copy' => __('Ожидает публичную копию', 'sign-docs'),
+            'active' => __('Active', 'sign-docs'),
+            'unsigned' => __('Unsigned', 'sign-docs'),
+            'archive' => __('Archived', 'sign-docs'),
+            'archived' => __('Archived', 'sign-docs'),
+            'replaced' => __('Replaced', 'sign-docs'),
+            'deleted' => __('Archived', 'sign-docs'),
+            'draft' => __('Draft', 'sign-docs'),
+            'needs_public_copy' => __('Needs public copy', 'sign-docs'),
         );
 
-        return $labels[$status] ?? ($status ?: __('Действующий', 'sign-docs'));
+        return $labels[$status] ?? ($status ?: __('Active', 'sign-docs'));
     }
 }

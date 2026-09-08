@@ -2,6 +2,18 @@
     'use strict';
 
     const __ = window.wp && window.wp.i18n && window.wp.i18n.__ ? window.wp.i18n.__ : function (text) { return text; };
+    const sprintf = window.wp && window.wp.i18n && window.wp.i18n.sprintf ? window.wp.i18n.sprintf : function (format) {
+        const args = Array.prototype.slice.call(arguments, 1);
+        let index = 0;
+        return String(format).replace(/%%|%(\d+)\$([sd])|%([sd])/g, function (match, pos, kind, plain) {
+            if (match === '%%') {
+                return '%';
+            }
+            const argIndex = pos ? parseInt(pos, 10) - 1 : index++;
+            const value = args[argIndex];
+            return value === undefined || value === null ? '' : String(value);
+        });
+    };
 
     document.addEventListener('click', function (event) {
         document.querySelectorAll('.sign-docs-document-link__details[open]').forEach(function (details) {
@@ -60,11 +72,11 @@
         }
 
         if (!window.crypto || !window.crypto.subtle) {
-            setCheckerResult(checker, __('В этом браузере недоступен расчет SHA-256.', 'sign-docs'), 'error');
+            setCheckerResult(checker, __('SHA-256 calculation is not available in this browser.', 'sign-docs'), 'error');
             return;
         }
 
-        setCheckerResult(checker, __('Считаю SHA-256 выбранного файла...', 'sign-docs'), 'pending');
+        setCheckerResult(checker, __('Calculating SHA-256 of the selected file...', 'sign-docs'), 'pending');
 
         try {
             const hash = await hashFile(file);
@@ -72,18 +84,18 @@
             const stampedHash = (checker.dataset.stampedHash || '').toLowerCase();
 
             if (originalHash && hash === originalHash) {
-                setCheckerResult(checker, __('Файл совпадает с контрольной исходной копией.', 'sign-docs'), 'success');
+                setCheckerResult(checker, __('The file matches the control original copy.', 'sign-docs'), 'success');
                 return;
             }
 
             if (stampedHash && hash === stampedHash) {
-                setCheckerResult(checker, __('Файл совпадает с публичной PDF-копией с отметкой.', 'sign-docs'), 'success');
+                setCheckerResult(checker, __('The file matches the public PDF copy with the stamp.', 'sign-docs'), 'success');
                 return;
             }
 
-            setCheckerResult(checker, __('Файл не совпадает с контрольной исходной копией или публичной копией с отметкой.', 'sign-docs'), 'error');
+            setCheckerResult(checker, __('The file does not match the control original copy or the public stamped copy.', 'sign-docs'), 'error');
         } catch (error) {
-            setCheckerResult(checker, __('Не удалось рассчитать SHA-256 выбранного файла.', 'sign-docs'), 'error');
+            setCheckerResult(checker, __('Could not calculate the SHA-256 of the selected file.', 'sign-docs'), 'error');
         }
     });
 
@@ -123,7 +135,7 @@
 
         block.hidden = false;
 
-        setPreviewMessage(block, __('Загружаю предпросмотр…', 'sign-docs'));
+        setPreviewMessage(block, __('Loading preview…', 'sign-docs'));
 
         (async function () {
             try {
@@ -159,11 +171,11 @@
                 if (renderCount < doc.numPages) {
                     const more = document.createElement('p');
                     more.className = 'sign-docs-verification__preview-more';
-                    more.textContent = __('Показаны первые ' + renderCount + ' из ' + doc.numPages + ' страниц.', 'sign-docs');
+                    more.textContent = sprintf(__('Showing the first %1$d of %2$d pages.', 'sign-docs'), renderCount, doc.numPages);
                     wrap.appendChild(more);
                 }
             } catch (error) {
-                setPreviewMessage(block, __('Не удалось показать предпросмотр документа.', 'sign-docs'), true);
+                setPreviewMessage(block, __('Could not display the document preview.', 'sign-docs'), true);
             }
         }());
     }

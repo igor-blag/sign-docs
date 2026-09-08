@@ -33,7 +33,7 @@ final class Sign_Docs_Admin
         wp_enqueue_script(
             'sign-docs-stamp-layout',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/stamp-layout.js',
-            array(),
+            array('wp-i18n'),
             file_exists($layout_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($layout_path) : SIGN_DOCS_VERSION,
             true
         );
@@ -65,7 +65,7 @@ final class Sign_Docs_Admin
         $admin_asset_path = SIGN_DOCS_PLUGIN_DIR . 'assets/js/admin-upload.js';
         $admin_version = file_exists($admin_asset_path) ? SIGN_DOCS_VERSION . '-' . (string) filemtime($admin_asset_path) : SIGN_DOCS_VERSION;
 
-        $dependencies = array('sign-docs-stamp-layout', 'sign-docs-stamp-ui');
+        $dependencies = array('wp-i18n', 'sign-docs-stamp-layout', 'sign-docs-stamp-ui');
         $config = array(
             'prepareUrl' => rest_url('sign-docs/v1/prepare'),
             'completeUrl' => rest_url('sign-docs/v1/complete'),
@@ -104,14 +104,16 @@ final class Sign_Docs_Admin
         );
 
         wp_localize_script('sign-docs-admin-upload', 'SignDocsUpload', $config);
+        wp_set_script_translations('sign-docs-stamp-layout', 'sign-docs', SIGN_DOCS_PLUGIN_DIR . 'languages');
+        wp_set_script_translations('sign-docs-admin-upload', 'sign-docs', SIGN_DOCS_PLUGIN_DIR . 'languages');
     }
 
     public static function menu(): void
     {
         add_submenu_page(
             'edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE,
-            'Добавить документ',
-            'Добавить документ',
+            __('Add document', 'sign-docs'),
+            __('Add document', 'sign-docs'),
             Sign_Docs_Settings::UPLOAD_CAPABILITY,
             'sign-docs-upload',
             array(self::class, 'render_upload_page')
@@ -124,8 +126,8 @@ final class Sign_Docs_Admin
 
         add_submenu_page(
             'edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE,
-            'Настройки Sign Docs',
-            'Настройки',
+            __('Sign Docs Settings', 'sign-docs'),
+            __('Settings', 'sign-docs'),
             'manage_options',
             'sign-docs-settings',
             array(Sign_Docs_Settings::class, 'render_page')
@@ -133,8 +135,8 @@ final class Sign_Docs_Admin
 
         add_submenu_page(
             'edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE,
-            'Матрица названий',
-            'Матрица названий',
+            __('Title matrix', 'sign-docs'),
+            __('Title matrix', 'sign-docs'),
             'manage_options',
             'sign-docs-title-rules',
             array(Sign_Docs_Title_Template::class, 'render_page')
@@ -171,14 +173,14 @@ final class Sign_Docs_Admin
         $replaces_post_id = Sign_Docs_Document_Service::valid_replaces_post_id(isset($_GET['replaces']) ? absint($_GET['replaces']) : 0);
         ?>
         <div class="wrap">
-            <h1>Добавить документ</h1>
+            <h1><?php echo esc_html__('Add document', 'sign-docs'); ?></h1>
 
             <?php if ($created > 0) : ?>
                 <div class="notice notice-success">
                     <p>
-                        <?php echo esc_html(isset($_GET['unsigned']) ? 'Документ сохранен без подписи.' : 'Документ подписан и зарегистрирован.'); ?>
+                        <?php echo esc_html(isset($_GET['unsigned']) ? __('The document was saved without a signature.', 'sign-docs') : __('The document is signed and registered.', 'sign-docs')); ?>
                         <a href="<?php echo esc_url(Sign_Docs_Verification_Page::url($created)); ?>" target="_blank" rel="noopener">
-                            Открыть страницу проверки
+                            <?php echo esc_html__('Open verification page', 'sign-docs'); ?>
                         </a>
                     </p>
                 </div>
@@ -192,19 +194,19 @@ final class Sign_Docs_Admin
 
             <div class="notice notice-info">
                 <p>
-                    Реквизиты подписанта, организация и параметры штампа берутся из страницы
-                    <a href="<?php echo esc_url(admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-settings')); ?>">настроек Sign Docs</a>.
+                    <?php echo esc_html__('Signer details, organization and stamp parameters are taken from the', 'sign-docs'); ?>
+                    <a href="<?php echo esc_url(admin_url('edit.php?post_type=' . Sign_Docs_Post_Type::POST_TYPE . '&page=sign-docs-settings')); ?>"><?php echo esc_html__('Sign Docs settings', 'sign-docs'); ?></a>.
                 </p>
             </div>
 
             <?php if ($replaces_post_id > 0) : ?>
                 <div class="notice notice-warning">
                     <p>
-                        Новый документ заменит:
+                        <?php echo esc_html__('The new document will replace:', 'sign-docs'); ?>
                         <a href="<?php echo esc_url(get_edit_post_link($replaces_post_id, '')); ?>">
                             <?php echo esc_html(get_the_title($replaces_post_id)); ?>
                         </a>
-                        После успешной подписи предыдущая запись получит статус «Заменен».
+                        <?php echo esc_html__('After a successful signature the previous record receives the "Replaced" status.', 'sign-docs'); ?>
                     </p>
                 </div>
             <?php endif; ?>
@@ -382,8 +384,8 @@ final class Sign_Docs_Admin
                 <input type="hidden" name="replaces_post_id" value="<?php echo esc_attr((string) $replaces_post_id); ?>">
 
                 <div class="sign-docs-upload-actions sign-docs-upload-actions--top">
-                    <button type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed">Сохранить и подписать документ</button>
-                    <button type="submit" class="button button-secondary sign-docs-save-unsigned" name="sign_docs_save_mode" value="unsigned">Сохранить без подписи</button>
+                    <button type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed"><?php echo esc_html__('Save and sign document', 'sign-docs'); ?></button>
+                    <button type="submit" class="button button-secondary sign-docs-save-unsigned" name="sign_docs_save_mode" value="unsigned"><?php echo esc_html__('Save without signature', 'sign-docs'); ?></button>
                 </div>
 
                 <div class="sign-docs-upload-layout">
@@ -392,22 +394,22 @@ final class Sign_Docs_Admin
                             <tbody>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-pdf">Исходный PDF</label>
+                                        <label for="sign-docs-pdf"><?php echo esc_html__('Source PDF', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <label class="sign-docs-file-dropzone" for="sign-docs-pdf">
                                             <span>
-                                                <strong id="sign-docs-file-dropzone-title">Перетащите PDF сюда</strong>
-                                                <span id="sign-docs-file-dropzone-text">или щелкните, чтобы выбрать файл</span>
+                                                <strong id="sign-docs-file-dropzone-title"><?php echo esc_html__('Drop PDF here', 'sign-docs'); ?></strong>
+                                                <span id="sign-docs-file-dropzone-text"><?php echo esc_html__('or click to choose a file', 'sign-docs'); ?></span>
                                             </span>
                                             <input id="sign-docs-pdf" name="sign_docs_pdf" type="file" accept="application/pdf,.pdf" required>
                                         </label>
-                                        <p class="description">Исходный файл сохраняется без изменений, SHA-256 считается на сервере.</p>
+                                        <p class="description"><?php echo esc_html__('The source file is stored unchanged; the SHA-256 is calculated on the server.', 'sign-docs'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-category">Категория</label>
+                                        <label for="sign-docs-category"><?php echo esc_html__('Category', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <select id="sign-docs-category" name="document_category">
@@ -419,7 +421,7 @@ final class Sign_Docs_Admin
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-document-type">Вид документа</label>
+                                        <label for="sign-docs-document-type"><?php echo esc_html__('Document type', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <select id="sign-docs-document-type" name="document_type_label">
@@ -439,60 +441,60 @@ final class Sign_Docs_Admin
                                 </tr>
                                 <tr id="sign-docs-institution-row">
                                     <th scope="row">
-                                        <label for="sign-docs-institution">Институция</label>
+                                        <label for="sign-docs-institution"><?php echo esc_html__('Institution', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <select id="sign-docs-institution-select" class="regular-text" style="max-width: 25em;">
-                                            <option value="">Выбрать из справочника</option>
+                                            <option value=""><?php echo esc_html__('Choose from directory', 'sign-docs'); ?></option>
                                             <?php foreach ($institution_terms as $name) : ?>
                                                 <option value="<?php echo esc_attr($name); ?>"><?php echo esc_html($name); ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <p style="margin: 12px 0 4px;">
-                                            <label for="sign-docs-institution">Или введите новое краткое наименование органа</label>
+                                            <label for="sign-docs-institution"><?php echo esc_html__('Or enter a new short authority name', 'sign-docs'); ?></label>
                                         </p>
-                                        <input id="sign-docs-institution" name="document_institution" type="text" class="regular-text" list="sign-docs-institutions" autocomplete="off" placeholder="Вводите в родительном падеже">
+                                        <input id="sign-docs-institution" name="document_institution" type="text" class="regular-text" list="sign-docs-institutions" autocomplete="off" placeholder="<?php echo esc_attr__('Enter the name in the genitive case', 'sign-docs'); ?>">
                                         <datalist id="sign-docs-institutions">
                                             <?php foreach ($institution_terms as $name) : ?>
                                                 <option value="<?php echo esc_attr($name); ?>"></option>
                                             <?php endforeach; ?>
                                         </datalist>
-                                        <p class="description">Можно выбрать существующую институцию из справочника или вписать новую в поле ниже.</p>
+                                        <p class="description"><?php echo esc_html__('Choose an existing institution from the directory or type a new one in the field below.', 'sign-docs'); ?></p>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-document-date">Дата и номер</label>
+                                        <label for="sign-docs-document-date"><?php echo esc_html__('Date and number', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <div class="sign-docs-date-number">
                                             <input id="sign-docs-document-date" name="document_date" type="text" class="regular-text" placeholder="20.05.2026">
-                                            <input id="sign-docs-document-number" name="document_number" type="text" class="regular-text" placeholder="183-р">
+                                            <input id="sign-docs-document-number" name="document_number" type="text" class="regular-text" placeholder="<?php echo esc_attr__('183-R', 'sign-docs'); ?>">
                                         </div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">
-                                        <label for="sign-docs-title">Название</label>
+                                        <label for="sign-docs-title"><?php echo esc_html__('Title', 'sign-docs'); ?></label>
                                     </th>
                                     <td>
                                         <textarea id="sign-docs-title" name="post_title" class="large-text" rows="3"></textarea>
                                         <p class="description">
-                                            Название записи в WordPress.
+                                            <?php echo esc_html__('The title of the WordPress record.', 'sign-docs'); ?>
                                             <button type="button" id="sign-docs-add-institution-to-title" class="button button-small" style="margin-left:8px;vertical-align:middle;">
-                                                Добавить наименование учреждения
+                                                <?php echo esc_html__('Add institution name', 'sign-docs'); ?>
                                             </button>
                                         </p>
                                         <p class="sign-docs-case-actions" style="margin:4px 0 0;">
-                                            <button type="button" id="sign-docs-sentence-case">Как предложение</button>
+                                            <button type="button" id="sign-docs-sentence-case"><?php echo esc_html__('Sentence case', 'sign-docs'); ?></button>
                                         </p>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Год / период</th>
+                                    <th scope="row"><?php echo esc_html__('Year / period', 'sign-docs'); ?></th>
                                     <td>
-                                        <p class="sign-docs-year-actions" aria-label="Автозаполнение года"></p>
-                                        <p class="description">Нажмите на кнопку периода, чтобы добавить его в название.</p>
+                                        <p class="sign-docs-year-actions" aria-label="<?php echo esc_attr__('Year autofill', 'sign-docs'); ?>"></p>
+                                        <p class="description"><?php echo esc_html__('Click a period button to add it to the title.', 'sign-docs'); ?></p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -500,16 +502,16 @@ final class Sign_Docs_Admin
                     </div>
 
                     <div id="sign-docs-pdf-preview" class="sign-docs-upload-preview" style="display:none;">
-                        <h2 style="margin-bottom: 8px;">Просмотр</h2>
-                        <p class="description" style="margin: 0 0 10px;">Показывается локальная копия выбранного PDF. Файл будет загружен только после отправки формы.</p>
+                        <h2 style="margin-bottom: 8px;"><?php echo esc_html__('Preview', 'sign-docs'); ?></h2>
+                        <p class="description" style="margin: 0 0 10px;"><?php echo esc_html__('A local copy of the selected PDF is shown. The file is uploaded only after the form is submitted.', 'sign-docs'); ?></p>
                         <p style="margin: 0 0 10px;">
-                            <button type="button" class="button" id="sign-docs-stamp-pick">Выбрать место штампа</button>
-                            <button type="button" class="button" id="sign-docs-stamp-reset" hidden>Сбросить место</button>
-                            <span id="sign-docs-stamp-placement-status" class="description" style="margin-left: 8px;">Используется угол из настроек.</span>
+                            <button type="button" class="button" id="sign-docs-stamp-pick"><?php echo esc_html__('Pick stamp position', 'sign-docs'); ?></button>
+                            <button type="button" class="button" id="sign-docs-stamp-reset" hidden><?php echo esc_html__('Reset position', 'sign-docs'); ?></button>
+                            <span id="sign-docs-stamp-placement-status" class="description" style="margin-left: 8px;"><?php echo esc_html__('The corner from settings is used.', 'sign-docs'); ?></span>
                         </p>
                         <div id="sign-docs-preview-frame-wrap" style="position: relative; width: 100%; height: 620px; border: 1px solid #c3c4c7; background: #fff; overflow: hidden;">
                             <iframe
-                                title="Просмотр выбранного PDF"
+                                title="<?php echo esc_attr__('Preview of the selected PDF', 'sign-docs'); ?>"
                                 style="position: relative; z-index: 1; width: 100%; height: 100%; border: 0; background: #fff;"
                             ></iframe>
                             <div id="sign-docs-stamp-pick-layer" style="display:none; position:absolute; z-index: 2; inset:0; cursor:crosshair; background: rgba(255,255,255,0.01);">
@@ -521,13 +523,13 @@ final class Sign_Docs_Admin
                 </div>
 
                 <div class="sign-docs-upload-actions sign-docs-upload-actions--bottom">
-                    <button id="sign-docs-save-signed" type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed">Сохранить и подписать документ</button>
-                    <button id="sign-docs-save-unsigned" type="submit" class="button button-secondary sign-docs-save-unsigned" name="sign_docs_save_mode" value="unsigned">Сохранить без подписи</button>
+                    <button id="sign-docs-save-signed" type="submit" class="button button-primary sign-docs-save-signed" name="sign_docs_save_mode" value="signed"><?php echo esc_html__('Save and sign document', 'sign-docs'); ?></button>
+                    <button id="sign-docs-save-unsigned" type="submit" class="button button-secondary sign-docs-save-unsigned" name="sign_docs_save_mode" value="unsigned"><?php echo esc_html__('Save without signature', 'sign-docs'); ?></button>
                 </div>
 
                 <div style="margin-top:12px;">
-                    <label for="sign-docs-document-comment" style="font-weight:600;display:block;margin-bottom:4px;">Комментарий</label>
-                    <textarea id="sign-docs-document-comment" name="document_comment" class="large-text" rows="1" placeholder="Внутреннее описание для администратора"></textarea>
+                    <label for="sign-docs-document-comment" style="font-weight:600;display:block;margin-bottom:4px;"><?php echo esc_html__('Comment', 'sign-docs'); ?></label>
+                    <textarea id="sign-docs-document-comment" name="document_comment" class="large-text" rows="1" placeholder="<?php echo esc_attr__('Internal note for the administrator', 'sign-docs'); ?>"></textarea>
                 </div>
             </form>
         </div>
@@ -763,17 +765,17 @@ final class Sign_Docs_Admin
         $tabs = array(
             'active' => array(
                 'url' => $base,
-                'label' => __('Актуальные', 'sign-docs'),
+                'label' => __('Current', 'sign-docs'),
                 'count' => $counts['active'],
             ),
             'archived' => array(
                 'url' => add_query_arg(self::STATUS_FILTER_KEY, 'archived', $base),
-                'label' => __('Архив', 'sign-docs'),
+                'label' => __('Archived', 'sign-docs'),
                 'count' => $counts['archived'],
             ),
             'all' => array(
                 'url' => add_query_arg(self::STATUS_FILTER_KEY, 'all', $base),
-                'label' => __('Все', 'sign-docs'),
+                'label' => __('All', 'sign-docs'),
                 'count' => $counts['all'],
             ),
         );
@@ -848,7 +850,7 @@ final class Sign_Docs_Admin
     {
         add_meta_box(
             'sign-docs-document-data',
-            'Данные документа',
+            __('Document data', 'sign-docs'),
             array(self::class, 'render_document_data_box'),
             Sign_Docs_Post_Type::POST_TYPE,
             'normal',
@@ -857,7 +859,7 @@ final class Sign_Docs_Admin
 
         add_meta_box(
             'sign-docs-file-data',
-            'Файлы и проверка',
+            __('Files and verification', 'sign-docs'),
             array(self::class, 'render_file_data_box'),
             Sign_Docs_Post_Type::POST_TYPE,
             'normal',
@@ -866,7 +868,7 @@ final class Sign_Docs_Admin
 
         add_meta_box(
             'sign-docs-stamp-data',
-            'Параметры штампа',
+            __('Stamp parameters', 'sign-docs'),
             array(self::class, 'render_stamp_data_box'),
             Sign_Docs_Post_Type::POST_TYPE,
             'side',
@@ -880,25 +882,25 @@ final class Sign_Docs_Admin
 
         self::render_meta_table(
             array(
-                'Название' => get_the_title($post_id),
-                'Комментарий' => Sign_Docs_Meta::get($post_id, 'document_comment') ?: $post->post_content,
-                'Категория' => self::term_names($post_id, 'sign_doc_category'),
-                'Вид документа' => Sign_Docs_Meta::get($post_id, 'document_type_label'),
-                'Институция' => Sign_Docs_Meta::get($post_id, 'document_institution'),
-                'Дата документа' => Sign_Docs_Meta::get($post_id, 'document_date'),
-                'Номер документа' => Sign_Docs_Meta::get($post_id, 'document_number'),
-                'О чем документ' => Sign_Docs_Meta::get($post_id, 'document_subject'),
-                'Год / период' => Sign_Docs_Meta::get($post_id, 'academic_year'),
-                'Статус документа' => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
-                'Версия документа' => Sign_Docs_Meta::get($post_id, 'document_version'),
-                'Заменяет документ' => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id'))),
-                'Заменен документом' => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaced_by_post_id'))),
-                'Комментарий к замене' => Sign_Docs_Meta::get($post_id, 'replacement_note'),
-                'Дата и время подписи' => Sign_Docs_Meta::get($post_id, 'signed_at'),
-                'Подписант' => Sign_Docs_Meta::get($post_id, 'signer_name'),
-                'Должность' => Sign_Docs_Meta::get($post_id, 'signer_position'),
-                'Организация' => Sign_Docs_Meta::get($post_id, 'signer_organization'),
-                'Пользователь' => self::user_label(Sign_Docs_Meta::get($post_id, 'signer_user_id')),
+                __('Title', 'sign-docs') => get_the_title($post_id),
+                __('Comment', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_comment') ?: $post->post_content,
+                __('Category', 'sign-docs') => self::term_names($post_id, 'sign_doc_category'),
+                __('Document type', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_type_label'),
+                __('Institution', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_institution'),
+                __('Document date', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_date'),
+                __('Document number', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_number'),
+                __('Subject', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_subject'),
+                __('Year / period', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'academic_year'),
+                __('Status', 'sign-docs') => self::status_label(Sign_Docs_Meta::get($post_id, 'document_status')),
+                __('Version', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'document_version'),
+                __('Replaces', 'sign-docs') => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaces_post_id'))),
+                __('Replaced by', 'sign-docs') => self::document_link_value(absint(Sign_Docs_Meta::get($post_id, 'replaced_by_post_id'))),
+                __('Replacement comment', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'replacement_note'),
+                __('Signing date and time', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'signed_at'),
+                __('Signer', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'signer_name'),
+                __('Position', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'signer_position'),
+                __('Organization', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'signer_organization'),
+                __('User', 'sign-docs') => self::user_label(Sign_Docs_Meta::get($post_id, 'signer_user_id')),
             )
         );
     }
@@ -912,17 +914,17 @@ final class Sign_Docs_Admin
 
         self::render_meta_table(
             array(
-                'Страница проверки' => self::link_value($verification_url, 'Открыть страницу проверки'),
-                'Публичная PDF-копия' => self::link_value($stamped_url, 'Открыть PDF с отметкой'),
-                'Исходная контрольная копия' => self::link_value($original_url, 'Открыть исходный PDF'),
-                'SHA-256 исходного PDF' => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
-                'SHA-256 публичной PDF-копии' => Sign_Docs_Meta::get($post_id, 'stamped_file_hash'),
-                'QR-code data' => Sign_Docs_Meta::get($post_id, 'qr_code_data'),
-                'Имя исходного файла' => Sign_Docs_Meta::get($post_id, 'source_filename'),
-                'Размер файла' => self::file_size_label(Sign_Docs_Meta::get($post_id, 'file_size')),
-                'MIME type' => Sign_Docs_Meta::get($post_id, 'mime_type'),
-                'Публичная копия сохранена' => Sign_Docs_Meta::get($post_id, 'completed_at'),
-                'Кто сохранил публичную копию' => self::user_label(Sign_Docs_Meta::get($post_id, 'completed_by_user_id')),
+                __('Verification page', 'sign-docs') => self::link_value($verification_url, __('Open verification page', 'sign-docs')),
+                __('Public PDF copy', 'sign-docs') => self::link_value($stamped_url, __('Open the stamped PDF', 'sign-docs')),
+                __('Original control copy', 'sign-docs') => self::link_value($original_url, __('Open the original PDF', 'sign-docs')),
+                __('SHA-256 of the original PDF', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'sha256_hash'),
+                __('SHA-256 of the public PDF copy', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamped_file_hash'),
+                __('QR-code data', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'qr_code_data'),
+                __('Original file name', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'source_filename'),
+                __('File size', 'sign-docs') => self::file_size_label(Sign_Docs_Meta::get($post_id, 'file_size')),
+                __('MIME type', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'mime_type'),
+                __('Public copy saved', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'completed_at'),
+                __('Saved by', 'sign-docs') => self::user_label(Sign_Docs_Meta::get($post_id, 'completed_by_user_id')),
             )
         );
     }
@@ -933,20 +935,20 @@ final class Sign_Docs_Admin
 
         self::render_meta_table(
             array(
-                'Угол' => Sign_Docs_Meta::get($post_id, 'stamp_corner'),
-                'Цвет' => Sign_Docs_Meta::get($post_id, 'stamp_color'),
-                'Прозрачность' => Sign_Docs_Meta::get($post_id, 'stamp_opacity'),
-                'Размер шрифта' => Sign_Docs_Meta::get($post_id, 'stamp_font_size') . ' pt',
-                'Отступ от рамки' => Sign_Docs_Meta::get($post_id, 'stamp_padding') . ' pt',
-                'Отступ до QR' => Sign_Docs_Meta::get($post_id, 'stamp_qr_gap') . ' pt',
-                'Отступ QR от рамки' => Sign_Docs_Meta::get($post_id, 'stamp_qr_padding') . ' pt',
-                'Межстрочный' => Sign_Docs_Meta::get($post_id, 'stamp_line_spacing') . ' ×',
-                'Рамка' => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_border_enabled')),
-                'Строки' => self::stamp_rows_label(Sign_Docs_Meta::get($post_id, 'stamp_rows')),
-                'QR-код' => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled')),
-                'QR положение' => self::qr_position_label(Sign_Docs_Meta::get($post_id, 'stamp_qr_position')),
-                'Расположение' => self::stamp_placement_label($post_id),
-                'Логотип в QR' => self::yes_no(Sign_Docs_Meta::get($post_id, 'qr_logo_enabled')),
+                __('Corner', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_corner'),
+                __('Color', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_color'),
+                __('Opacity', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_opacity'),
+                __('Font size', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_font_size') . ' pt',
+                __('Padding from the border', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_padding') . ' pt',
+                __('QR gap', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_qr_gap') . ' pt',
+                __('QR padding', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_qr_padding') . ' pt',
+                __('Line spacing', 'sign-docs') => Sign_Docs_Meta::get($post_id, 'stamp_line_spacing') . ' ×',
+                __('Border', 'sign-docs') => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_border_enabled')),
+                __('Rows', 'sign-docs') => self::stamp_rows_label(Sign_Docs_Meta::get($post_id, 'stamp_rows')),
+                __('QR code', 'sign-docs') => self::yes_no(Sign_Docs_Meta::get($post_id, 'stamp_qr_enabled')),
+                __('QR position', 'sign-docs') => self::qr_position_label(Sign_Docs_Meta::get($post_id, 'stamp_qr_position')),
+                __('Placement', 'sign-docs') => self::stamp_placement_label($post_id),
+                __('Logo in QR', 'sign-docs') => self::yes_no(Sign_Docs_Meta::get($post_id, 'qr_logo_enabled')),
             ),
             true
         );
@@ -970,7 +972,7 @@ final class Sign_Docs_Admin
 
     private static function qr_position_label(string $position): string
     {
-        return 'below' === $position ? __('Под текстом', 'sign-docs') : __('Справа от текста', 'sign-docs');
+        return 'below' === $position ? __('Below the text', 'sign-docs') : __('Right of the text', 'sign-docs');
     }
 
     /**
@@ -991,7 +993,7 @@ final class Sign_Docs_Admin
             $actions['replace'] = sprintf(
                 '<a href="%s">%s</a>',
                 esc_url(self::replace_url((int) $post->ID)),
-                esc_html__('Заменить', 'sign-docs')
+                esc_html__('Replace', 'sign-docs')
             );
         }
 
@@ -999,7 +1001,7 @@ final class Sign_Docs_Admin
             $actions['archive'] = sprintf(
                 '<a href="%s">%s</a>',
                 esc_url(self::archive_url((int) $post->ID)),
-                esc_html__('Архивировать', 'sign-docs')
+                esc_html__('Archive', 'sign-docs')
             );
         }
 
@@ -1007,8 +1009,8 @@ final class Sign_Docs_Admin
             $actions['delete_forever'] = sprintf(
                 '<a href="%1$s" class="submitdelete" onclick="return confirm(\'%2$s\');">%3$s</a>',
                 esc_url(self::delete_url((int) $post->ID)),
-                esc_js(__('Удалить документ навсегда? Действие необратимо.', 'sign-docs')),
-                esc_html__('Удалить навсегда', 'sign-docs')
+                esc_js(__('Delete the document forever? This action cannot be undone.', 'sign-docs')),
+                esc_html__('Delete forever', 'sign-docs')
             );
         }
 
@@ -1022,11 +1024,11 @@ final class Sign_Docs_Admin
     public static function bulk_actions(array $actions): array
     {
         unset($actions['trash'], $actions['delete']);
-        $actions['archive'] = __('Архивировать', 'sign-docs');
+        $actions['archive'] = __('Archive', 'sign-docs');
 
         $status_filter = isset($_GET[self::STATUS_FILTER_KEY]) ? sanitize_key((string) wp_unslash($_GET[self::STATUS_FILTER_KEY])) : '';
         if ('archived' === $status_filter) {
-            $actions['delete_forever'] = __('Удалить навсегда', 'sign-docs');
+            $actions['delete_forever'] = __('Delete forever', 'sign-docs');
         }
 
         return $actions;
@@ -1092,7 +1094,7 @@ final class Sign_Docs_Admin
         <?php if (self::can_replace_document($document_status)) : ?>
             <div class="misc-pub-section">
                 <a href="<?php echo esc_url(self::replace_url((int) $post->ID)); ?>">
-                    <?php echo esc_html__('Заменить новым PDF', 'sign-docs'); ?>
+                    <?php echo esc_html__('Replace with a new PDF', 'sign-docs'); ?>
                 </a>
             </div>
         <?php endif; ?>
@@ -1101,13 +1103,13 @@ final class Sign_Docs_Admin
         <?php endif; ?>
         <div class="misc-pub-section">
             <a class="submitdelete" href="<?php echo esc_url(self::archive_url((int) $post->ID)); ?>">
-                <?php echo esc_html__('Архивировать документ', 'sign-docs'); ?>
+                <?php echo esc_html__('Archive document', 'sign-docs'); ?>
             </a>
         </div>
         <?php if (self::is_archived_status($document_status) && current_user_can('delete_post', (int) $post->ID)) : ?>
             <div class="misc-pub-section">
-                <a class="submitdelete delete-forever" href="<?php echo esc_url(self::delete_url((int) $post->ID)); ?>" onclick="return confirm('<?php echo esc_js(__('Удалить документ навсегда? Действие необратимо.', 'sign-docs')); ?>');">
-                    <?php echo esc_html__('Удалить навсегда', 'sign-docs'); ?>
+                <a class="submitdelete delete-forever" href="<?php echo esc_url(self::delete_url((int) $post->ID)); ?>" onclick="return confirm('<?php echo esc_js(__('Delete the document forever? This action cannot be undone.', 'sign-docs')); ?>');">
+                    <?php echo esc_html__('Delete forever', 'sign-docs'); ?>
                 </a>
             </div>
         <?php endif; ?>
@@ -1390,9 +1392,9 @@ final class Sign_Docs_Admin
 
         if ('sign_doc_category' === $taxonomy) {
             $defaults = array(
-                'local-act' => 'Локальный акт',
-                'external-regulation' => 'Внешний нормативный документ',
-                'other-document' => 'Прочий документ',
+                'local-act' => __('Local act', 'sign-docs'),
+                'external-regulation' => __('External regulatory document', 'sign-docs'),
+                'other-document' => __('Other document', 'sign-docs'),
             );
             $ordered = array();
 
@@ -1404,7 +1406,7 @@ final class Sign_Docs_Admin
         }
 
         if ('sign_doc_type' === $taxonomy) {
-            $ordered = array('Приказ', 'Положение', 'Распоряжение', 'Постановление', 'Федеральный закон');
+            $ordered = array(__('Order', 'sign-docs'), __('Regulation', 'sign-docs'), __('Directive', 'sign-docs'), __('Resolution', 'sign-docs'), __('Federal law', 'sign-docs'));
             $extra = array_values(array_diff($items, $ordered));
 
             return array_merge($ordered, $extra);
@@ -1497,35 +1499,35 @@ final class Sign_Docs_Admin
 
     private static function yes_no(string $value): string
     {
-        return '0' === $value ? 'Нет' : 'Да';
+        return '0' === $value ? __('No', 'sign-docs') : __('Yes', 'sign-docs');
     }
 
     private static function stamp_placement_label(int $post_id): string
     {
         if ('manual' !== Sign_Docs_Meta::get($post_id, 'stamp_placement_mode')) {
-            return 'Угол из настроек';
+            return __('Corner from settings', 'sign-docs');
         }
 
         $x = Sign_Docs_Meta::get($post_id, 'stamp_manual_x');
         $y = Sign_Docs_Meta::get($post_id, 'stamp_manual_y');
 
-        return 'Вручную: ' . $x . ', ' . $y;
+        return sprintf(/* translators: %1$s and %2$s = stamp coordinates */ __('Manually: %1$s, %2$s', 'sign-docs'), $x, $y);
     }
 
     private static function status_label(string $status): string
     {
         $labels = array(
-            'active' => 'Действующий',
-            'unsigned' => 'Без подписи',
-            'archive' => 'Архив',
-            'archived' => 'Архив',
-            'replaced' => 'Заменен',
-            'deleted' => 'Архив',
-            'draft' => 'Черновик',
-            'needs_public_copy' => 'Ожидает публичную копию',
+            'active' => __('Active', 'sign-docs'),
+            'unsigned' => __('Unsigned', 'sign-docs'),
+            'archive' => __('Archived', 'sign-docs'),
+            'archived' => __('Archived', 'sign-docs'),
+            'replaced' => __('Replaced', 'sign-docs'),
+            'deleted' => __('Archived', 'sign-docs'),
+            'draft' => __('Draft', 'sign-docs'),
+            'needs_public_copy' => __('Needs public copy', 'sign-docs'),
         );
 
-        return $labels[$status] ?? ($status ?: 'Действующий');
+        return $labels[$status] ?? ($status ?: __('Active', 'sign-docs'));
     }
 
     private static function archive_url(int $post_id): string
@@ -1621,7 +1623,7 @@ final class Sign_Docs_Admin
             'sign_docs_invalid_mime' => __('Only PDF files can be signed.', 'sign-docs'),
             'sign_docs_original_copy_failed' => __('Failed to save the original PDF.', 'sign-docs'),
             'sign_docs_stamped_copy_failed' => __('Failed to save the public PDF copy.', 'sign-docs'),
-            'sign_docs_browser_signing_required' => __('Подписание PDF требует браузерной обработки. Включите JavaScript и проверьте bundled PDF-библиотеки в assets/vendor.', 'sign-docs'),
+            'sign_docs_browser_signing_required' => __('Signing the PDF requires browser processing. Enable JavaScript and check the bundled PDF libraries in assets/vendor.', 'sign-docs'),
             'sign_docs_hash_failed' => __('Failed to calculate SHA-256 for the original PDF.', 'sign-docs'),
         );
 

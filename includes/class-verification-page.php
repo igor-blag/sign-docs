@@ -53,10 +53,11 @@ final class Sign_Docs_Verification_Page
         wp_enqueue_script(
             'sign-docs-public',
             SIGN_DOCS_PLUGIN_URL . 'assets/js/public.js',
-            array(),
+            array('wp-i18n'),
             file_exists($script_path) ? (string) filemtime($script_path) : SIGN_DOCS_VERSION,
             true
         );
+        wp_set_script_translations('sign-docs-public', 'sign-docs', SIGN_DOCS_PLUGIN_DIR . 'languages');
 
         $pdf_js_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.min.mjs';
         $pdf_worker_path = SIGN_DOCS_PLUGIN_DIR . 'assets/vendor/pdf.worker.min.mjs';
@@ -111,9 +112,9 @@ final class Sign_Docs_Verification_Page
 
         ob_start();
         ?>
-        <section class="sign-docs-verification" aria-label="Проверка документа">
+        <section class="sign-docs-verification" aria-label="<?php echo esc_attr__('Document verification', 'sign-docs'); ?>">
             <header class="sign-docs-verification__header">
-                <p class="sign-docs-verification__eyebrow">Страница проверки документа</p>
+                <p class="sign-docs-verification__eyebrow"><?php echo esc_html__('Document verification page', 'sign-docs'); ?></p>
                 <h2><?php echo esc_html(get_the_title($post_id)); ?></h2>
             </header>
 
@@ -129,33 +130,33 @@ final class Sign_Docs_Verification_Page
             <?php endif; ?>
 
             <dl class="sign-docs-verification__details">
-                <?php self::render_row('Дата и время подписи', $signed_at); ?>
-                <?php self::render_row('Подписант', trim($signer_position . ' ' . $signer_name)); ?>
-                <?php self::render_row('Организация', $signer_organization); ?>
-                <?php self::render_row('Статус', $status); ?>
-                <?php self::render_row('Версия', $version ?: '1'); ?>
-                <?php self::render_row('SHA-256 исходного файла', $hash, 'sign-docs-verification__hash'); ?>
+                <?php self::render_row(__('Date and time of signing', 'sign-docs'), $signed_at); ?>
+                <?php self::render_row(__('Signer', 'sign-docs'), trim($signer_position . ' ' . $signer_name)); ?>
+                <?php self::render_row(__('Organization', 'sign-docs'), $signer_organization); ?>
+                <?php self::render_row(__('Status', 'sign-docs'), $status); ?>
+                <?php self::render_row(__('Version', 'sign-docs'), $version ?: '1'); ?>
+                <?php self::render_row(__('SHA-256 of the original file', 'sign-docs'), $hash, 'sign-docs-verification__hash'); ?>
             </dl>
 
             <div class="sign-docs-verification__actions">
                 <?php if ('' !== $stamped_file_url) : ?>
                     <a class="sign-docs-verification__button" href="<?php echo esc_url($stamped_file_url); ?>" target="_blank" rel="noopener">
-                        Открыть PDF с отметкой
+                        <?php echo esc_html__('Open the stamped PDF', 'sign-docs'); ?>
                     </a>
                 <?php endif; ?>
                 <?php if ('' === $stamped_file_url && 'unsigned' === $document_status && '' !== $original_file_url) : ?>
                     <a class="sign-docs-verification__button" href="<?php echo esc_url($original_file_url); ?>" target="_blank" rel="noopener">
-                        Открыть PDF
+                        <?php echo esc_html__('Open PDF', 'sign-docs'); ?>
                     </a>
                 <?php endif; ?>
                 <?php if ('' !== $stamped_file_url && '' !== $original_file_url && current_user_can('edit_post', $post_id)) : ?>
                     <a class="sign-docs-verification__button sign-docs-verification__button--secondary" href="<?php echo esc_url($original_file_url); ?>" target="_blank" rel="noopener">
-                        Открыть исходный PDF
+                        <?php echo esc_html__('Open the original PDF', 'sign-docs'); ?>
                     </a>
                 <?php endif; ?>
                 <span class="sign-docs-verification__qr-data"><?php echo esc_html($verification_url); ?></span>
             </div>
-            <p class="sign-docs-verification__note">Контрольная проверка выполняется по SHA-256 исходного PDF и записи на сайте.</p>
+            <p class="sign-docs-verification__note"><?php echo esc_html__('Verification is performed against the SHA-256 of the original PDF and the record on the site.', 'sign-docs'); ?></p>
             <?php self::render_file_checker($hash, $stamped_file_hash); ?>
         </section>
         <?php
@@ -173,9 +174,9 @@ final class Sign_Docs_Verification_Page
             data-preview-pages="<?php echo esc_attr((string) $pages); ?>"
             hidden
         >
-            <h3>Подписанный документ</h3>
+            <h3><?php echo esc_html__('Signed document', 'sign-docs'); ?></h3>
             <div class="sign-docs-verification__preview-body" data-sign-docs-preview-body>
-                <p class="sign-docs-verification__preview-loading">Загружаю предпросмотр…</p>
+                <p class="sign-docs-verification__preview-loading"><?php echo esc_html__('Loading preview…', 'sign-docs'); ?></p>
             </div>
         </div>
         <?php
@@ -194,10 +195,10 @@ final class Sign_Docs_Verification_Page
             data-original-hash="<?php echo esc_attr(strtolower($original_hash)); ?>"
             data-stamped-hash="<?php echo esc_attr(strtolower($stamped_hash)); ?>"
         >
-            <h3>Проверить PDF-файл</h3>
-            <p>Файл проверяется в браузере. Он не загружается на сайт.</p>
+            <h3><?php echo esc_html__('Verify a PDF file', 'sign-docs'); ?></h3>
+            <p><?php echo esc_html__('The file is checked in the browser. It is not uploaded to the site.', 'sign-docs'); ?></p>
             <label class="sign-docs-verification__file">
-                <span>Выбрать PDF</span>
+                <span><?php echo esc_html__('Choose a PDF', 'sign-docs'); ?></span>
                 <input type="file" accept="application/pdf,.pdf" data-sign-docs-checker-input>
             </label>
             <p class="sign-docs-verification__checker-result" data-sign-docs-checker-result aria-live="polite"></p>
@@ -210,7 +211,7 @@ final class Sign_Docs_Verification_Page
         if ($replaced_by_post_id > 0) {
             ?>
             <p class="sign-docs-verification__replacement sign-docs-verification__replacement--warning">
-                Этот документ заменен новой редакцией:
+                <?php echo esc_html__('This document was replaced by a new edition:', 'sign-docs'); ?>
                 <a href="<?php echo esc_url(self::url($replaced_by_post_id)); ?>"><?php echo esc_html(get_the_title($replaced_by_post_id)); ?></a>.
             </p>
             <?php
@@ -219,7 +220,7 @@ final class Sign_Docs_Verification_Page
         if ($replaces_post_id > 0) {
             ?>
             <p class="sign-docs-verification__replacement">
-                Этот документ заменяет предыдущую редакцию:
+                <?php echo esc_html__('This document replaces the previous edition:', 'sign-docs'); ?>
                 <a href="<?php echo esc_url(self::url($replaces_post_id)); ?>"><?php echo esc_html(get_the_title($replaces_post_id)); ?></a>.
             </p>
             <?php
@@ -230,12 +231,12 @@ final class Sign_Docs_Verification_Page
     {
         ob_start();
         ?>
-        <section class="sign-docs-verification" aria-label="Проверка документа">
+        <section class="sign-docs-verification" aria-label="<?php echo esc_attr__('Document verification', 'sign-docs'); ?>">
             <header class="sign-docs-verification__header">
-                <p class="sign-docs-verification__eyebrow">Страница проверки документа</p>
-                <h2>Документ еще не опубликован</h2>
+                <p class="sign-docs-verification__eyebrow"><?php echo esc_html__('Document verification page', 'sign-docs'); ?></p>
+                <h2><?php echo esc_html__('The document is not published yet', 'sign-docs'); ?></h2>
             </header>
-            <p class="sign-docs-verification__note">Публичная копия документа еще не сформирована.</p>
+            <p class="sign-docs-verification__note"><?php echo esc_html__('The public copy of the document has not been created yet.', 'sign-docs'); ?></p>
         </section>
         <?php
 
@@ -259,16 +260,16 @@ final class Sign_Docs_Verification_Page
     private static function status_label(string $status): string
     {
         $labels = array(
-            'active' => 'действующий',
-            'unsigned' => 'Без подписи',
-            'archive' => 'Архив',
-            'archived' => 'Архив',
-            'replaced' => 'заменен',
-            'deleted' => 'Архив',
-            'draft' => 'черновик',
-            'needs_public_copy' => 'ожидает публичную копию',
+            'active' => __('Active', 'sign-docs'),
+            'unsigned' => __('Unsigned', 'sign-docs'),
+            'archive' => __('Archived', 'sign-docs'),
+            'archived' => __('Archived', 'sign-docs'),
+            'replaced' => __('Replaced', 'sign-docs'),
+            'deleted' => __('Archived', 'sign-docs'),
+            'draft' => __('Draft', 'sign-docs'),
+            'needs_public_copy' => __('Needs public copy', 'sign-docs'),
         );
 
-        return $labels[$status] ?? ($status ?: 'действующий');
+        return $labels[$status] ?? ($status ?: __('Active', 'sign-docs'));
     }
 }

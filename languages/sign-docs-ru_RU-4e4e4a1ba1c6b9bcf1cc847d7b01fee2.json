@@ -1,0 +1,20 @@
+{
+  "translation-revision-date": "2026-09-08 10:50:54+0000",
+  "generator": "Sign Docs tools/i18n/build.py",
+  "domain": "sign-docs",
+  "locale_data": {
+    "sign-docs": {
+      "": {
+        "domain": "sign-docs",
+        "lang": "ru_RU",
+        "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+      },
+      "The document is signed with a simple electronic signature": [
+        "Документ подписан простой электронной подписью"
+      ],
+      "MSK": [
+        "МСК"
+      ]
+    }
+  }
+}

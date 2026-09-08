@@ -1,0 +1,119 @@
+{
+  "translation-revision-date": "2026-09-08 10:50:54+0000",
+  "generator": "Sign Docs tools/i18n/build.py",
+  "domain": "sign-docs",
+  "locale_data": {
+    "sign-docs": {
+      "": {
+        "domain": "sign-docs",
+        "lang": "ru_RU",
+        "plural-forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
+      },
+      "Preview container not found.": [
+        "Контейнер предпросмотра не найден."
+      ],
+      "Drop PDF here": [
+        "Перетащите PDF сюда"
+      ],
+      "or click to choose a file": [
+        "или щелкните, чтобы выбрать файл"
+      ],
+      "PDF selected": [
+        "PDF выбран"
+      ],
+      "The file will be uploaded after submitting the form.": [
+        "Файл будет загружен после отправки формы."
+      ],
+      "PDF.js was not found in assets/vendor.": [
+        "PDF.js не найден в assets/vendor."
+      ],
+      "Reading the first page text for autofill...": [
+        "Читаю текст первой страницы для автозаполнения..."
+      ],
+      "The first page does not have enough text layer for AI autofill.": [
+        "В первой странице не нашлось достаточно текстового слоя для AI-автозаполнения."
+      ],
+      "Suggesting document details with AI...": [
+        "Подбираю реквизиты документа через AI..."
+      ],
+      "AI suggested document details. Confidence: %1$d%%.": [
+        "AI предложил реквизиты документа. Уверенность: %1$d%%."
+      ],
+      "AI suggested document details.": [
+        "AI предложил реквизиты документа."
+      ],
+      "Check: %1$s": [
+        "Проверьте: %1$s"
+      ],
+      "Could not run AI autofill.": [
+        "Не удалось выполнить AI-автозаполнение."
+      ],
+      "for the completed %1$s academic year": [
+        "за %1$s учебный год"
+      ],
+      "for the %1$s academic year": [
+        "на %1$s учебный год"
+      ],
+      "for the completed year %1$s": [
+        "за %1$s год"
+      ],
+      "for the year %1$s": [
+        "на %1$s год"
+      ],
+      "Academic": [
+        "Учебный"
+      ],
+      "Calendar": [
+        "Календарный"
+      ],
+      "Cancel picking": [
+        "Отменить выбор места"
+      ],
+      "Pick stamp position": [
+        "Выбрать место штампа"
+      ],
+      "Manual position selected. You can pick it again.": [
+        "Место выбрано вручную. Можно выбрать заново."
+      ],
+      "Move the rectangle to the desired place and click.": [
+        "Наведите прямоугольник на нужное место и щелкните."
+      ],
+      "The corner from settings is used.": [
+        "Используется угол из настроек."
+      ],
+      "Request failed.": [
+        "Запрос не выполнен."
+      ],
+      "Could not load the font file.": [
+        "Не удалось загрузить файл шрифта."
+      ],
+      "Fontkit is not loaded for embedding fonts.": [
+        "Не загружен fontkit для встраивания шрифта."
+      ],
+      "SHA-256 of the original PDF: %1$s  Verify: %2$s": [
+        "SHA-256 исходного PDF: %1$s  Проверка: %2$s"
+      ],
+      "Local JS libraries or the Golos Text font are not loaded. Check assets/vendor.": [
+        "Не загружены локальные JS-библиотеки или шрифт Golos Text. Проверьте assets/vendor."
+      ],
+      "Uploading the original PDF and calculating the server SHA-256...": [
+        "Загружаю исходный PDF и считаю серверный SHA-256..."
+      ],
+      "Embedding Golos Text, adding the stamp and QR code...": [
+        "Встраиваю Golos Text, накладываю штамп и QR-код..."
+      ],
+      "Saving the public PDF copy with the stamp...": [
+        "Сохраняю публичную PDF-копию с отметкой..."
+      ],
+      "The document is signed and registered.": [
+        "Документ подписан и зарегистрирован."
+      ],
+      "Open verification page": [
+        "Открыть страницу проверки"
+      ],
+      "Could not sign the document.": [
+        "Не удалось подписать документ."
+      ]
+    }
+  }
+}

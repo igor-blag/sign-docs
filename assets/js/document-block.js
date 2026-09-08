@@ -3,6 +3,7 @@
 
     const el = element.createElement;
     const __ = i18n.__;
+    const sprintf = i18n.sprintf;
     const useEffect = element.useEffect;
     const useRef = element.useRef;
     const useState = element.useState;
@@ -227,21 +228,37 @@
         var year = base.getFullYear();
         var academicStart = month >= 8 ? year : year - 1;
 
+        function completedAcademicYear(shortYear) {
+            return sprintf(__('for the completed %1$s academic year', 'sign-docs'), shortYear);
+        }
+
+        function upcomingAcademicYear(shortYear) {
+            return sprintf(__('for the %1$s academic year', 'sign-docs'), shortYear);
+        }
+
+        function completedCalendarYear(value) {
+            return sprintf(__('for the completed year %1$s', 'sign-docs'), value);
+        }
+
+        function upcomingCalendarYear(value) {
+            return sprintf(__('for the year %1$s', 'sign-docs'), value);
+        }
+
         return [
             {
                 label: __('Academic', 'sign-docs'),
                 items: [
-                    { label: shortAcademicYear(academicStart - 1), value: 'за ' + shortAcademicYear(academicStart - 1) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart), value: 'на ' + shortAcademicYear(academicStart) + ' учебный год' },
-                    { label: shortAcademicYear(academicStart + 1), value: 'на ' + shortAcademicYear(academicStart + 1) + ' учебный год' }
+                    { label: shortAcademicYear(academicStart - 1), value: completedAcademicYear(shortAcademicYear(academicStart - 1)) },
+                    { label: shortAcademicYear(academicStart), value: upcomingAcademicYear(shortAcademicYear(academicStart)) },
+                    { label: shortAcademicYear(academicStart + 1), value: upcomingAcademicYear(shortAcademicYear(academicStart + 1)) }
                 ]
             },
             {
                 label: __('Calendar', 'sign-docs'),
                 items: [
-                    { label: String(year - 1), value: 'за ' + String(year - 1) + ' год' },
-                    { label: String(year), value: 'на ' + String(year) + ' год' },
-                    { label: String(year + 1), value: 'на ' + String(year + 1) + ' год' }
+                    { label: String(year - 1), value: completedCalendarYear(year - 1) },
+                    { label: String(year), value: upcomingCalendarYear(year) },
+                    { label: String(year + 1), value: upcomingCalendarYear(year + 1) }
                 ]
             }
         ];
@@ -382,8 +399,8 @@
         };
 
         const fields = {
-            header: 'ДОКУМЕНТ ПОДПИСАН ПРОСТОЙ ЭЛЕКТРОННОЙ ПОДПИСЬЮ',
-            line1: compactSignedAt(data.signed_at_utc || data.signed_at, 'Europe/Moscow') + ' (МСК)  |  ID: ' + (data.post_id || '') + '  |  SHA-256: ' + shortHash,
+            header: __('The document is signed with a simple electronic signature', 'sign-docs').toUpperCase(),
+            line1: sprintf(__('%1$s (MSK)  |  ID: %2$s  |  SHA-256: %3$s', 'sign-docs'), compactSignedAt(data.signed_at_utc || data.signed_at, 'Europe/Moscow'), data.post_id || '', shortHash),
             name: data.signer_name || data.signer || '',
             position: data.signer_position || '',
             org: data.organization || ''
@@ -1072,7 +1089,7 @@
                                 type: 'text',
                                 value: institution,
                                 onChange: function (event) { setInstitution(event.target.value); },
-                                placeholder: 'Вводите в родительном падеже',
+                                placeholder: __('Enter the name in the genitive case', 'sign-docs'),
                                 style: inputStyle()
                             })
                         ),
@@ -1080,7 +1097,7 @@
                             'div',
                             { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' } },
                             el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document date', 'sign-docs')), el('input', { type: 'text', value: documentDate, onChange: function (event) { setDocumentDate(formatDateInput(event.target.value)); }, placeholder: '20.05.2026', style: inputStyle() })),
-                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document number', 'sign-docs')), el('input', { type: 'text', value: documentNumber, onChange: function (event) { setDocumentNumber(event.target.value); }, placeholder: '183-р', style: inputStyle() }))
+                            el('label', null, el('span', { style: { display: 'block', marginBottom: '4px' } }, __('Document number', 'sign-docs')), el('input', { type: 'text', value: documentNumber, onChange: function (event) { setDocumentNumber(event.target.value); }, placeholder: __('183-R', 'sign-docs'), style: inputStyle() }))
                         ),
                         el('div', { style: fieldStyle() },
                             el(components.TextareaControl, { label: __('Title', 'sign-docs'), value: postTitle, onChange: function (value) { setTitleManual(true); setPostTitle(value); }, rows: 3, __next40pxDefaultSize: true }),

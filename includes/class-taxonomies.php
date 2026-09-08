@@ -38,8 +38,8 @@ final class Sign_Docs_Taxonomies
 
         self::register_taxonomy(
             'sign_doc_institution',
-            __('Издавшие органы', 'sign-docs'),
-            __('Издавший орган', 'sign-docs'),
+            __('Issuing authorities', 'sign-docs'),
+            __('Issuing authority', 'sign-docs'),
             'document-institution',
             false
         );
@@ -78,27 +78,27 @@ final class Sign_Docs_Taxonomies
         self::ensure_terms(
             'sign_doc_category',
             array(
-                array('slug' => 'local-act', 'name' => __('Локальный акт', 'sign-docs')),
-                array('slug' => 'external-regulation', 'name' => __('Внешний нормативный документ', 'sign-docs')),
-                array('slug' => 'other-document', 'name' => __('Прочий документ', 'sign-docs')),
+                array('slug' => 'local-act', 'name' => __('Local act', 'sign-docs')),
+                array('slug' => 'external-regulation', 'name' => __('External regulatory document', 'sign-docs')),
+                array('slug' => 'other-document', 'name' => __('Other document', 'sign-docs')),
             )
         );
 
         self::ensure_terms(
             'sign_doc_type',
             array(
-                array('slug' => 'local-acts', 'name' => __('Локальные акты', 'sign-docs')),
-                array('slug' => 'local-order', 'name' => __('Приказ', 'sign-docs'), 'parent' => 'local-acts'),
-                array('slug' => 'local-regulation', 'name' => __('Положение', 'sign-docs'), 'parent' => 'local-acts'),
-                array('slug' => 'local-rule', 'name' => __('Правила', 'sign-docs'), 'parent' => 'local-acts'),
-                array('slug' => 'local-program', 'name' => __('Программа', 'sign-docs'), 'parent' => 'local-acts'),
-                array('slug' => 'external-regulations', 'name' => __('Внешние нормативные документы', 'sign-docs')),
-                array('slug' => 'external-order', 'name' => __('Приказ', 'sign-docs'), 'parent' => 'external-regulations'),
-                array('slug' => 'external-directive', 'name' => __('Распоряжение', 'sign-docs'), 'parent' => 'external-regulations'),
-                array('slug' => 'external-resolution', 'name' => __('Постановление', 'sign-docs'), 'parent' => 'external-regulations'),
-                array('slug' => 'external-federal-law', 'name' => __('Федеральный закон', 'sign-docs'), 'parent' => 'external-regulations'),
-                array('slug' => 'other-documents', 'name' => __('Прочие документы', 'sign-docs')),
-                array('slug' => 'other-document-type', 'name' => __('Иное', 'sign-docs'), 'parent' => 'other-documents'),
+                array('slug' => 'local-acts', 'name' => __('Local acts', 'sign-docs')),
+                array('slug' => 'local-order', 'name' => __('Order', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-regulation', 'name' => __('Regulation', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-rule', 'name' => __('Rules', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'local-program', 'name' => __('Program', 'sign-docs'), 'parent' => 'local-acts'),
+                array('slug' => 'external-regulations', 'name' => __('External regulatory documents', 'sign-docs')),
+                array('slug' => 'external-order', 'name' => __('Order', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-directive', 'name' => __('Directive', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-resolution', 'name' => __('Resolution', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'external-federal-law', 'name' => __('Federal law', 'sign-docs'), 'parent' => 'external-regulations'),
+                array('slug' => 'other-documents', 'name' => __('Other documents', 'sign-docs')),
+                array('slug' => 'other-document-type', 'name' => __('Other', 'sign-docs'), 'parent' => 'other-documents'),
             )
         );
 
