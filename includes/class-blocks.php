@@ -167,8 +167,8 @@ final class Sign_Docs_Blocks
                 'hasPdfJs' => $has_pdfjs,
                 'siteIconUrl' => self::site_icon_url(),
                 'pdfJs' => $has_pdfjs ? array(
-                    'module' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs',
-                    'worker' => SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs',
+                    'module' => add_query_arg( 'ver', (string) filemtime( $pdfjs_path ), SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs' ),
+                    'worker' => add_query_arg( 'ver', (string) filemtime( $pdfjs_worker_path ), SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs' ),
                 ) : null,
                 'documentsPath' => '/sign-docs/v1/documents',
                 'defaults' => Sign_Docs_Settings::get(),

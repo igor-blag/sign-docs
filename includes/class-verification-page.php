@@ -65,8 +65,8 @@ final class Sign_Docs_Verification_Page
             'sign-docs-public',
             'SignDocsPreview',
             array(
-                'module' => file_exists($pdf_js_path) ? SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs' : '',
-                'worker' => file_exists($pdf_worker_path) ? SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs' : '',
+                'module' => file_exists($pdf_js_path) ? add_query_arg('ver', (string) filemtime($pdf_js_path), SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.min.mjs') : '',
+                'worker' => file_exists($pdf_worker_path) ? add_query_arg('ver', (string) filemtime($pdf_worker_path), SIGN_DOCS_PLUGIN_URL . 'assets/vendor/pdf.worker.min.mjs') : '',
                 'hasPdfJs' => file_exists($pdf_js_path) && file_exists($pdf_worker_path),
             )
         );
