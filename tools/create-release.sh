@@ -65,7 +65,7 @@ zip_dir "$ZIP_NAME" "$DIST_DIR"
 
 # Verify the archive has the WordPress-expected root folder.
 if command -v unzip >/dev/null 2>&1; then
-    if ! unzip -l "$ZIP_NAME" | grep -q "sign-docs/sign-docs.php"; then
+    if ! unzip -Z1 "$ZIP_NAME" | grep -Fx "sign-docs/sign-docs.php" > /dev/null; then
         echo "Error: '$ZIP_NAME' does not contain sign-docs/sign-docs.php."
         exit 1
     fi
