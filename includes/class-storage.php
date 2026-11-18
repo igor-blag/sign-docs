@@ -95,6 +95,34 @@ final class Sign_Docs_Storage
         return is_string($hash) ? $hash : '';
     }
 
+    public static function make_pdf_public(string $path): bool
+    {
+        $base_dir = realpath(self::paths()['base_dir']);
+        $file = realpath($path);
+
+        return false !== $base_dir && false !== $file
+            && str_starts_with($file, $base_dir . DIRECTORY_SEPARATOR)
+            && is_file($file) && @chmod($file, 0644);
+    }
+
+    public static function copy_public_pdf(string $source, string $destination): bool
+    {
+        $temporary = @tempnam(dirname($destination), '.sign-docs-');
+        if (false === $temporary) {
+            return false;
+        }
+
+        try {
+            return @copy($source, $temporary)
+                && self::make_pdf_public($temporary)
+                && @rename($temporary, $destination);
+        } finally {
+            if (is_file($temporary)) {
+                wp_delete_file($temporary);
+            }
+        }
+    }
+
     /**
      * Remove every stored directory that belongs to a document.
      */

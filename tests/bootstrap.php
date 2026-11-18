@@ -176,6 +176,7 @@ function sign_docs_tests_reset(): void
     $GLOBALS['sign_docs_test_posts'] = array();
     $GLOBALS['sign_docs_test_meta'] = array();
     $GLOBALS['sign_docs_test_next_post_id'] = 1;
+    $GLOBALS['sign_docs_test_post_update_error'] = false;
     $GLOBALS['sign_docs_test_current_user_id'] = 7;
     $GLOBALS['sign_docs_test_current_caps'] = array();
     $GLOBALS['sign_docs_test_registered_meta'] = array();
@@ -312,8 +313,12 @@ function wp_insert_post(array $postarr, bool $wp_error = false)
     return $post->ID;
 }
 
-function wp_update_post(array $postarr)
+function wp_update_post(array $postarr, bool $wp_error = false)
 {
+    if ($GLOBALS['sign_docs_test_post_update_error']) {
+        return $wp_error ? new WP_Error('db_update_error', 'Simulated post update failure.') : 0;
+    }
+
     $post_id = absint($postarr['ID'] ?? 0);
     if ($post_id <= 0 || empty($GLOBALS['sign_docs_test_posts'][$post_id])) {
         return 0;
@@ -327,6 +332,15 @@ function wp_update_post(array $postarr)
     }
 
     return $post_id;
+}
+
+function clean_post_cache(int $post_id): void
+{
+}
+
+function wp_delete_file(string $path): void
+{
+    unlink($path);
 }
 
 function wp_delete_post(int $post_id, bool $force_delete = false)

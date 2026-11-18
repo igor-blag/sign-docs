@@ -141,6 +141,54 @@ run_test(
 );
 
 run_test(
+    'failed publication can be retried with the same PDF and document ID',
+    static function (): void {
+        $previous_mask = umask(0077);
+        try {
+            $post_id = Sign_Docs_Document_Service::prepare_from_local_pdf(
+                make_pdf('original.pdf'),
+                array('post_title' => 'Retry')
+            );
+            assert_true(is_int($post_id), 'Prepare should succeed.');
+            $source = make_pdf('stamped.pdf', 'stamped');
+            $original_path = Sign_Docs_Meta::get($post_id, 'original_file_path');
+            $stamped_path = dirname($original_path) . '/retry-stamped.pdf';
+
+            $GLOBALS['sign_docs_test_post_update_error'] = true;
+            $result = Sign_Docs_Document_Service::complete_with_stamped_pdf($post_id, $source);
+            assert_error_code($result, 'db_update_error', 'Complete must surface the WordPress error.');
+            assert_same(get_post_status($post_id), 'private', 'Failed record must stay private.');
+            assert_same(Sign_Docs_Meta::get($post_id, 'document_status'), 'needs_public_copy', 'Failed record must remain retryable.');
+            assert_same(Sign_Docs_Meta::get($post_id, 'completed_at'), '', 'Failure must not set completion metadata.');
+            assert_true(! file_exists($stamped_path), 'Failed upload must not leave a published PDF copy.');
+
+            $GLOBALS['sign_docs_test_post_update_error'] = false;
+            $result = Sign_Docs_Document_Service::complete_with_stamped_pdf($post_id, $source);
+            assert_same($result, true, 'Retry must publish the original record.');
+            assert_same(get_post_status($post_id), 'publish', 'Retry must publish the post.');
+            assert_same(Sign_Docs_Meta::get($post_id, 'document_status'), 'active', 'Successful retry must activate the document.');
+            foreach (array($original_path, $stamped_path) as $path) {
+                clearstatcache(true, $path);
+                assert_same(fileperms($path) & 0777, 0644, 'Published PDF must be readable under umask 0077.');
+            }
+
+            $GLOBALS['sign_docs_test_current_user_id'] = 8;
+            $result = Sign_Docs_Document_Service::complete_with_stamped_pdf($post_id, $source);
+            assert_same($result, true, 'Replaying an already successful completion must succeed.');
+            assert_same(Sign_Docs_Meta::get($post_id, 'completed_by_user_id'), '7', 'A replay must preserve completion audit fields.');
+            assert_error_code(
+                Sign_Docs_Document_Service::complete_with_stamped_pdf($post_id, make_pdf('other.pdf', 'different')),
+                'sign_docs_invalid_document_state',
+                'A different PDF must not replace a completed document.'
+            );
+            assert_same(Sign_Docs_Meta::get($post_id, 'stamped_file_hash'), hash_file('sha256', $source), 'The completed PDF must keep its SHA-256.');
+        } finally {
+            umask($previous_mask);
+        }
+    }
+);
+
+run_test(
     'complete rejects documents outside pending state',
     static function (): void {
         $post_id = Sign_Docs_Document_Service::prepare_from_local_pdf(

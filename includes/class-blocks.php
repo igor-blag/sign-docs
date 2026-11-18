@@ -221,7 +221,7 @@ final class Sign_Docs_Blocks
 
         $document_status = Sign_Docs_Meta::get($post_id, 'document_status') ?: 'active';
 
-        if ('archived' === $document_status) {
+        if (in_array($document_status, array('archived', 'needs_public_copy'), true)) {
             return '';
         }
 

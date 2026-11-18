@@ -88,6 +88,11 @@ final class Sign_Docs_Document_Service
             return new WP_Error('sign_docs_original_copy_failed', __('Failed to save the original PDF.', 'sign-docs'));
         }
 
+        if ('publish' === $post_status && ! Sign_Docs_Storage::make_pdf_public($paths['original_path'])) {
+            self::rollback_created_post($post_id);
+            return new WP_Error('sign_docs_original_permissions_failed', __('Failed to save the original PDF.', 'sign-docs'));
+        }
+
         $hash = Sign_Docs_Storage::hash_file($paths['original_path']);
         if ('' === $hash) {
             self::rollback_created_post($post_id);
@@ -234,7 +239,40 @@ final class Sign_Docs_Document_Service
             return new WP_Error('sign_docs_invalid_mime', __('Only PDF files can be signed.', 'sign-docs'));
         }
 
-        if ('needs_public_copy' !== Sign_Docs_Meta::get($post_id, 'document_status')) {
+        $original_path = Sign_Docs_Meta::get($post_id, 'original_file_path');
+        $original = '' !== $original_path && is_file($original_path) ? @fopen($original_path, 'rb') : false;
+        if (false === $original) {
+            return new WP_Error('sign_docs_original_missing', __('Original PDF is missing.', 'sign-docs'));
+        }
+
+        try {
+            if (! flock($original, LOCK_EX)) {
+                return new WP_Error('sign_docs_completion_lock_failed', __('Failed to save the public PDF copy.', 'sign-docs'));
+            }
+
+            clean_post_cache($post_id);
+            return self::complete_locked($post_id, $original_path, $stamped_source_path);
+        } finally {
+            fclose($original);
+        }
+    }
+
+    /** @return true|WP_Error */
+    private static function complete_locked(int $post_id, string $original_path, string $stamped_source_path)
+    {
+        $document_status = Sign_Docs_Meta::get($post_id, 'document_status');
+        if ('active' === $document_status && 'publish' === get_post_status($post_id)) {
+            $stamped_hash = Sign_Docs_Meta::get($post_id, 'stamped_file_hash');
+            $stamped_path = Sign_Docs_Meta::get($post_id, 'stamped_file_path');
+            if ('' !== $stamped_hash
+                && hash_equals($stamped_hash, Sign_Docs_Storage::hash_file($stamped_source_path))
+                && hash_equals($stamped_hash, Sign_Docs_Storage::hash_file($stamped_path))
+            ) {
+                return true;
+            }
+        }
+
+        if ('needs_public_copy' !== $document_status) {
             return new WP_Error(
                 'sign_docs_invalid_document_state',
                 __('This document is not waiting for a public PDF copy.', 'sign-docs'),
@@ -242,19 +280,10 @@ final class Sign_Docs_Document_Service
             );
         }
 
-        $original_path = Sign_Docs_Meta::get($post_id, 'original_file_path');
         $stored_hash = Sign_Docs_Meta::get($post_id, 'sha256_hash');
         $verification_url = Sign_Docs_Meta::get($post_id, 'verification_url');
         $qr_code_data = Sign_Docs_Meta::get($post_id, 'qr_code_data');
         $signed_at = Sign_Docs_Meta::get($post_id, 'signed_at');
-        $timestamp = strtotime($signed_at) ?: time();
-        $file_basename = Sign_Docs_Meta::get($post_id, 'file_basename');
-        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp, $file_basename ?: null);
-
-        if ('' === $original_path || ! is_readable($original_path)) {
-            return new WP_Error('sign_docs_original_missing', __('Original PDF is missing.', 'sign-docs'));
-        }
-
         $current_original_hash = Sign_Docs_Storage::hash_file($original_path);
         if ('' === $stored_hash || '' === $current_original_hash || ! hash_equals($stored_hash, $current_original_hash)) {
             return new WP_Error(
@@ -272,29 +301,48 @@ final class Sign_Docs_Document_Service
             );
         }
 
-        if (! copy($stamped_source_path, $paths['stamped_path'])) {
+        if (! Sign_Docs_Storage::make_pdf_public($original_path)) {
+            return new WP_Error('sign_docs_original_permissions_failed', __('Failed to save the original PDF.', 'sign-docs'));
+        }
+
+        $timestamp = strtotime($signed_at) ?: time();
+        $file_basename = Sign_Docs_Meta::get($post_id, 'file_basename');
+        $paths = Sign_Docs_Storage::ensure_document_directories($post_id, $timestamp, $file_basename ?: null);
+        $stamped_path = $paths['stamped_path'];
+        if (! Sign_Docs_Storage::copy_public_pdf($stamped_source_path, $stamped_path)) {
             return new WP_Error('sign_docs_stamped_copy_failed', __('Failed to save the public PDF copy.', 'sign-docs'));
         }
 
-        $stamped_hash = Sign_Docs_Storage::hash_file($paths['stamped_path']);
+        $stamped_hash = Sign_Docs_Storage::hash_file($stamped_path);
         if ('' === $stamped_hash) {
+            wp_delete_file($stamped_path);
             return new WP_Error('sign_docs_stamped_hash_failed', __('Failed to calculate SHA-256 for the public PDF copy.', 'sign-docs'));
         }
 
-        update_post_meta($post_id, 'stamped_file_path', $paths['stamped_path']);
-        update_post_meta($post_id, 'stamped_file_url', $paths['stamped_url']);
-        update_post_meta($post_id, 'stamped_file_hash', $stamped_hash);
-        update_post_meta($post_id, 'completed_at', current_time('mysql'));
-        update_post_meta($post_id, 'completed_by_user_id', get_current_user_id());
-        update_post_meta($post_id, 'completed_ip', self::request_ip());
-        update_post_meta($post_id, 'completed_user_agent', self::request_user_agent());
-        update_post_meta($post_id, 'document_status', 'active');
-        wp_update_post(
-            array(
-                'ID' => $post_id,
-                'post_status' => 'publish',
-            )
+        $published = wp_update_post(array('ID' => $post_id, 'post_status' => 'publish'), true);
+        if ($post_id !== $published || 'publish' !== get_post_status($post_id)) {
+            wp_delete_file($stamped_path);
+            return is_wp_error($published)
+                ? $published
+                : new WP_Error('sign_docs_publish_failed', __('Could not update post in the database.'));
+        }
+
+        $meta = array(
+            'stamped_file_path' => $stamped_path,
+            'stamped_file_url' => $paths['stamped_url'],
+            'stamped_file_hash' => $stamped_hash,
+            'completed_at' => current_time('mysql'),
+            'completed_by_user_id' => get_current_user_id(),
+            'completed_ip' => self::request_ip(),
+            'completed_user_agent' => self::request_user_agent(),
+            'document_status' => 'active',
         );
+        foreach ($meta as $field => $value) {
+            if (! update_post_meta($post_id, $field, $value) && (string) $value !== Sign_Docs_Meta::get($post_id, $field)) {
+                return new WP_Error('sign_docs_completion_meta_failed', __('Could not update post in the database.'));
+            }
+        }
+
         self::apply_replacement($post_id);
 
         return true;

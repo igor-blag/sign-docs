@@ -1421,7 +1421,15 @@
         });
     }
 
+    let pendingSignature = null;
+    let submittingSignature = false;
+
     form.addEventListener('submit', async function (event) {
+        if (submittingSignature) {
+            event.preventDefault();
+            return;
+        }
+
         const file = currentFile();
         const saveMode = event.submitter && event.submitter.value ? event.submitter.value : 'signed';
 
@@ -1441,16 +1449,14 @@
 
         event.preventDefault();
 
+        const submitButton = event.submitter || form.querySelector('.sign-docs-save-signed');
+        submittingSignature = true;
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
+
         try {
-            const submitButton = form.querySelector('[type="submit"]');
-            if (submitButton) {
-                submitButton.disabled = true;
-            }
-
-            setStatus(__('Uploading the original PDF and calculating the server SHA-256...', 'sign-docs'), 'info');
-
             const prepareData = new FormData();
-            prepareData.append('original_pdf', file, file.name);
             prepareData.append('post_title', field('post_title'));
             prepareData.append('document_comment', field('document_comment'));
             prepareData.append('document_category', field('document_category'));
@@ -1488,18 +1494,29 @@
             prepareData.append('qr_logo_enabled', field('qr_logo_enabled') === '0' ? '0' : '1');
             prepareData.append('replaces_post_id', field('replaces_post_id'));
 
-            const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
+            const fields = JSON.stringify(Array.from(prepareData.entries()));
+            if (!pendingSignature || pendingSignature.file !== file || pendingSignature.fields !== fields) {
+                pendingSignature = null;
+                setStatus(__('Uploading the original PDF and calculating the server SHA-256...', 'sign-docs'), 'info');
+                prepareData.append('original_pdf', file, file.name);
+                const prepared = await postForm(window.SignDocsUpload.prepareUrl, prepareData);
+                pendingSignature = { file, fields, prepared, stampedBlob: null };
+            }
 
-            setStatus(__('Embedding Golos Text, adding the stamp and QR code...', 'sign-docs'), 'info');
-            const stampedBytes = await stampPdf(file, prepared);
-            const stampedBlob = new Blob([stampedBytes], { type: 'application/pdf' });
+            const prepared = pendingSignature.prepared;
+            if (!pendingSignature.stampedBlob) {
+                setStatus(__('Embedding Golos Text, adding the stamp and QR code...', 'sign-docs'), 'info');
+                const stampedBytes = await stampPdf(file, prepared);
+                pendingSignature.stampedBlob = new Blob([stampedBytes], { type: 'application/pdf' });
+            }
 
             setStatus(__('Saving the public PDF copy with the stamp...', 'sign-docs'), 'info');
             const completeData = new FormData();
             completeData.append('post_id', prepared.post_id);
-            completeData.append('stamped_pdf', stampedBlob, 'stamped.pdf');
+            completeData.append('stamped_pdf', pendingSignature.stampedBlob, 'stamped.pdf');
 
             const completed = await postForm(window.SignDocsUpload.completeUrl, completeData);
+            pendingSignature = null;
             const returnUrl = uploadReturnUrl(completed.post_id || prepared.post_id);
             if (returnUrl) {
                 window.location.assign(returnUrl);
@@ -1509,12 +1526,10 @@
             form.reset();
             titleManuallyEdited = false;
             clearPdfPreview();
-            if (submitButton) {
-                submitButton.disabled = false;
-            }
         } catch (error) {
             setStatus(error.message || __('Could not sign the document.', 'sign-docs'), 'error');
-            const submitButton = form.querySelector('[type="submit"]');
+        } finally {
+            submittingSignature = false;
             if (submitButton) {
                 submitButton.disabled = false;
             }
